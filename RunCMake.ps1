@@ -1,6 +1,6 @@
 param 
 (
-    [Parameter(Mandatory = $True)] [ValidateSet('Win64vs2022', 'Uwp64vs2022', 'Prospero', 'Scarlett', 'PCGDK', 'Nintendo')][string] $Target,
+    [Parameter(Mandatory = $True)] [ValidateSet('Win64vs2022', 'Uwp64vs2022', 'PCGDK')][string] $Target,
     [switch]$NoUnityBuild,
     [switch]$NoSubmoduleUpdate,
     [string]$SolutionName
@@ -79,38 +79,6 @@ elseif ($Target -eq "Uwp64vs2022") {
     $CMAKE_ARGS += "-DNS_ENABLE_QT_SUPPORT:BOOL=OFF"
     $CMAKE_ARGS += "-DNS_BUILD_FILTER='UwpProjects'"
 }
-# Playstation 5
-elseif($Target -eq "Prospero"){
-    Write-Host "=== Generating Solution for Prospero (Playstation 5) ==="
-
-    $CMAKE_ARGS += "Visual Studio 17 2022"
-    # Set this to your PS5 CMake path
-    $CMAKE_ARGS += "-DCMAKE_TOOLCHAIN_FILE=$env:SCE_ROOT_DIR\Prospero\Tools\CMake\PS5.cmake"
-    $CMAKE_ARGS += "-A Prospero" 
-    $CMAKE_ARGS += "-DNS_ENABLE_QT_SUPPORT:BOOL=OFF"
-    $CMAKE_ARGS += "-DNS_ENABLE_FOLDER_UNITY_FILES:BOOL=OFF"
-    $CMAKE_ARGS += "-DNS_3RDPARTY_DUKTAPE_SUPPORT=OFF"
-    $CMAKE_ARGS += "-DNS_3RDPARTY_ZSTD_SUPPORT=ON"
-    $CMAKE_ARGS += "-DNS_3RDPARTY_LUA_SUPPORT=OFF"
-    $CMAKE_ARGS += "x64"
-    $CMAKE_ARGS += "-B"
-    $CMAKE_ARGS += "$PSScriptRoot\Workspace\Prospero"
-}
-# Xbox Series X/S (GDKX)
-elseif($Target -eq "Scarlett"){
-    Write-Host "=== Generating Solution for Scarlett (Xbox Series X/S) ==="
-
-    $CMAKE_ARGS += "Visual Studio 17 2022"
-    $CMAKE_ARGS += "-A Scarlett"
-    $CMAKE_ARGS += "-DNS_ENABLE_QT_SUPPORT:BOOL=OFF"
-    $CMAKE_ARGS += "-DNS_ENABLE_FOLDER_UNITY_FILES:BOOL=OFF"
-    $CMAKE_ARGS += "-DNS_3RDPARTY_DUKTAPE_SUPPORT=OFF"
-    $CMAKE_ARGS += "-DNS_3RDPARTY_ZSTD_SUPPORT=ON"
-    $CMAKE_ARGS += "-DNS_3RDPARTY_LUA_SUPPORT=OFF"
-    $CMAKE_ARGS += "x64"
-    $CMAKE_ARGS += "-B"
-    $CMAKE_ARGS += "$PSScriptRoot\Workspace\Scarlett"
-}
 # Windows GDK (Game Pass)
 elseif($Target -eq "PCGDK"){
     Write-Host "=== Generating Solution for Scarlett (Xbox Series X/S) ==="
@@ -125,21 +93,6 @@ elseif($Target -eq "PCGDK"){
     $CMAKE_ARGS += "x64"
     $CMAKE_ARGS += "-B"
     $CMAKE_ARGS += "$PSScriptRoot\Workspace\Scarlett"
-}
-# Nintendo (Switch 1, 2)
-elseif($Target -eq "Nintendo"){
-    Write-Host "=== Generating Solution for Nintendo ==="
-
-    $CMAKE_ARGS += "Visual Studio 17 2022"
-    $CMAKE_ARGS += "-A Nintendo"
-    $CMAKE_ARGS += "-DNS_ENABLE_QT_SUPPORT:BOOL=OFF"
-    $CMAKE_ARGS += "-DNS_ENABLE_FOLDER_UNITY_FILES:BOOL=OFF"
-    $CMAKE_ARGS += "-DNS_3RDPARTY_DUKTAPE_SUPPORT=OFF"
-    $CMAKE_ARGS += "-DNS_3RDPARTY_ZSTD_SUPPORT=ON"
-    $CMAKE_ARGS += "-DNS_3RDPARTY_LUA_SUPPORT=OFF"
-    $CMAKE_ARGS += "x64"
-    $CMAKE_ARGS += "-B"
-    $CMAKE_ARGS += "$PSScriptRoot\Workspace\Nintendo"
 }
 else {
     throw "Unknown target '$Target'."
