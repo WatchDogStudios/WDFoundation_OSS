@@ -1,0 +1,33 @@
+/*
+ *   Copyright (c) 2023 WD Studios L.L.C.
+ *   All rights reserved.
+ *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
+ */
+#pragma once
+
+#include "../Common/Platforms.h"
+#include "../Common/ConstantBufferMacros.h"
+
+CONSTANT_BUFFER(nsParticleSystemConstants, 2)
+{
+	MAT4(ObjectToWorldMatrix);
+
+  // random variations, can be combined with flipbook animations
+  UINT1(TextureAtlasVariationFramesX);
+  UINT1(TextureAtlasVariationFramesY);
+
+  // flip-book animations
+  UINT1(TextureAtlasFlipbookFramesX);
+  UINT1(TextureAtlasFlipbookFramesY);
+
+  // for trail particles
+  FLOAT1(SnapshotFraction);
+  INT1(NumUsedTrailPoints);
+
+  // heat haze distortion (pixel offset in screen-space)
+  FLOAT1(DistortionStrength);
+  
+  // use this instead of world clock for determinism
+  FLOAT1(TotalEffectLifeTime);
+};
+

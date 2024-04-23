@@ -1,0 +1,39 @@
+/*
+ *   Copyright (c) 2023-present WD Studios L.L.C.
+ *   All rights reserved.
+ *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
+ */
+#include <Foundation/FoundationPCH.h>
+
+#include <Foundation/Profiling/Profiling.h>
+#include <Foundation/Threading/ThreadWithDispatcher.h>
+
+nsThreadWithDispatcher::nsThreadWithDispatcher(const char* szName /*= "nsThreadWithDispatcher"*/, nsUInt32 uiStackSize /*= 128 * 1024*/)
+  : nsThread(szName, uiStackSize)
+{
+}
+
+nsThreadWithDispatcher::~nsThreadWithDispatcher() = default;
+
+void nsThreadWithDispatcher::Dispatch(DispatchFunction&& delegate)
+{
+  NS_LOCK(m_QueueMutex);
+  m_ActiveQueue.PushBack(std::move(delegate));
+}
+
+void nsThreadWithDispatcher::DispatchQueue()
+{
+  {
+    NS_LOCK(m_QueueMutex);
+    std::swap(m_ActiveQueue, m_CurrentlyBeingDispatchedQueue);
+  }
+
+  for (const auto& pDelegate : m_CurrentlyBeingDispatchedQueue)
+  {
+    pDelegate();
+  }
+
+  m_CurrentlyBeingDispatchedQueue.Clear();
+}
+
+NS_STATICLINK_FILE(Foundation, Foundation_Threading_Implementation_ThreadWithDispatcher);

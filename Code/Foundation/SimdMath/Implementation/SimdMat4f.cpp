@@ -1,0 +1,28 @@
+/*
+ *   Copyright (c) 2023-present WD Studios L.L.C.
+ *   All rights reserved.
+ *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
+ */
+#include <Foundation/FoundationPCH.h>
+
+#include <Foundation/Math/Mat4.h>
+#include <Foundation/SimdMath/SimdMat4f.h>
+
+///\todo optimize
+
+nsResult nsSimdMat4f::Invert(const nsSimdFloat& fEpsilon)
+{
+  nsMat4 tmp;
+  GetAsArray(tmp.m_fElementsCM, nsMatrixLayout::ColumnMajor);
+
+  if (tmp.Invert(fEpsilon).Failed())
+    return NS_FAILURE;
+
+  *this = nsSimdMat4f::MakeFromColumnMajorArray(tmp.m_fElementsCM);
+
+  return NS_SUCCESS;
+}
+
+
+
+NS_STATICLINK_FILE(Foundation, Foundation_SimdMath_Implementation_SimdMat4f);

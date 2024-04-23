@@ -1,0 +1,57 @@
+/*
+ *   Copyright (c) 2023-present WD Studios L.L.C.
+ *   All rights reserved.
+ *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
+ */
+#include <Foundation/Containers/HybridArray.h>
+
+template <typename T, nsUInt32 Size, typename AllocatorWrapper /*= nsDefaultAllocatorWrapper*/>
+nsHybridArray<T, Size, AllocatorWrapper>::nsHybridArray()
+  : nsDynamicArray<T, AllocatorWrapper>(GetStaticArray(), Size, AllocatorWrapper::GetAllocator())
+{
+}
+
+template <typename T, nsUInt32 Size, typename AllocatorWrapper /*= nsDefaultAllocatorWrapper*/>
+nsHybridArray<T, Size, AllocatorWrapper>::nsHybridArray(nsAllocatorBase* pAllocator)
+  : nsDynamicArray<T, AllocatorWrapper>(GetStaticArray(), Size, pAllocator)
+{
+}
+
+template <typename T, nsUInt32 Size, typename AllocatorWrapper /*= nsDefaultAllocatorWrapper*/>
+nsHybridArray<T, Size, AllocatorWrapper>::nsHybridArray(const nsHybridArray<T, Size, AllocatorWrapper>& other)
+  : nsDynamicArray<T, AllocatorWrapper>(GetStaticArray(), Size, AllocatorWrapper::GetAllocator())
+{
+  *this = other;
+}
+
+template <typename T, nsUInt32 Size, typename AllocatorWrapper /*= nsDefaultAllocatorWrapper*/>
+nsHybridArray<T, Size, AllocatorWrapper>::nsHybridArray(const nsArrayPtr<const T>& other)
+  : nsDynamicArray<T, AllocatorWrapper>(GetStaticArray(), Size, AllocatorWrapper::GetAllocator())
+{
+  *this = other;
+}
+
+template <typename T, nsUInt32 Size, typename AllocatorWrapper /*= nsDefaultAllocatorWrapper*/>
+nsHybridArray<T, Size, AllocatorWrapper>::nsHybridArray(nsHybridArray<T, Size, AllocatorWrapper>&& other)
+  : nsDynamicArray<T, AllocatorWrapper>(GetStaticArray(), Size, other.GetAllocator())
+{
+  *this = std::move(other);
+}
+
+template <typename T, nsUInt32 Size, typename AllocatorWrapper /*= nsDefaultAllocatorWrapper*/>
+void nsHybridArray<T, Size, AllocatorWrapper>::operator=(const nsHybridArray<T, Size, AllocatorWrapper>& rhs)
+{
+  nsDynamicArray<T, AllocatorWrapper>::operator=(rhs);
+}
+
+template <typename T, nsUInt32 Size, typename AllocatorWrapper /*= nsDefaultAllocatorWrapper*/>
+void nsHybridArray<T, Size, AllocatorWrapper>::operator=(const nsArrayPtr<const T>& rhs)
+{
+  nsDynamicArray<T, AllocatorWrapper>::operator=(rhs);
+}
+
+template <typename T, nsUInt32 Size, typename AllocatorWrapper /*= nsDefaultAllocatorWrapper*/>
+void nsHybridArray<T, Size, AllocatorWrapper>::operator=(nsHybridArray<T, Size, AllocatorWrapper>&& rhs) noexcept
+{
+  nsDynamicArray<T, AllocatorWrapper>::operator=(std::move(rhs));
+}
