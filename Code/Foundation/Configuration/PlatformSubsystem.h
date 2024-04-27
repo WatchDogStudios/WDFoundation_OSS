@@ -2,8 +2,8 @@
 
 #include <Foundation/Basics.h>
 #include <Foundation/Utilities/EnumerableClass.h>
-
 #include <Foundation/Configuration/SubSystem.h>
+
 /// NOTE: THIS IS NOT ALLOWED TO BE INCLUDED IN THE OPEN-SOURCE VERSION.
 /// @brief Base class for implementing functionality for extra platforms (Consoles).
 /// see nsSubSystem for more info.
