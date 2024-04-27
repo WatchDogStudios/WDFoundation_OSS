@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Basics.h>
@@ -101,27 +96,30 @@ private:
 ///        through GetSingleton(). This is necessary, if you want to decouple library link dependencies and thus not put
 ///        any singleton code into the interface declaration, to keep it a pure virtual interface.
 ///        You can then query that class pointer also through the name of the interface using nsSingletonRegistry.
-#define NS_DECLARE_SINGLETON(self)                                      \
-public:                                                                 \
-  NS_ALWAYS_INLINE static self* GetSingleton() { return s_pSingleton; } \
-                                                                        \
-private:                                                                \
-  NS_DISALLOW_COPY_AND_ASSIGN(self);                                    \
-  void RegisterSingleton()                                              \
-  {                                                                     \
-    s_pSingleton = this;                                                \
-    nsSingletonRegistry::Register<self>(this);                          \
-  }                                                                     \
-  static void UnregisterSingleton()                                     \
-  {                                                                     \
-    if (s_pSingleton)                                                   \
-    {                                                                   \
-      nsSingletonRegistry::Unregister<self>();                          \
-      s_pSingleton = nullptr;                                           \
-    }                                                                   \
-  }                                                                     \
-  friend class nsSingletonRegistrar<self>;                              \
-  nsSingletonRegistrar<self> m_SingletonRegistrar;                      \
+#define NS_DECLARE_SINGLETON(self)                 \
+public:                                            \
+  NS_ALWAYS_INLINE static self* GetSingleton()     \
+  {                                                \
+    return s_pSingleton;                           \
+  }                                                \
+                                                   \
+private:                                           \
+  NS_DISALLOW_COPY_AND_ASSIGN(self);               \
+  void RegisterSingleton()                         \
+  {                                                \
+    s_pSingleton = this;                           \
+    nsSingletonRegistry::Register<self>(this);     \
+  }                                                \
+  static void UnregisterSingleton()                \
+  {                                                \
+    if (s_pSingleton)                              \
+    {                                              \
+      nsSingletonRegistry::Unregister<self>();     \
+      s_pSingleton = nullptr;                      \
+    }                                              \
+  }                                                \
+  friend class nsSingletonRegistrar<self>;         \
+  nsSingletonRegistrar<self> m_SingletonRegistrar; \
   static self* s_pSingleton
 
 /// \brief Insert this into a class declaration to turn the class into a singleton.
@@ -138,29 +136,32 @@ private:                                                                \
 ///        through GetSingleton(). This is necessary, if you want to decouple library link dependencies and thus not put
 ///        any singleton code into the interface declaration, to keep it a pure virtual interface.
 ///        You can then query that class pointer also through the name of the interface using nsSingletonRegistry.
-#define NS_DECLARE_SINGLETON_OF_INTERFACE(self, interface)              \
-public:                                                                 \
-  NS_ALWAYS_INLINE static self* GetSingleton() { return s_pSingleton; } \
-                                                                        \
-private:                                                                \
-  NS_DISALLOW_COPY_AND_ASSIGN(self);                                    \
-  void RegisterSingleton()                                              \
-  {                                                                     \
-    s_pSingleton = this;                                                \
-    nsSingletonRegistry::Register<self>(this);                          \
-    nsSingletonRegistry::Register<interface>(this);                     \
-  }                                                                     \
-  static void UnregisterSingleton()                                     \
-  {                                                                     \
-    if (s_pSingleton)                                                   \
-    {                                                                   \
-      nsSingletonRegistry::Unregister<interface>();                     \
-      nsSingletonRegistry::Unregister<self>();                          \
-      s_pSingleton = nullptr;                                           \
-    }                                                                   \
-  }                                                                     \
-  friend class nsSingletonRegistrar<self>;                              \
-  nsSingletonRegistrar<self> m_SingletonRegistrar;                      \
+#define NS_DECLARE_SINGLETON_OF_INTERFACE(self, interface) \
+public:                                                    \
+  NS_ALWAYS_INLINE static self* GetSingleton()             \
+  {                                                        \
+    return s_pSingleton;                                   \
+  }                                                        \
+                                                           \
+private:                                                   \
+  NS_DISALLOW_COPY_AND_ASSIGN(self);                       \
+  void RegisterSingleton()                                 \
+  {                                                        \
+    s_pSingleton = this;                                   \
+    nsSingletonRegistry::Register<self>(this);             \
+    nsSingletonRegistry::Register<interface>(this);        \
+  }                                                        \
+  static void UnregisterSingleton()                        \
+  {                                                        \
+    if (s_pSingleton)                                      \
+    {                                                      \
+      nsSingletonRegistry::Unregister<interface>();        \
+      nsSingletonRegistry::Unregister<self>();             \
+      s_pSingleton = nullptr;                              \
+    }                                                      \
+  }                                                        \
+  friend class nsSingletonRegistrar<self>;                 \
+  nsSingletonRegistrar<self> m_SingletonRegistrar;         \
   static self* s_pSingleton
 
 

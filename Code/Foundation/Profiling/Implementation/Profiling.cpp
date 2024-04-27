@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Application/Application.h>
@@ -35,6 +30,20 @@ private:
 
 static nsProfileCaptureDataTransfer s_ProfileCaptureDataTransfer;
 
+namespace
+{
+  static nsEventSubscriptionID s_PluginEventSubscription = 0;
+  void PluginEvent(const nsPluginEvent& e)
+  {
+    if (e.m_EventType == nsPluginEvent::AfterUnloading)
+    {
+      // When a plugin is unloaded we need to clear all profiling data
+      // since they can contain pointers to function names that don't exist anymore.
+      nsProfilingSystem::Clear();
+    }
+  }
+} // namespace
+
 // clang-format off
 NS_BEGIN_SUBSYSTEM_DECLARATION(Foundation, ProfilingSystem)
 
@@ -43,11 +52,16 @@ NS_BEGIN_SUBSYSTEM_DECLARATION(Foundation, ProfilingSystem)
   ON_BASESYSTEMS_STARTUP
   {
     nsProfilingSystem::Initialize();
+  }
+  ON_CORESYSTEMS_STARTUP
+  { 
+    s_PluginEventSubscription = nsPlugin::Events().AddEventHandler(&PluginEvent);
     s_ProfileCaptureDataTransfer.EnableDataTransfer("Profiling Capture");
   }
   ON_CORESYSTEMS_SHUTDOWN
   {
     s_ProfileCaptureDataTransfer.DisableDataTransfer();
+    nsPlugin::Events().RemoveEventHandler(s_PluginEventSubscription);
     nsProfilingSystem::Reset();
   }
 
@@ -117,17 +131,6 @@ namespace
   static nsProfilingSystem::ScopeTimeoutDelegate s_ScopeTimeoutCallback;
 
   static nsDynamicArray<nsUniquePtr<GPUScopesBuffer>> s_GPUScopes;
-
-  static nsEventSubscriptionID s_PluginEventSubscription = 0;
-  void PluginEvent(const nsPluginEvent& e)
-  {
-    if (e.m_EventType == nsPluginEvent::AfterUnloading)
-    {
-      // When a plugin is unloaded we need to clear all profiling data
-      // since they can contain pointers to function names that don't exist anymore.
-      nsProfilingSystem::Clear();
-    }
-  }
 } // namespace
 
 void nsProfilingSystem::ProfilingData::Clear()
@@ -177,7 +180,8 @@ void nsProfilingSystem::ProfilingData::Merge(ProfilingData& out_merged, nsArrayP
 
   // merge m_ThreadInfos
   {
-    auto threadInfoAlreadyKnown = [out_merged](nsUInt64 uiThreadId) -> bool {
+    auto threadInfoAlreadyKnown = [out_merged](nsUInt64 uiThreadId) -> bool
+    {
       for (const auto& ti : out_merged.m_ThreadInfos)
       {
         if (ti.m_uiThreadId == uiThreadId)
@@ -416,7 +420,8 @@ nsResult nsProfilingSystem::ProfilingData::Write(nsStreamWriter& ref_outputStrea
       // chrome prints the nested scope first and then scrambles everything.
       // So we sort by duration to make sure that parent scopes are written first in the json file.
       sortedScopes = eventBuffer.m_Data;
-      sortedScopes.Sort([](const CPUScope& a, const CPUScope& b) { return (a.m_EndTime - a.m_BeginTime) > (b.m_EndTime - b.m_BeginTime); });
+      sortedScopes.Sort([](const CPUScope& a, const CPUScope& b)
+        { return (a.m_EndTime - a.m_BeginTime) > (b.m_EndTime - b.m_BeginTime); });
 
       for (const CPUScope& e : sortedScopes)
       {
@@ -465,7 +470,7 @@ nsResult nsProfilingSystem::ProfilingData::Write(nsStreamWriter& ref_outputStrea
         const nsTime t1 = m_FrameStartTimes[i];
 
         const nsUInt64 localFrameID = uiNumFrames - i - 1;
-        sFrameName.Format("Frame {}", m_uiFrameCount - localFrameID);
+        sFrameName.SetFormat("Frame {}", m_uiFrameCount - localFrameID);
 
         writer.BeginObject();
         writer.AddVariableString("name", sFrameName);
@@ -497,7 +502,8 @@ nsResult nsProfilingSystem::ProfilingData::Write(nsStreamWriter& ref_outputStrea
       for (nsUInt32 gpuIndex = 1; gpuIndex <= m_GPUScopes.GetCount(); ++gpuIndex)
       {
         sortedGpuScopes = m_GPUScopes[gpuIndex - 1];
-        sortedGpuScopes.Sort([](const GPUScope& a, const GPUScope& b) { return (a.m_EndTime - a.m_BeginTime) > (b.m_EndTime - b.m_BeginTime); });
+        sortedGpuScopes.Sort([](const GPUScope& a, const GPUScope& b)
+          { return (a.m_EndTime - a.m_BeginTime) > (b.m_EndTime - b.m_BeginTime); });
 
         for (nsUInt32 i = 0; i < sortedGpuScopes.GetCount(); ++i)
         {
@@ -677,6 +683,7 @@ void nsProfilingSystem::StartNewFrame()
   }
 
   s_FrameStartTimes.PushBack(nsTime::Now());
+  NS_PROFILER_END_FRAME;
 }
 
 // static
@@ -749,8 +756,6 @@ void nsProfilingSystem::Initialize()
   SetThreadName("Main Thread");
 
   s_MainThreadId = (nsUInt64)nsThreadUtils::GetCurrentThreadID();
-
-  s_PluginEventSubscription = nsPlugin::Events().AddEventHandler(&PluginEvent);
 }
 
 // static
@@ -784,8 +789,6 @@ void nsProfilingSystem::Reset()
     }
   }
   s_DeadThreadIDs.Clear();
-
-  nsPlugin::Events().RemoveEventHandler(s_PluginEventSubscription);
 }
 
 // static

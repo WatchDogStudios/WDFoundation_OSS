@@ -44,6 +44,7 @@ macro(ns_pull_output_vars LIB_OUTPUT_DIR DLL_OUTPUT_DIR)
 	set(PLATFORM_POSTFIX "")
 	set(ARCH "x${NS_CMAKE_ARCHITECTURE_POSTFIX}")
 
+	# PLATFORM-TODO (build output path hook? add more variables?)
 	if(NS_CMAKE_PLATFORM_WINDOWS_UWP)
 		# UWP has deployment problems if all applications output to the same path.
 		set(SUB_DIR "/${TARGET_NAME}")
@@ -66,9 +67,6 @@ macro(ns_pull_output_vars LIB_OUTPUT_DIR DLL_OUTPUT_DIR)
 
 	elseif(NS_CMAKE_PLATFORM_EMSCRIPTEN)
 		set(PLATFORM_POSTFIX "_wasm")
-
-	elseif(NS_CMAKE_PLATFORM_PLAYSTATION_5)
-		set(PLATFORM_POSTFIX "_ps5")
 
 	elseif(NS_CMAKE_PLATFORM_ANDROID)
 		set(PLATFORM_POSTFIX "_android")
@@ -195,9 +193,9 @@ function(ns_set_common_target_definitions TARGET_NAME)
 		target_compile_definitions(${TARGET_NAME} PUBLIC BUILDSYSTEM_COMPILE_ENGINE_AS_DLL)
 	endif()
 
-	target_compile_definitions(${TARGET_NAME} PRIVATE BUILDSYSTEM_SDKVERSION_MAJOR="${NS_CMAKE_SDKVERSION_MAJOR}")
-	target_compile_definitions(${TARGET_NAME} PRIVATE BUILDSYSTEM_SDKVERSION_MINOR="${NS_CMAKE_SDKVERSION_MINOR}")
-	target_compile_definitions(${TARGET_NAME} PRIVATE BUILDSYSTEM_SDKVERSION_PATCH="${NS_CMAKE_SDKVERSION_PATCH}")
+	target_compile_definitions(${TARGET_NAME} PRIVATE BUILDSYSTEM_SDKVERSION_MAJOR=${NS_CMAKE_SDKVERSION_MAJOR})
+	target_compile_definitions(${TARGET_NAME} PRIVATE BUILDSYSTEM_SDKVERSION_MINOR=${NS_CMAKE_SDKVERSION_MINOR})
+	target_compile_definitions(${TARGET_NAME} PRIVATE BUILDSYSTEM_SDKVERSION_PATCH=${NS_CMAKE_SDKVERSION_PATCH})
 
 	set(ORIGINAL_BUILD_TYPE "$<IF:$<STREQUAL:${NS_CMAKE_GENERATOR_CONFIGURATION},${NS_BUILDTYPENAME_DEBUG}>,Debug,$<IF:$<STREQUAL:${NS_CMAKE_GENERATOR_CONFIGURATION},${NS_BUILDTYPENAME_DEV}>,Dev,Shipping>>")
 
@@ -263,40 +261,8 @@ endfunction()
 # ## ns_add_output_ns_prefix(<target>)
 # #####################################
 function(ns_add_output_ns_prefix TARGET_NAME)
-	set_target_properties(${TARGET_NAME} PROPERTIES IMPORT_PREFIX "NS")
-	set_target_properties(${TARGET_NAME} PROPERTIES PREFIX "NS")
-endfunction()
-
-# #####################################
-# ## ns_set_library_properties(<target>)
-# #####################################
-function(ns_set_library_properties TARGET_NAME)
-	ns_pull_all_vars()
-
-	if(NS_CMAKE_PLATFORM_LINUX)
-		# c = libc.so (the C standard library)
-		# m = libm.so (the C standard library math portion)
-		# pthread = libpthread.so (thread support)
-		# rt = librt.so (compiler runtime functions)
-		target_link_libraries(${TARGET_NAME} PRIVATE pthread rt c m)
-
-		if(NS_CMAKE_COMPILER_GCC)
-			# Workaround for: https://bugs.launchpad.net/ubuntu/+source/gcc-5/+bug/1568899
-			target_link_libraries(${TARGET_NAME} PRIVATE -lgcc_s -lgcc)
-		endif()
-	endif()
-endfunction()
-
-# #####################################
-# ## ns_set_application_properties(<target>)
-# #####################################
-function(ns_set_application_properties TARGET_NAME)
-	ns_pull_all_vars()
-
-	# We need to link against pthread and rt last or linker errors will occur.
-	if(NS_CMAKE_PLATFORM_LINUX)
-		target_link_libraries(${TARGET_NAME} PRIVATE pthread rt)
-	endif()
+	set_target_properties(${TARGET_NAME} PROPERTIES IMPORT_PREFIX "ns")
+	set_target_properties(${TARGET_NAME} PROPERTIES PREFIX "ns")
 endfunction()
 
 # #####################################
@@ -338,8 +304,6 @@ function(ns_glob_source_files ROOT_DIR RESULT_ALL_SOURCES)
 		"${ROOT_DIR}/*.inl"
 		"${ROOT_DIR}/*.c"
 		"${ROOT_DIR}/*.cs"
-		"${ROOT_DIR}/*.xaml.cs"
-		"${ROOT_DIR}/*.xaml"
 		"${ROOT_DIR}/*.ui"
 		"${ROOT_DIR}/*.qrc"
 		"${ROOT_DIR}/*.def"
@@ -356,11 +320,6 @@ function(ns_glob_source_files ROOT_DIR RESULT_ALL_SOURCES)
 	)
 
 	set(${RESULT_ALL_SOURCES} ${RELEVANT_FILES} PARENT_SCOPE)
-endfunction()
-
-function(ns_glob_pssl_source_files ROOT_DIR RESULT_ALL_SHADERS)
-	file(GLOB_RECURSE RELEVANT_FILES "${ROOT_DIR}/*.pssl")
-	set(${RESULT_ALL_SHADERS} ${RELEVANT_FILES} PARENT_SCOPE)
 endfunction()
 
 # #####################################
@@ -425,17 +384,10 @@ macro(ns_requires_one_of)
 endmacro()
 
 # #####################################
-# ## ns_requires_windows()
+# ## ns_requires_desktop()
 # #####################################
-macro(ns_requires_windows)
-	ns_requires(NS_CMAKE_PLATFORM_WINDOWS)
-endmacro()
-
-# #####################################
-# ## ns_requires_windows_desktop()
-# #####################################
-macro(ns_requires_windows_desktop)
-	ns_requires(NS_CMAKE_PLATFORM_WINDOWS_DESKTOP)
+macro(ns_requires_desktop)
+	ns_requires_one_of(NS_CMAKE_PLATFORM_WINDOWS_DESKTOP NS_CMAKE_PLATFORM_LINUX)
 endmacro()
 
 # #####################################
@@ -444,8 +396,8 @@ endmacro()
 macro(ns_requires_editor)
 	ns_requires_qt()
 	ns_requires_renderer()
-	if(NS_CMAKE_PLATFORM_LINUX)
-		ns_requires(NS_EXPERIMENTAL_EDITOR_ON_LINUX)
+	if(NOT NS_CMAKE_PLATFORM_SUPPORTS_EDITOR)
+		return()
 	endif()
 endmacro()
 
@@ -600,6 +552,11 @@ function(ns_set_build_types)
 	set(CMAKE_MODULE_LINKER_FLAGS_${NS_BUILDTYPENAME_DEV_UPPER} ${CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO} CACHE STRING "" FORCE)
 	set(CMAKE_MODULE_LINKER_FLAGS_${NS_BUILDTYPENAME_RELEASE_UPPER} ${CMAKE_MODULE_LINKER_FLAGS_RELEASE} CACHE STRING "" FORCE)
 
+	# Fix for cl : Command line warning D9025 : overriding '/Ob0' with '/Ob1'
+	# We are adding /Ob1 to debug inside ./CMakeUtils/nsUtilsCppFlags.cmake
+	string(REPLACE "/Ob0" "/Ob1" CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
+	string(REPLACE "/Ob0" "/Ob1" CMAKE_C_FLAGS_DEBUG ${CMAKE_C_FLAGS_DEBUG})
+
 	set(CMAKE_CXX_FLAGS_${NS_BUILDTYPENAME_DEBUG_UPPER} ${CMAKE_CXX_FLAGS_DEBUG} CACHE STRING "" FORCE)
 	set(CMAKE_CXX_FLAGS_${NS_BUILDTYPENAME_DEV_UPPER} ${CMAKE_CXX_FLAGS_RELWITHDEBINFO} CACHE STRING "" FORCE)
 	set(CMAKE_CXX_FLAGS_${NS_BUILDTYPENAME_RELEASE_UPPER} ${CMAKE_CXX_FLAGS_RELEASE} CACHE STRING "" FORCE)
@@ -648,6 +605,8 @@ endfunction()
 function(ns_download_and_extract URL DEST_FOLDER DEST_FILENAME)
 	if(${URL} MATCHES ".tar.gz$")
 		set(PKG_TYPE "tar.gz")
+	elseif(${URL} MATCHES ".tar.xz$")
+		set(PKG_TYPE "tar.xz")
 	else()
 		get_filename_component(PKG_TYPE ${URL} LAST_EXT)
 	endif()
@@ -689,7 +648,6 @@ function(ns_download_and_extract URL DEST_FOLDER DEST_FILENAME)
 			WORKING_DIRECTORY "${DEST_FOLDER}"
 			COMMAND_ERROR_IS_FATAL ANY
 			RESULT_VARIABLE CMD_STATUS)
-
 	else()
 		execute_process(COMMAND ${CMAKE_COMMAND}
 			-E tar -xf "${PKG_FILE}"
@@ -704,4 +662,23 @@ function(ns_download_and_extract URL DEST_FOLDER DEST_FILENAME)
 	endif()
 
 	file(TOUCH ${EXTRACT_MARKER})
+endfunction()
+
+function(ns_get_export_location DST_VAR)
+	ns_pull_config_vars()
+	ns_pull_output_vars("" "${NS_OUTPUT_DIRECTORY_DLL}")
+
+	if(GENERATOR_IS_MULTI_CONFIG OR (CMAKE_GENERATOR MATCHES "Visual Studio"))
+		set("${DST_VAR}" "${NS_OUTPUT_DIRECTORY_DLL}/nsExport.cmake" PARENT_SCOPE)
+	else()
+		if("${CMAKE_BUILD_TYPE}" STREQUAL ${NS_BUILDTYPENAME_DEBUG})
+			set("${DST_VAR}" "${NS_OUTPUT_DIRECTORY_DLL}/${OUTPUT_DEBUG}/nsExport.cmake" PARENT_SCOPE)
+		elseif("${CMAKE_BUILD_TYPE}" STREQUAL ${NS_BUILDTYPENAME_RELEASE})
+			set("${DST_VAR}" "${NS_OUTPUT_DIRECTORY_DLL}/${OUTPUT_RELEASE}/nsExport.cmake" PARENT_SCOPE)
+		elseif("${CMAKE_BUILD_TYPE}" STREQUAL ${NS_BUILDTYPENAME_DEV})
+			set("${DST_VAR}" "${NS_OUTPUT_DIRECTORY_DLL}/${OUTPUT_DEV}/nsExport.cmake" PARENT_SCOPE)
+		else()
+			message(FATAL_ERROR "Unknown CMAKE_BUILD_TYPE: '${CMAKE_BUILD_TYPE}'")
+		endif()
+	endif()
 endfunction()

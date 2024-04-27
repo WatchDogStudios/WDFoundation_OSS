@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/IO/OSFile.h>
@@ -50,7 +45,7 @@ void nsCommandLineUtils::SplitCommandLineString(const char* szCommandString, boo
       out_args.PushBack(path);
       lastEnd = currentChar + 1;
     }
-    nsUnicodeUtils::MoveToNextUtf8(currentChar);
+    nsUnicodeUtils::MoveToNextUtf8(currentChar).IgnoreResult();
   }
 
   out_argsV.Reserve(out_argsV.GetCount());
@@ -232,7 +227,7 @@ bool nsCommandLineUtils::GetBoolOption(nsStringView sOption, bool bDefault, bool
   if (iIndex < 0)
     return bDefault;
 
-  if (iIndex + 1 == m_Commands.GetCount()) // last command, treat this as 'on'
+  if (iIndex + 1 == m_Commands.GetCount())    // last command, treat this as 'on'
     return true;
 
   if (m_Commands[iIndex + 1].StartsWith("-")) // next command is the next option -> treat this as 'on' as well
@@ -300,5 +295,3 @@ void nsCommandLineUtils::InjectCustomArgument(nsStringView sArgument)
 {
   m_Commands.PushBack(sArgument);
 }
-
-NS_STATICLINK_FILE(Foundation, Foundation_Utilities_Implementation_CommandLineUtils);

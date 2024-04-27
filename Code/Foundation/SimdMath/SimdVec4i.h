@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/SimdMath/SimdVec4f.h>
@@ -15,87 +10,87 @@ class NS_FOUNDATION_DLL nsSimdVec4i
 public:
   NS_DECLARE_POD_TYPE();
 
-  nsSimdVec4i(); // [tested]
+  nsSimdVec4i();                                               // [tested]
 
-  explicit nsSimdVec4i(nsInt32 iXyzw); // [tested]
+  explicit nsSimdVec4i(nsInt32 iXyzw);                         // [tested]
 
   nsSimdVec4i(nsInt32 x, nsInt32 y, nsInt32 z, nsInt32 w = 1); // [tested]
 
-  nsSimdVec4i(nsInternal::QuadInt v); // [tested]
+  nsSimdVec4i(nsInternal::QuadInt v);                          // [tested]
 
   /// \brief Creates an nsSimdVec4i that is initialized to zero.
-  [[nodiscard]] static nsSimdVec4i MakeZero(); // [tested]
+  [[nodiscard]] static nsSimdVec4i MakeZero();                     // [tested]
 
-  void Set(nsInt32 iXyzw); // [tested]
+  void Set(nsInt32 iXyzw);                                         // [tested]
 
-  void Set(nsInt32 x, nsInt32 y, nsInt32 z, nsInt32 w); // [tested]
+  void Set(nsInt32 x, nsInt32 y, nsInt32 z, nsInt32 w);            // [tested]
 
-  void SetZero(); // [tested]
-
-  template <int N>
-  void Load(const nsInt32* pInts); // [tested]
+  void SetZero();                                                  // [tested]
 
   template <int N>
-  void Store(nsInt32* pInts) const; // [tested]
+  void Load(const nsInt32* pInts);                                 // [tested]
+
+  template <int N>
+  void Store(nsInt32* pInts) const;                                // [tested]
 
 public:
-  explicit nsSimdVec4i(const nsSimdVec4u& u); // [tested]
+  explicit nsSimdVec4i(const nsSimdVec4u& u);                      // [tested]
 
 public:
-  nsSimdVec4f ToFloat() const; // [tested]
+  nsSimdVec4f ToFloat() const;                                     // [tested]
 
   [[nodiscard]] static nsSimdVec4i Truncate(const nsSimdVec4f& f); // [tested]
 
 public:
   template <int N>
-  nsInt32 GetComponent() const; // [tested]
+  nsInt32 GetComponent() const;                                                                                          // [tested]
 
-  nsInt32 x() const; // [tested]
-  nsInt32 y() const; // [tested]
-  nsInt32 z() const; // [tested]
-  nsInt32 w() const; // [tested]
+  nsInt32 x() const;                                                                                                     // [tested]
+  nsInt32 y() const;                                                                                                     // [tested]
+  nsInt32 z() const;                                                                                                     // [tested]
+  nsInt32 w() const;                                                                                                     // [tested]
 
   template <nsSwizzle::Enum s>
-  nsSimdVec4i Get() const; // [tested]
+  nsSimdVec4i Get() const;                                                                                               // [tested]
 
 public:
-  [[nodiscard]] nsSimdVec4i operator-() const;                     // [tested]
-  [[nodiscard]] nsSimdVec4i operator+(const nsSimdVec4i& v) const; // [tested]
-  [[nodiscard]] nsSimdVec4i operator-(const nsSimdVec4i& v) const; // [tested]
+  [[nodiscard]] nsSimdVec4i operator-() const;                                                                           // [tested]
+  [[nodiscard]] nsSimdVec4i operator+(const nsSimdVec4i& v) const;                                                       // [tested]
+  [[nodiscard]] nsSimdVec4i operator-(const nsSimdVec4i& v) const;                                                       // [tested]
 
-  [[nodiscard]] nsSimdVec4i CompMul(const nsSimdVec4i& v) const; // [tested]
-  [[nodiscard]] nsSimdVec4i CompDiv(const nsSimdVec4i& v) const; // [tested]
+  [[nodiscard]] nsSimdVec4i CompMul(const nsSimdVec4i& v) const;                                                         // [tested]
+  [[nodiscard]] nsSimdVec4i CompDiv(const nsSimdVec4i& v) const;                                                         // [tested]
 
-  [[nodiscard]] nsSimdVec4i operator|(const nsSimdVec4i& v) const; // [tested]
-  [[nodiscard]] nsSimdVec4i operator&(const nsSimdVec4i& v) const; // [tested]
-  [[nodiscard]] nsSimdVec4i operator^(const nsSimdVec4i& v) const; // [tested]
-  [[nodiscard]] nsSimdVec4i operator~() const;                     // [tested]
+  [[nodiscard]] nsSimdVec4i operator|(const nsSimdVec4i& v) const;                                                       // [tested]
+  [[nodiscard]] nsSimdVec4i operator&(const nsSimdVec4i& v) const;                                                       // [tested]
+  [[nodiscard]] nsSimdVec4i operator^(const nsSimdVec4i& v) const;                                                       // [tested]
+  [[nodiscard]] nsSimdVec4i operator~() const;                                                                           // [tested]
 
-  [[nodiscard]] nsSimdVec4i operator<<(nsUInt32 uiShift) const;     // [tested]
-  [[nodiscard]] nsSimdVec4i operator>>(nsUInt32 uiShift) const;     // [tested]
-  [[nodiscard]] nsSimdVec4i operator<<(const nsSimdVec4i& v) const; // [tested]
-  [[nodiscard]] nsSimdVec4i operator>>(const nsSimdVec4i& v) const; // [tested]
+  [[nodiscard]] nsSimdVec4i operator<<(nsUInt32 uiShift) const;                                                          // [tested]
+  [[nodiscard]] nsSimdVec4i operator>>(nsUInt32 uiShift) const;                                                          // [tested]
+  [[nodiscard]] nsSimdVec4i operator<<(const nsSimdVec4i& v) const;                                                      // [tested]
+  [[nodiscard]] nsSimdVec4i operator>>(const nsSimdVec4i& v) const;                                                      // [tested]
 
-  nsSimdVec4i& operator+=(const nsSimdVec4i& v); // [tested]
-  nsSimdVec4i& operator-=(const nsSimdVec4i& v); // [tested]
+  nsSimdVec4i& operator+=(const nsSimdVec4i& v);                                                                         // [tested]
+  nsSimdVec4i& operator-=(const nsSimdVec4i& v);                                                                         // [tested]
 
-  nsSimdVec4i& operator|=(const nsSimdVec4i& v); // [tested]
-  nsSimdVec4i& operator&=(const nsSimdVec4i& v); // [tested]
-  nsSimdVec4i& operator^=(const nsSimdVec4i& v); // [tested]
+  nsSimdVec4i& operator|=(const nsSimdVec4i& v);                                                                         // [tested]
+  nsSimdVec4i& operator&=(const nsSimdVec4i& v);                                                                         // [tested]
+  nsSimdVec4i& operator^=(const nsSimdVec4i& v);                                                                         // [tested]
 
-  nsSimdVec4i& operator<<=(nsUInt32 uiShift); // [tested]
-  nsSimdVec4i& operator>>=(nsUInt32 uiShift); // [tested]
+  nsSimdVec4i& operator<<=(nsUInt32 uiShift);                                                                            // [tested]
+  nsSimdVec4i& operator>>=(nsUInt32 uiShift);                                                                            // [tested]
 
-  [[nodiscard]] nsSimdVec4i CompMin(const nsSimdVec4i& v) const; // [tested]
-  [[nodiscard]] nsSimdVec4i CompMax(const nsSimdVec4i& v) const; // [tested]
-  [[nodiscard]] nsSimdVec4i Abs() const;                         // [tested]
+  [[nodiscard]] nsSimdVec4i CompMin(const nsSimdVec4i& v) const;                                                         // [tested]
+  [[nodiscard]] nsSimdVec4i CompMax(const nsSimdVec4i& v) const;                                                         // [tested]
+  [[nodiscard]] nsSimdVec4i Abs() const;                                                                                 // [tested]
 
-  [[nodiscard]] nsSimdVec4b operator==(const nsSimdVec4i& v) const; // [tested]
-  [[nodiscard]] nsSimdVec4b operator!=(const nsSimdVec4i& v) const; // [tested]
-  [[nodiscard]] nsSimdVec4b operator<=(const nsSimdVec4i& v) const; // [tested]
-  [[nodiscard]] nsSimdVec4b operator<(const nsSimdVec4i& v) const;  // [tested]
-  [[nodiscard]] nsSimdVec4b operator>=(const nsSimdVec4i& v) const; // [tested]
-  [[nodiscard]] nsSimdVec4b operator>(const nsSimdVec4i& v) const;  // [tested]
+  [[nodiscard]] nsSimdVec4b operator==(const nsSimdVec4i& v) const;                                                      // [tested]
+  [[nodiscard]] nsSimdVec4b operator!=(const nsSimdVec4i& v) const;                                                      // [tested]
+  [[nodiscard]] nsSimdVec4b operator<=(const nsSimdVec4i& v) const;                                                      // [tested]
+  [[nodiscard]] nsSimdVec4b operator<(const nsSimdVec4i& v) const;                                                       // [tested]
+  [[nodiscard]] nsSimdVec4b operator>=(const nsSimdVec4i& v) const;                                                      // [tested]
+  [[nodiscard]] nsSimdVec4b operator>(const nsSimdVec4i& v) const;                                                       // [tested]
 
   [[nodiscard]] static nsSimdVec4i Select(const nsSimdVec4b& vCmp, const nsSimdVec4i& vTrue, const nsSimdVec4i& vFalse); // [tested]
 

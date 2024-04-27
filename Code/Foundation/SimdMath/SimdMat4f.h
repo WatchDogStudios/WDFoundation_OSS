@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/SimdMath/SimdVec4f.h>
@@ -59,7 +54,7 @@ public:
   bool IsValid() const; // [tested]
 
   /// \brief Checks whether any component is NaN.
-  bool IsNaN() const; // [tested]
+  bool IsNaN() const;                                                                                                   // [tested]
 
 public:
   void SetRows(const nsSimdVec4f& vRow0, const nsSimdVec4f& vRow1, const nsSimdVec4f& vRow2, const nsSimdVec4f& vRow3); // [tested]
@@ -72,11 +67,11 @@ public:
   /// \brief Matrix-vector multiplication, assuming the 4th component of the vector is zero. So, rotation/scaling only.
   [[nodiscard]] nsSimdVec4f TransformDirection(const nsSimdVec4f& v) const; // [tested]
 
-  [[nodiscard]] nsSimdMat4f operator*(const nsSimdMat4f& rhs) const; // [tested]
+  [[nodiscard]] nsSimdMat4f operator*(const nsSimdMat4f& rhs) const;        // [tested]
   void operator*=(const nsSimdMat4f& rhs);
 
-  [[nodiscard]] bool operator==(const nsSimdMat4f& rhs) const; // [tested]
-  [[nodiscard]] bool operator!=(const nsSimdMat4f& rhs) const; // [tested]
+  [[nodiscard]] bool operator==(const nsSimdMat4f& rhs) const;              // [tested]
+  [[nodiscard]] bool operator!=(const nsSimdMat4f& rhs) const;              // [tested]
 
 public:
   nsSimdVec4f m_col0;

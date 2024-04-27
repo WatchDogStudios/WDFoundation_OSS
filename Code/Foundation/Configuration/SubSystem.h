@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Basics.h>
@@ -14,10 +9,10 @@ struct nsStartupStage
   enum Enum
   {
     None = -1,
-    BaseSystems,      ///< In this stage the absolute base functionality is started. This should only be used by the Foundation & Platform(s) library(s).
+    BaseSystems,      ///< In this stage the absolute base functionality is started. This should only be used by the Foundation library.
     CoreSystems,      ///< In this stage the core functionality is being started / shut down
     HighLevelSystems, ///< In this stage the higher level functionality, which depends on a rendering context, is being started / shut down
-    
+
     ENUM_COUNT
   };
 };

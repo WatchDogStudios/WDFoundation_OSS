@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/Containers/HashSet.h>
@@ -509,10 +504,10 @@ NS_CREATE_SIMPLE_TEST(Containers, HashSet)
 
     for (nsUInt32 i = 0; i < 1000; ++i)
     {
-      tmp.Format("stuff{}bla", i);
+      tmp.SetFormat("stuff{}bla", i);
       set1.Insert(tmp);
 
-      tmp.Format("{0}{0}{0}", i);
+      tmp.SetFormat("{0}{0}{0}", i);
       set2.Insert(tmp);
     }
 
@@ -520,10 +515,10 @@ NS_CREATE_SIMPLE_TEST(Containers, HashSet)
 
     for (nsUInt32 i = 0; i < 1000; ++i)
     {
-      tmp.Format("stuff{}bla", i);
+      tmp.SetFormat("stuff{}bla", i);
       NS_TEST_BOOL(set2.Contains(tmp));
 
-      tmp.Format("{0}{0}{0}", i);
+      tmp.SetFormat("{0}{0}{0}", i);
       NS_TEST_BOOL(set1.Contains(tmp));
     }
   }
@@ -536,7 +531,7 @@ NS_CREATE_SIMPLE_TEST(Containers, HashSet)
 
     for (nsUInt32 i = 0; i < 1000; ++i)
     {
-      tmp.Format("stuff{}bla", i);
+      tmp.SetFormat("stuff{}bla", i);
       set.Insert(tmp);
     }
 
@@ -560,5 +555,36 @@ NS_CREATE_SIMPLE_TEST(Containers, HashSet)
     }
 
     NS_TEST_BOOL(set2.IsEmpty());
+  }
+
+  NS_TEST_BLOCK(nsTestBlock::Enabled, "Find")
+  {
+    nsStringBuilder tmp;
+    nsHashSet<nsString> set;
+
+    for (nsUInt32 i = 0; i < 1000; ++i)
+    {
+      tmp.SetFormat("stuff{}bla", i);
+      set.Insert(tmp);
+    }
+
+    for (nsInt32 i = set.GetCount() - 1; i > 0; --i)
+    {
+      tmp.SetFormat("stuff{}bla", i);
+
+      auto it = set.Find(tmp);
+
+      NS_TEST_STRING(it.Key(), tmp);
+
+      int allowedIterations = set.GetCount();
+      for (auto it2 = it; it2.IsValid(); ++it2)
+      {
+        // just test that iteration is possible and terminates correctly
+        --allowedIterations;
+        NS_TEST_BOOL(allowedIterations >= 0);
+      }
+
+      set.Remove(it);
+    }
   }
 }

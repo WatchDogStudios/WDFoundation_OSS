@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <TestFramework/TestFrameworkPCH.h>
 
 #ifdef NS_USE_QT
@@ -53,5 +48,3 @@ void nsQtTestDelegate::paint(QPainter* pPainter, const QStyleOptionViewItem& opt
 }
 
 #endif
-
-NS_STATICLINK_FILE(TestFramework, TestFramework_Framework_Qt_qtTestDelegate);

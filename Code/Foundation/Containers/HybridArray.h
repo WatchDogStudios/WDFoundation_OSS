@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Containers/DynamicArray.h>
@@ -20,7 +15,7 @@ public:
   nsHybridArray(); // [tested]
 
   /// \brief Creates an empty array. Does not allocate any data yet.
-  explicit nsHybridArray(nsAllocatorBase* pAllocator); // [tested]
+  explicit nsHybridArray(nsAllocator* pAllocator); // [tested]
 
   /// \brief Creates a copy of the given array.
   nsHybridArray(const nsHybridArray<T, Size, AllocatorWrapper>& other); // [tested]

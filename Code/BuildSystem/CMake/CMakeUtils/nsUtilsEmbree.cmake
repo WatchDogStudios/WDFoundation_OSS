@@ -8,7 +8,7 @@ set(NS_BUILD_EMBREE OFF CACHE BOOL "Whether support for Intel Embree should be a
 # ## ns_requires_embree()
 # #####################################
 macro(ns_requires_embree)
-	ns_requires_windows()
+	ns_requires(NS_CMAKE_PLATFORM_WINDOWS)
 	ns_requires(NS_BUILD_EMBREE)
 endmacro()
 

@@ -1,13 +1,8 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Containers/Blob.h>
 
-#include <Foundation/Memory/Allocator.h>
+#include <Foundation/Memory/AllocatorWithPolicy.h>
 
 nsBlob::nsBlob() = default;
 
@@ -71,5 +66,9 @@ void nsBlob::ZeroFill()
   }
 }
 
+bool nsBlob::IsEmpty() const
+{
+  return 0 == m_uiSize;
+}
 
 NS_STATICLINK_FILE(Foundation, Foundation_Containers_Implementation_Blob);

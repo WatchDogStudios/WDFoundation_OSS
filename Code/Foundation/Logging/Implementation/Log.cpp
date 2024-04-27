@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Application/Application.h>
@@ -12,12 +7,17 @@
 #include <Foundation/Time/Time.h>
 #include <Foundation/Time/Timestamp.h>
 
-#if NS_ENABLED(NS_PLATFORM_WINDOWS)
-#  include <Foundation/Logging/Implementation/Win/ETWProvider_win.h>
+#if NS_ENABLED(NS_PLATFORM_WINDOWS) || NS_ENABLED(NS_PLATFORM_LINUX)
+#  include <Foundation/Logging/ETWWriter.h>
 #endif
 #if NS_ENABLED(NS_PLATFORM_ANDROID)
 #  include <android/log.h>
 #endif
+
+#include <stdarg.h>
+
+// Comment in to log into nsLog::Print any message that is output while no logger is registered.
+// #define DEBUG_STARTUP_LOGGING
 
 nsLogMsgType::Enum nsLog::s_DefaultLogLevel = nsLogMsgType::All;
 nsLog::PrintFunction nsLog::s_CustomPrintFunction = nullptr;
@@ -89,6 +89,14 @@ void nsGlobalLog::HandleLogMessage(const nsLoggingEventData& le)
     if ((ThisType > nsLogMsgType::None) && (ThisType < nsLogMsgType::All))
       s_uiMessageCount[ThisType].Increment();
 
+#ifdef DEBUG_STARTUP_LOGGING
+    if (s_LoggingEvent.IsEmpty())
+    {
+      nsStringBuilder stmp = le.m_sText;
+      stmp.Append("\n");
+      nsLog::Print(stmp);
+    }
+#endif
     s_LoggingEvent.Broadcast(le);
   }
 }
@@ -241,8 +249,8 @@ void nsLog::Print(const char* szText)
 {
   printf("%s", szText);
 
-#if NS_ENABLED(NS_PLATFORM_WINDOWS)
-  nsETWProvider::GetInstance().LogMessge(nsLogMsgType::ErrorMsg, 0, szText);
+#if NS_ENABLED(NS_PLATFORM_WINDOWS) || NS_ENABLED(NS_PLATFORM_LINUX)
+  nsLogWriter::ETW::LogMessage(nsLogMsgType::ErrorMsg, 0, szText);
 #endif
 #if NS_ENABLED(NS_PLATFORM_WINDOWS)
   OutputDebugStringW(nsStringWChar(szText).GetData());
@@ -284,13 +292,13 @@ void nsLog::OsMessageBox(const nsFormatString& text)
   nsStringBuilder display = text.GetText(tmp);
   display.Trim(" \n\r\t");
 
+#if NS_ENABLED(NS_PLATFORM_WINDOWS_DESKTOP)
   const char* title = "";
   if (nsApplication::GetApplicationInstance())
   {
     title = nsApplication::GetApplicationInstance()->GetApplicationName();
   }
 
-#if NS_ENABLED(NS_PLATFORM_WINDOWS_DESKTOP)
   MessageBoxW(nullptr, nsStringWChar(display).GetData(), nsStringWChar(title), MB_OK);
 #else
   nsLog::Print(display);
@@ -311,14 +319,14 @@ void nsLog::GenerateFormattedTimestamp(TimestampMode mode, nsStringBuilder& ref_
   switch (mode)
   {
     case TimestampMode::Numeric:
-      ref_sTimestampOut.Format("[{}] ", nsArgDateTime(dateTime, nsArgDateTime::ShowDate | nsArgDateTime::ShowMilliseconds | nsArgDateTime::ShowTimnsone));
+      ref_sTimestampOut.SetFormat("[{}] ", nsArgDateTime(dateTime, nsArgDateTime::ShowDate | nsArgDateTime::ShowMilliseconds | nsArgDateTime::ShowTimeZone));
       break;
     case TimestampMode::TimeOnly:
-      ref_sTimestampOut.Format("[{}] ", nsArgDateTime(dateTime, nsArgDateTime::ShowMilliseconds));
+      ref_sTimestampOut.SetFormat("[{}] ", nsArgDateTime(dateTime, nsArgDateTime::ShowMilliseconds));
       break;
     case TimestampMode::Textual:
-      ref_sTimestampOut.Format(
-        "[{}] ", nsArgDateTime(dateTime, nsArgDateTime::TextualDate | nsArgDateTime::ShowMilliseconds | nsArgDateTime::ShowTimnsone));
+      ref_sTimestampOut.SetFormat(
+        "[{}] ", nsArgDateTime(dateTime, nsArgDateTime::TextualDate | nsArgDateTime::ShowMilliseconds | nsArgDateTime::ShowTimeZone));
       break;
     default:
       NS_ASSERT_DEV(false, "Unknown timestamp mode.");
@@ -443,5 +451,3 @@ bool nsLog::Flush(nsUInt32 uiNumNewMsgThreshold, nsTime timeIntervalThreshold, n
 
   return true;
 }
-
-NS_STATICLINK_FILE(Foundation, Foundation_Logging_Implementation_Log);

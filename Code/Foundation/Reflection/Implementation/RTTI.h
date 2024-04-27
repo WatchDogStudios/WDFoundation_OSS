@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 /// \file
@@ -207,10 +202,10 @@ protected:
   const nsRTTI* (*m_VerifyParent)();
 
   nsArrayPtr<nsAbstractMessageHandler*> m_MessageHandlers;
-  nsSmallArray<nsAbstractMessageHandler*, 1, nsStaticAllocatorWrapper> m_DynamicMessageHandlers; // do not track this data, it won't be deallocated before shutdown
+  nsSmallArray<nsAbstractMessageHandler*, 1, nsStaticsAllocatorWrapper> m_DynamicMessageHandlers; // do not track this data, it won't be deallocated before shutdown
 
   nsArrayPtr<nsMessageSenderInfo> m_MessageSenders;
-  nsSmallArray<const nsRTTI*, 7, nsStaticAllocatorWrapper> m_ParentHierarchy;
+  nsSmallArray<const nsRTTI*, 7, nsStaticsAllocatorWrapper> m_ParentHierarchy;
 
 private:
   NS_MAKE_SUBSYSTEM_STARTUP_FRIEND(Foundation, Reflection);
@@ -241,24 +236,24 @@ struct NS_FOUNDATION_DLL nsRTTIAllocator
 
   /// \brief Allocates one instance.
   template <typename T>
-  nsInternal::NewInstance<T> Allocate(nsAllocatorBase* pAllocator = nullptr)
+  nsInternal::NewInstance<T> Allocate(nsAllocator* pAllocator = nullptr)
   {
     return AllocateInternal(pAllocator).Cast<T>();
   }
 
   /// \brief Clones the given instance.
   template <typename T>
-  nsInternal::NewInstance<T> Clone(const void* pObject, nsAllocatorBase* pAllocator = nullptr)
+  nsInternal::NewInstance<T> Clone(const void* pObject, nsAllocator* pAllocator = nullptr)
   {
     return CloneInternal(pObject, pAllocator).Cast<T>();
   }
 
   /// \brief Deallocates the given instance.
-  virtual void Deallocate(void* pObject, nsAllocatorBase* pAllocator = nullptr) = 0; // [tested]
+  virtual void Deallocate(void* pObject, nsAllocator* pAllocator = nullptr) = 0; // [tested]
 
 private:
-  virtual nsInternal::NewInstance<void> AllocateInternal(nsAllocatorBase* pAllocator) = 0;
-  virtual nsInternal::NewInstance<void> CloneInternal(const void* pObject, nsAllocatorBase* pAllocator)
+  virtual nsInternal::NewInstance<void> AllocateInternal(nsAllocator* pAllocator) = 0;
+  virtual nsInternal::NewInstance<void> CloneInternal(const void* pObject, nsAllocator* pAllocator)
   {
     NS_REPORT_FAILURE("Cloning is not supported by this allocator.");
     return nsInternal::NewInstance<void>(nullptr, pAllocator);
@@ -272,14 +267,14 @@ struct NS_FOUNDATION_DLL nsRTTINoAllocator : public nsRTTIAllocator
   virtual bool CanAllocate() const override { return false; } // [tested]
 
   /// \brief Will trigger an assert.
-  virtual nsInternal::NewInstance<void> AllocateInternal(nsAllocatorBase* pAllocator) override // [tested]
+  virtual nsInternal::NewInstance<void> AllocateInternal(nsAllocator* pAllocator) override // [tested]
   {
     NS_REPORT_FAILURE("This function should never be called.");
     return nsInternal::NewInstance<void>(nullptr, pAllocator);
   }
 
   /// \brief Will trigger an assert.
-  virtual void Deallocate(void* pObject, nsAllocatorBase* pAllocator) override // [tested]
+  virtual void Deallocate(void* pObject, nsAllocator* pAllocator) override // [tested]
   {
     NS_REPORT_FAILURE("This function should never be called.");
   }
@@ -290,7 +285,7 @@ template <typename CLASS, typename AllocatorWrapper = nsDefaultAllocatorWrapper>
 struct nsRTTIDefaultAllocator : public nsRTTIAllocator
 {
   /// \brief Returns a new instance that was allocated with the given allocator.
-  virtual nsInternal::NewInstance<void> AllocateInternal(nsAllocatorBase* pAllocator) override // [tested]
+  virtual nsInternal::NewInstance<void> AllocateInternal(nsAllocator* pAllocator) override // [tested]
   {
     if (pAllocator == nullptr)
     {
@@ -301,7 +296,7 @@ struct nsRTTIDefaultAllocator : public nsRTTIAllocator
   }
 
   /// \brief Clones the given instance with the given allocator.
-  virtual nsInternal::NewInstance<void> CloneInternal(const void* pObject, nsAllocatorBase* pAllocator) override // [tested]
+  virtual nsInternal::NewInstance<void> CloneInternal(const void* pObject, nsAllocator* pAllocator) override // [tested]
   {
     if (pAllocator == nullptr)
     {
@@ -312,7 +307,7 @@ struct nsRTTIDefaultAllocator : public nsRTTIAllocator
   }
 
   /// \brief Deletes the given instance with the given allocator.
-  virtual void Deallocate(void* pObject, nsAllocatorBase* pAllocator) override // [tested]
+  virtual void Deallocate(void* pObject, nsAllocator* pAllocator) override // [tested]
   {
     if (pAllocator == nullptr)
     {
@@ -324,13 +319,13 @@ struct nsRTTIDefaultAllocator : public nsRTTIAllocator
   }
 
 private:
-  nsInternal::NewInstance<void> CloneImpl(const void* pObject, nsAllocatorBase* pAllocator, nsTraitInt<0>)
+  nsInternal::NewInstance<void> CloneImpl(const void* pObject, nsAllocator* pAllocator, nsTraitInt<0>)
   {
     NS_REPORT_FAILURE("Clone failed since the type is not copy constructible");
     return nsInternal::NewInstance<void>(nullptr, pAllocator);
   }
 
-  nsInternal::NewInstance<void> CloneImpl(const void* pObject, nsAllocatorBase* pAllocator, nsTraitInt<1>)
+  nsInternal::NewInstance<void> CloneImpl(const void* pObject, nsAllocator* pAllocator, nsTraitInt<1>)
   {
     return NS_NEW(pAllocator, CLASS, *static_cast<const CLASS*>(pObject));
   }

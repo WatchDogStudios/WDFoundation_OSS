@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Containers/Deque.h>
@@ -35,18 +30,19 @@ private:
 
 public:
   /// \brief Base class for all iterators.
-  struct Iterator
+  template <bool REVERSE>
+  struct IteratorBase
   {
     using iterator_category = std::forward_iterator_tag;
-    using value_type = Iterator;
-    using difference_type = ptrdiff_t;
-    using pointer = Iterator*;
-    using reference = Iterator&;
+    using value_type = IteratorBase<REVERSE>;
+    using difference_type = std::ptrdiff_t;
+    using pointer = IteratorBase<REVERSE>*;
+    using reference = IteratorBase<REVERSE>&;
 
     NS_DECLARE_POD_TYPE();
 
     /// \brief Constructs an invalid iterator.
-    NS_ALWAYS_INLINE Iterator()
+    NS_ALWAYS_INLINE IteratorBase()
       : m_pElement(nullptr)
     {
     } // [tested]
@@ -55,10 +51,8 @@ public:
     NS_ALWAYS_INLINE bool IsValid() const { return (m_pElement != nullptr); } // [tested]
 
     /// \brief Checks whether the two iterators point to the same element.
-    NS_ALWAYS_INLINE bool operator==(const typename nsSetBase<KeyType, Comparer>::Iterator& it2) const { return (m_pElement == it2.m_pElement); }
-
-    /// \brief Checks whether the two iterators point to the same element.
-    NS_ALWAYS_INLINE bool operator!=(const typename nsSetBase<KeyType, Comparer>::Iterator& it2) const { return (m_pElement != it2.m_pElement); }
+    NS_ALWAYS_INLINE bool operator==(const typename nsSetBase<KeyType, Comparer>::IteratorBase<REVERSE>& it2) const { return (m_pElement == it2.m_pElement); }
+    NS_ADD_DEFAULT_OPERATOR_NOTEQUAL(const typename nsSetBase<KeyType, Comparer>::IteratorBase<REVERSE>&);
 
     /// \brief Returns the 'key' of the element that this iterator points to.
     NS_FORCE_INLINE const KeyType& Key() const
@@ -68,7 +62,7 @@ public:
     } // [tested]
 
     /// \brief Returns the 'key' of the element that this iterator points to.
-    NS_ALWAYS_INLINE const KeyType& operator*() { return Key(); }
+    NS_ALWAYS_INLINE const KeyType& operator*() const { return Key(); }
 
     /// \brief Advances the iterator to the next element in the set. The iterator will not be valid anymore, if the end is reached.
     void Next(); // [tested]
@@ -83,9 +77,11 @@ public:
     NS_ALWAYS_INLINE void operator--() { Prev(); } // [tested]
 
   protected:
+    void Advance(nsInt32 dir0, nsInt32 dir1);
+
     friend class nsSetBase<KeyType, Comparer>;
 
-    NS_ALWAYS_INLINE explicit Iterator(Node* pInit)
+    NS_ALWAYS_INLINE explicit IteratorBase(Node* pInit)
       : m_pElement(pInit)
     {
     }
@@ -93,12 +89,15 @@ public:
     Node* m_pElement;
   };
 
+  using Iterator = IteratorBase<false>;
+  using ReverseIterator = IteratorBase<true>;
+
 protected:
   /// \brief Initializes the set to be empty.
-  nsSetBase(const Comparer& comparer, nsAllocatorBase* pAllocator); // [tested]
+  nsSetBase(const Comparer& comparer, nsAllocator* pAllocator); // [tested]
 
   /// \brief Copies all keys from the given set into this one.
-  nsSetBase(const nsSetBase<KeyType, Comparer>& cc, nsAllocatorBase* pAllocator); // [tested]
+  nsSetBase(const nsSetBase<KeyType, Comparer>& cc, nsAllocator* pAllocator); // [tested]
 
   /// \brief Destroys all elements in the set.
   ~nsSetBase(); // [tested]
@@ -119,8 +118,8 @@ public:
   /// \brief Returns a constant Iterator to the very first element.
   Iterator GetIterator() const; // [tested]
 
-  /// \brief Returns a constant Iterator to the very last element. For reverse traversal.
-  Iterator GetLastIterator() const; // [tested]
+  /// \brief Returns a constant ReverseIterator to the very last element.
+  ReverseIterator GetReverseIterator() const; // [tested]
 
   /// \brief Inserts the key into the tree and returns an Iterator to it. O(log n) operation.
   template <typename CompatibleKeyType>
@@ -164,13 +163,11 @@ public:
   void Intersection(const nsSetBase<KeyType, Comparer>& operand); // [tested]
 
   /// \brief Returns the allocator that is used by this instance.
-  nsAllocatorBase* GetAllocator() const { return m_Elements.GetAllocator(); }
+  nsAllocator* GetAllocator() const { return m_Elements.GetAllocator(); }
 
   /// \brief Comparison operator
   bool operator==(const nsSetBase<KeyType, Comparer>& rhs) const; // [tested]
-
-  /// \brief Comparison operator
-  bool operator!=(const nsSetBase<KeyType, Comparer>& rhs) const; // [tested]
+  NS_ADD_DEFAULT_OPERATOR_NOTEQUAL(const nsSetBase<KeyType, Comparer>&);
 
   /// \brief Returns the amount of bytes that are currently allocated on the heap.
   nsUInt64 GetHeapMemoryUsage() const { return m_Elements.GetHeapMemoryUsage(); } // [tested]
@@ -241,8 +238,8 @@ class nsSet : public nsSetBase<KeyType, Comparer>
 {
 public:
   nsSet();
-  explicit nsSet(nsAllocatorBase* pAllocator);
-  nsSet(const Comparer& comparer, nsAllocatorBase* pAllocator);
+  explicit nsSet(nsAllocator* pAllocator);
+  nsSet(const Comparer& comparer, nsAllocator* pAllocator);
 
   nsSet(const nsSet<KeyType, Comparer, AllocatorWrapper>& other);
   nsSet(const nsSetBase<KeyType, Comparer>& other);

@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/IO/FileSystem/DataDirTypeFolder.h>
@@ -47,7 +42,7 @@ NS_CREATE_SIMPLE_TEST(SimdMath, SimdNoise)
           nsSimdVec4f sX = (nsSimdVec4f(x * 4.0f) + xOffset) / scale;
           nsSimdVec4f sY = nsSimdVec4f(y * 1.0f) / scale;
 
-          nsSimdVec4f noise = perlin.NoisnseroToOne(sX, sY, nsSimdVec4f::MakeZero(), uiNumOctaves);
+          nsSimdVec4f noise = perlin.NoiseZeroToOne(sX, sY, nsSimdVec4f::MakeZero(), uiNumOctaves);
           float p[4];
           p[0] = noise.x();
           p[1] = noise.y();
@@ -63,12 +58,12 @@ NS_CREATE_SIMPLE_TEST(SimdMath, SimdNoise)
       }
 
       nsStringBuilder sOutFile;
-      sOutFile.Format(":output/SimdNoise/result-perlin_{}.tga", uiNumOctaves);
+      sOutFile.SetFormat(":output/SimdNoise/result-perlin_{}.tga", uiNumOctaves);
 
       NS_TEST_BOOL(image.SaveTo(sOutFile).Succeeded());
 
       nsStringBuilder sInFile;
-      sInFile.Format("SimdNoise/perlin_{}.tga", uiNumOctaves);
+      sInFile.SetFormat("SimdNoise/perlin_{}.tga", uiNumOctaves);
       NS_TEST_BOOL_MSG(nsFileSystem::ExistsFile(sInFile), "Noise image file is missing: '%s'", sInFile.GetData());
 
       NS_TEST_FILES(sOutFile, sInFile, "");
@@ -107,7 +102,7 @@ NS_CREATE_SIMPLE_TEST(SimdMath, SimdNoise)
       nsStringBuilder sLine;
       for (nsUInt32 i = 0; i < NS_ARRAY_SIZE(histogram); ++i)
       {
-        sLine.Format("{},\n", histogram[i]);
+        sLine.SetFormat("{},\n", histogram[i]);
         fileWriter.WriteBytes(sLine.GetData(), sLine.GetElementCount()).IgnoreResult();
       }
     }

@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Math/Math.h>
@@ -10,13 +5,10 @@
 #define STACK_SIZE 64
 
 // ***** Const Iterator *****
-
 template <typename KeyType, typename Comparer>
-void nsSetBase<KeyType, Comparer>::Iterator::Next()
+template <bool REVERSE>
+void nsSetBase<KeyType, Comparer>::IteratorBase<REVERSE>::Advance(nsInt32 dir0, nsInt32 dir1)
 {
-  const nsInt32 dir0 = 0;
-  const nsInt32 dir1 = 1;
-
   if (m_pElement == nullptr)
   {
     NS_ASSERT_DEBUG(m_pElement != nullptr, "The Iterator is invalid (end).");
@@ -59,58 +51,34 @@ void nsSetBase<KeyType, Comparer>::Iterator::Next()
   }
 
   m_pElement = nullptr;
-  return;
 }
 
 template <typename KeyType, typename Comparer>
-void nsSetBase<KeyType, Comparer>::Iterator::Prev()
+template <bool REVERSE>
+void nsSetBase<KeyType, Comparer>::IteratorBase<REVERSE>::Next()
 {
-  const nsInt32 dir0 = 1;
-  const nsInt32 dir1 = 0;
-
-  if (m_pElement == nullptr)
+  if constexpr (REVERSE)
   {
-    NS_ASSERT_DEBUG(m_pElement != nullptr, "The Iterator is invalid (end).");
-    return;
+    Advance(1, 0);
   }
-
-  // if this element has a right child, go there and then search for the left most child of that
-  if (m_pElement->m_pLink[dir1] != m_pElement->m_pLink[dir1]->m_pLink[dir1])
+  else
   {
-    m_pElement = m_pElement->m_pLink[dir1];
-
-    while (m_pElement->m_pLink[dir0] != m_pElement->m_pLink[dir0]->m_pLink[dir0])
-      m_pElement = m_pElement->m_pLink[dir0];
-
-    return;
+    Advance(0, 1);
   }
+}
 
-  // if this element has a parent and this element is that parents left child, go directly to the parent
-  if ((m_pElement->m_pParent != m_pElement->m_pParent->m_pParent) && (m_pElement->m_pParent->m_pLink[dir0] == m_pElement))
+template <typename KeyType, typename Comparer>
+template <bool REVERSE>
+void nsSetBase<KeyType, Comparer>::IteratorBase<REVERSE>::Prev()
+{
+  if constexpr (REVERSE)
   {
-    m_pElement = m_pElement->m_pParent;
-    return;
+    Advance(0, 1);
   }
-
-  // if this element has a parent and this element is that parents right child, search for the next parent, whose left child this is
-  if ((m_pElement->m_pParent != m_pElement->m_pParent->m_pParent) && (m_pElement->m_pParent->m_pLink[dir1] == m_pElement))
+  else
   {
-    while (m_pElement->m_pParent->m_pLink[dir1] == m_pElement)
-      m_pElement = m_pElement->m_pParent;
-
-    // if we are at the root node..
-    if ((m_pElement->m_pParent == nullptr) || (m_pElement->m_pParent == m_pElement->m_pParent->m_pParent))
-    {
-      m_pElement = nullptr;
-      return;
-    }
-
-    m_pElement = m_pElement->m_pParent;
-    return;
+    Advance(1, 0);
   }
-
-  m_pElement = nullptr;
-  return;
 }
 
 // ***** nsSetBase *****
@@ -130,7 +98,7 @@ void nsSetBase<KeyType, Comparer>::Constructor()
 }
 
 template <typename KeyType, typename Comparer>
-nsSetBase<KeyType, Comparer>::nsSetBase(const Comparer& comparer, nsAllocatorBase* pAllocator)
+nsSetBase<KeyType, Comparer>::nsSetBase(const Comparer& comparer, nsAllocator* pAllocator)
   : m_Elements(pAllocator)
   , m_Comparer(comparer)
 {
@@ -138,7 +106,7 @@ nsSetBase<KeyType, Comparer>::nsSetBase(const Comparer& comparer, nsAllocatorBas
 }
 
 template <typename KeyType, typename Comparer>
-nsSetBase<KeyType, Comparer>::nsSetBase(const nsSetBase<KeyType, Comparer>& cc, nsAllocatorBase* pAllocator)
+nsSetBase<KeyType, Comparer>::nsSetBase(const nsSetBase<KeyType, Comparer>& cc, nsAllocator* pAllocator)
   : m_Elements(pAllocator)
 {
   Constructor();
@@ -200,9 +168,9 @@ NS_ALWAYS_INLINE typename nsSetBase<KeyType, Comparer>::Iterator nsSetBase<KeyTy
 }
 
 template <typename KeyType, typename Comparer>
-NS_ALWAYS_INLINE typename nsSetBase<KeyType, Comparer>::Iterator nsSetBase<KeyType, Comparer>::GetLastIterator() const
+NS_ALWAYS_INLINE typename nsSetBase<KeyType, Comparer>::ReverseIterator nsSetBase<KeyType, Comparer>::GetReverseIterator() const
 {
-  return Iterator(GetRightMost());
+  return ReverseIterator(GetRightMost());
 }
 
 template <typename KeyType, typename Comparer>
@@ -420,7 +388,7 @@ typename nsSetBase<KeyType, Comparer>::Node* nsSetBase<KeyType, Comparer>::Acqui
     m_pFreeElementStack = m_pFreeElementStack->m_pParent;
   }
 
-  nsMemoryUtils::Construct<Node>(pNode, 1);
+  nsMemoryUtils::Construct<SkipTrivialTypes, Node>(pNode, 1);
 
   pNode->m_pParent = pParent;
   pNode->m_Key = std::forward<CompatibleKeyType>(key);
@@ -733,15 +701,7 @@ bool nsSetBase<KeyType, Comparer>::operator==(const nsSetBase<KeyType, Comparer>
   return true;
 }
 
-template <typename KeyType, typename Comparer>
-bool nsSetBase<KeyType, Comparer>::operator!=(const nsSetBase<KeyType, Comparer>& rhs) const
-{
-  return !operator==(rhs);
-}
-
 #undef STACK_SIZE
-
-
 
 template <typename KeyType, typename Comparer, typename AllocatorWrapper>
 nsSet<KeyType, Comparer, AllocatorWrapper>::nsSet()
@@ -750,13 +710,13 @@ nsSet<KeyType, Comparer, AllocatorWrapper>::nsSet()
 }
 
 template <typename KeyType, typename Comparer, typename AllocatorWrapper>
-nsSet<KeyType, Comparer, AllocatorWrapper>::nsSet(nsAllocatorBase* pAllocator)
+nsSet<KeyType, Comparer, AllocatorWrapper>::nsSet(nsAllocator* pAllocator)
   : nsSetBase<KeyType, Comparer>(Comparer(), pAllocator)
 {
 }
 
 template <typename KeyType, typename Comparer, typename AllocatorWrapper>
-nsSet<KeyType, Comparer, AllocatorWrapper>::nsSet(const Comparer& comparer, nsAllocatorBase* pAllocator)
+nsSet<KeyType, Comparer, AllocatorWrapper>::nsSet(const Comparer& comparer, nsAllocator* pAllocator)
   : nsSetBase<KeyType, Comparer>(comparer, pAllocator)
 {
 }

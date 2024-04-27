@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/CodeUtils/Preprocessor.h>
@@ -233,12 +228,13 @@ NS_CREATE_SIMPLE_TEST(CodeUtils, Preprocessor)
         pp.m_ProcessingEvents.AddEventHandler(nsDelegate<void(const nsPreprocessor::ProcessingEvent&)>(&Logger::EventHandler, &log));
         pp.AddCustomDefine("PP_OBJ").IgnoreResult();
         pp.AddCustomDefine("PP_FUNC(a) a").IgnoreResult();
-        pp.SetPassThroughUnknownCmdsCB([](nsStringView s) -> bool { return s == "version"; }); // TestSettings[i].m_bPassThroughUnknownCommands);
+        pp.SetPassThroughUnknownCmdsCB([](nsStringView s) -> bool
+          { return s == "version"; }); // TestSettings[i].m_bPassThroughUnknownCommands);
 
         {
-          fileName.Format("Preprocessor/{0}.txt", TestSettings[i].m_szFileName);
-          fileNameExp.Format("Preprocessor/{0} - Expected.txt", TestSettings[i].m_szFileName);
-          fileNameOut.Format(":output/Preprocessor/{0} - Result.txt", TestSettings[i].m_szFileName);
+          fileName.SetFormat("Preprocessor/{0}.txt", TestSettings[i].m_szFileName);
+          fileNameExp.SetFormat("Preprocessor/{0} - Expected.txt", TestSettings[i].m_szFileName);
+          fileNameOut.SetFormat(":output/Preprocessor/{0} - Result.txt", TestSettings[i].m_szFileName);
 
           NS_TEST_BOOL_MSG(nsFileSystem::ExistsFile(fileName), "File does not exist: '%s'", fileName.GetData());
 

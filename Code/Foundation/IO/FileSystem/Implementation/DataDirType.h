@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Basics.h>
@@ -39,7 +34,7 @@ public:
   /// \brief Some data directory types may use external configuration files (e.g. asset lookup tables)
   ///        that may get updated, while the directory is mounted. This function allows each directory type to implement
   ///        reloading and reapplying of configurations, without dismounting and remounting the data directory.
-  virtual void ReloadExternalConfigs(){};
+  virtual void ReloadExternalConfigs() {};
 
 protected:
   friend class nsFileSystem;
@@ -168,6 +163,29 @@ public:
   }
 
   virtual nsUInt64 Read(void* pBuffer, nsUInt64 uiBytes) = 0;
+
+  /// \brief Helper method to skip a number of bytes (implementations of the directory reader may implement this more efficiently for example)
+  virtual nsUInt64 Skip(nsUInt64 uiBytes)
+  {
+    nsUInt8 uiTempBuffer[1024];
+
+    nsUInt64 uiBytesSkipped = 0;
+
+    while (uiBytesSkipped < uiBytes)
+    {
+      nsUInt64 uiBytesToRead = nsMath::Min<nsUInt64>(uiBytes - uiBytesSkipped, 1024);
+
+      nsUInt64 uiBytesRead = Read(uiTempBuffer, uiBytesToRead);
+
+      uiBytesSkipped += uiBytesRead;
+
+      // Terminate early if the stream didn't read as many bytes as we requested (EOF for example)
+      if (uiBytesRead < uiBytesToRead)
+        break;
+    }
+
+    return uiBytesSkipped;
+  }
 };
 
 /// \brief A base class for writers that handle writing to a (virtual) file inside a data directory.

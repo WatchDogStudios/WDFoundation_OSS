@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 
 #pragma once
 
@@ -23,7 +18,7 @@ public:
   /// \brief Takes an input stream as the source from which to read the compressed data.
   nsCompressedStreamReaderZstd(nsStreamReader* pInputStream); // [tested]
 
-  ~nsCompressedStreamReaderZstd(); // [tested]
+  ~nsCompressedStreamReaderZstd();                            // [tested]
 
   /// \brief Configures the reader to decompress the data from the given input stream.
   ///

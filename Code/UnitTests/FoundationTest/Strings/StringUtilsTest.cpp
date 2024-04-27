@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/Strings/String.h>
@@ -524,14 +519,14 @@ NS_CREATE_SIMPLE_TEST(Strings, StringUtils)
     NS_TEST_BOOL(nsStringUtils::StartsWith("abcdef", "Abc") == false);
 
     // substring test
-    const char* sz = u8"äbc def ghi";
+    const char* sz = (const char*)u8"äbc def ghi";
     const nsUInt32 uiByteCount = nsStringUtils::GetStringElementCount(u8"äbc");
 
-    NS_TEST_BOOL(nsStringUtils::StartsWith(sz, u8"äbc", sz + uiByteCount) == true);
-    NS_TEST_BOOL(nsStringUtils::StartsWith(sz, u8"äbc", sz + uiByteCount - 1) == false);
-    NS_TEST_BOOL(nsStringUtils::StartsWith(sz, u8"äbc", sz + 0) == false);
+    NS_TEST_BOOL(nsStringUtils::StartsWith(sz, (const char*)u8"äbc", sz + uiByteCount) == true);
+    NS_TEST_BOOL(nsStringUtils::StartsWith(sz, (const char*)u8"äbc", sz + uiByteCount - 1) == false);
+    NS_TEST_BOOL(nsStringUtils::StartsWith(sz, (const char*)u8"äbc", sz + 0) == false);
 
-    const char* sz2 = u8"äbc def";
+    const char* sz2 = (const char*)u8"äbc def";
     NS_TEST_BOOL(nsStringUtils::StartsWith(sz, sz2, sz + uiByteCount, sz2 + uiByteCount) == true);
   }
 
@@ -557,13 +552,13 @@ NS_CREATE_SIMPLE_TEST(Strings, StringUtils)
     NS_TEST_BOOL(nsStringUtils::StartsWith_NoCase(sL.GetData(), sU.GetData()) == true);
 
     // substring test
-    const char* sz = u8"äbc def ghi";
+    const char* sz = (const char*)u8"äbc def ghi";
     const nsUInt32 uiByteCount = nsStringUtils::GetStringElementCount(u8"äbc");
-    NS_TEST_BOOL(nsStringUtils::StartsWith_NoCase(sz, u8"ÄBC", sz + uiByteCount) == true);
-    NS_TEST_BOOL(nsStringUtils::StartsWith_NoCase(sz, u8"ÄBC", sz + uiByteCount - 1) == false);
-    NS_TEST_BOOL(nsStringUtils::StartsWith_NoCase(sz, u8"ÄBC", sz + 0) == false);
+    NS_TEST_BOOL(nsStringUtils::StartsWith_NoCase(sz, (const char*)u8"ÄBC", sz + uiByteCount) == true);
+    NS_TEST_BOOL(nsStringUtils::StartsWith_NoCase(sz, (const char*)u8"ÄBC", sz + uiByteCount - 1) == false);
+    NS_TEST_BOOL(nsStringUtils::StartsWith_NoCase(sz, (const char*)u8"ÄBC", sz + 0) == false);
 
-    const char* sz2 = u8"Äbc def";
+    const char* sz2 = (const char*)u8"Äbc def";
     NS_TEST_BOOL(nsStringUtils::StartsWith_NoCase(sz, sz2, sz + uiByteCount, sz2 + uiByteCount) == true);
   }
 

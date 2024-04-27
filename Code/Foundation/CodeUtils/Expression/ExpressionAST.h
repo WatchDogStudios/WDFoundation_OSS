@@ -1,12 +1,7 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/CodeUtils/Expression/ExpressionDeclarations.h>
-#include <Foundation/Memory/StackAllocator.h>
+#include <Foundation/Memory/LinearAllocator.h>
 
 class nsDGMLGraph;
 
@@ -89,6 +84,8 @@ public:
       Clamp,
       Select,
       Lerp,
+      SmoothStep,
+      SmootherStep,
       LastTernary,
 
       Constant,
@@ -279,7 +276,8 @@ public:
 
   void PrintGraph(nsDGMLGraph& inout_graph) const;
 
-  nsHybridArray<Output*, 8> m_OutputNodes;
+  nsSmallArray<Input*, 8> m_InputNodes;
+  nsSmallArray<Output*, 8> m_OutputNodes;
 
   // Transforms
   Node* TypeDeductionAndConversion(Node* pNode);
@@ -290,6 +288,7 @@ public:
   Node* CommonSubexpressionElimination(Node* pNode);
   Node* Validate(Node* pNode);
 
+  nsResult ScalarizeInputs();
   nsResult ScalarizeOutputs();
 
 private:
@@ -300,7 +299,7 @@ private:
   static void UpdateHash(Node* pNode);
   static bool IsEqual(const Node* pNodeA, const Node* pNodeB);
 
-  nsStackAllocator<> m_Allocator;
+  nsLinearAllocator<> m_Allocator;
 
   nsSet<nsExpression::FunctionDesc> m_FunctionDescs;
 

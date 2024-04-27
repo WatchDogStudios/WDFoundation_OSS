@@ -1,14 +1,9 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Types/ScopeExit.h>
 
 template <typename EventData, typename MutexType, nsEventType EventType>
-nsEventBase<EventData, MutexType, EventType>::nsEventBase(nsAllocatorBase* pAllocator)
+nsEventBase<EventData, MutexType, EventType>::nsEventBase(nsAllocator* pAllocator)
   : m_EventHandlers(pAllocator)
 {
 #if NS_ENABLED(NS_COMPILE_FOR_DEVELOPMENT)
@@ -33,7 +28,7 @@ nsEventSubscriptionID nsEventBase<EventData, MutexType, EventType>::AddEventHand
 
   if constexpr (std::is_same_v<MutexType, nsNoMutex>)
   {
-    if (EventType == nsEventType::Default)
+    if constexpr (EventType == nsEventType::Default)
     {
       NS_ASSERT_DEV(m_uiRecursionDepth == 0, "Can't add or remove event handlers while broadcasting (without a mutex). Either enable the use of a mutex on this event, or switch to nsCopyOnBroadcastEvent if this should be allowed. Since this event does not have a mutex, this error can also happen due to multi-threaded access.");
     }
@@ -207,9 +202,8 @@ void nsEventBase<EventData, MutexType, EventType>::Broadcast(EventData eventData
     m_uiRecursionDepth++;
 
     // RAII to ensure correctness in case exceptions are used
-    auto scopeExit = nsMakeScopeExit([&]() {
-      m_uiRecursionDepth--;
-    });
+    auto scopeExit = nsMakeScopeExit([&]()
+      { m_uiRecursionDepth--; });
 
     // don't execute handlers that are added while we are broadcasting
     nsUInt32 uiMaxHandlers = m_EventHandlers.GetCount();
@@ -260,20 +254,21 @@ void nsEventBase<EventData, MutexType, EventType>::Broadcast(EventData eventData
     }
 
     // RAII to ensure correctness in case exceptions are used
-    auto scopeExit = nsMakeScopeExit([&]() {
+    auto scopeExit = nsMakeScopeExit([&]()
+      {
     // Bug in MSVC 2017. Can't use if constexpr.
 #if NS_ENABLED(NS_COMPILER_MSVC) && _MSC_VER < 1920
-      if (RecursionDepthSupported)
-      {
-        m_uiRecursionDepth--;
-      }
+        if (RecursionDepthSupported)
+        {
+          m_uiRecursionDepth--;
+        }
 #else
-      if constexpr (RecursionDepthSupported)
-      {
-        m_uiRecursionDepth--;
-      }
+        if constexpr (RecursionDepthSupported)
+        {
+          m_uiRecursionDepth--;
+        }
 #endif
-    });
+      });
 
     const nsUInt32 uiHandlerCount = eventHandlers.GetCount();
     for (nsUInt32 ui = 0; ui < uiHandlerCount; ++ui)
@@ -291,7 +286,7 @@ nsEvent<EventData, MutexType, AllocatorWrapper, EventType>::nsEvent()
 }
 
 template <typename EventData, typename MutexType, typename AllocatorWrapper, nsEventType EventType>
-nsEvent<EventData, MutexType, AllocatorWrapper, EventType>::nsEvent(nsAllocatorBase* pAllocator)
+nsEvent<EventData, MutexType, AllocatorWrapper, EventType>::nsEvent(nsAllocator* pAllocator)
   : nsEventBase<EventData, MutexType, EventType>(pAllocator)
 {
 }

@@ -1,14 +1,10 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <TestFramework/Framework/Declarations.h>
 #include <TestFramework/Framework/SimpleTest.h>
 #include <TestFramework/Framework/TestBaseClass.h>
 #include <TestFramework/Framework/TestResults.h>
+#include <TestFramework/Platform/TestFrameworkEntryPoint.h>
 #include <TestFramework/TestFrameworkDLL.h>
 
 #include <Foundation/Containers/DynamicArray.h>
@@ -116,8 +112,7 @@ public:
   void SetImageReferenceOverrideFolderName(const char* szFolderName);
 
   /// \brief Writes an Html file that contains test information and an image diff view for failed image comparisons.
-  void WriteImageDiffHtml(const char* szFileName, nsImage& ref_referenceImgRgb, nsImage& ref_referenceImgAlpha, nsImage& ref_capturedImgRgb,
-    nsImage& ref_capturedImgAlpha, nsImage& ref_diffImgRgb, nsImage& ref_diffImgAlpha, nsUInt32 uiError, nsUInt32 uiThreshold, nsUInt8 uiMinDiffRgb,
+  void WriteImageDiffHtml(const char* szFileName, const nsImage& referenceImgRgb, const nsImage& referenceImgAlpha, const nsImage& capturedImgRgb, const nsImage& capturedImgAlpha, const nsImage& diffImgRgb, const nsImage& diffImgAlpha, nsUInt32 uiError, nsUInt32 uiThreshold, nsUInt8 uiMinDiffRgb,
     nsUInt8 uiMaxDiffRgb, nsUInt8 uiMinDiffAlpha, nsUInt8 uiMaxDiffAlpha);
 
   bool PerformImageComparison(nsStringBuilder sImgName, const nsImage& img, nsUInt32 uiMaxError, bool bIsLineImage, char* szErrorMsg);
@@ -228,105 +223,6 @@ protected:
   nsUInt32 m_uiCurrentSubTestIndex = nsInvalidIndex;
   bool m_bTestsRunning = false;
 };
-
-#ifdef NS_NV_OPTIMUS
-#  undef NS_NV_OPTIMUS
-#endif
-
-#if NS_ENABLED(NS_PLATFORM_WINDOWS)
-#  include <Foundation/Basics/Platform/Win/MinWindows.h>
-#  define NS_NV_OPTIMUS                                                          \
-    extern "C"                                                                   \
-    {                                                                            \
-      _declspec(dllexport) nsMinWindows::DWORD NvOptimusEnablement = 0x00000001; \
-      _declspec(dllexport) nsMinWindows::DWORD AmdPowerXpressRequestHighPerformance = 0x00000001; \
-    }
-#else
-#  define NS_NV_OPTIMUS
-#endif
-
-#if NS_ENABLED(NS_PLATFORM_ANDROID)
-#  include <Foundation/Basics/Platform/Android/AndroidUtils.h>
-#  include <android/log.h>
-#  include <android/native_activity.h>
-#  include <android_native_app_glue.h>
-
-
-#  define NS_TESTFRAMEWORK_ENTRY_POINT_BEGIN(szTestName, szNiceTestName)                                                   \
-    int nsAndroidMain(int argc, char** argv);                                                                              \
-    extern "C" void android_main(struct android_app* app)                                                                  \
-    {                                                                                                                      \
-      nsAndroidUtils::SetAndroidApp(app);                                                                                  \
-      /* TODO: do something with the return value of nsAndroidMain?  */                                                    \
-      /* TODO: can we get somehow get the command line arguments to the android app? Is there even something like that? */ \
-      int iReturnCode = nsAndroidMain(0, nullptr);                                                                         \
-      __android_log_print(ANDROID_LOG_ERROR, "nsEngine", "Test framework exited with return code: '%d'", iReturnCode);     \
-    }                                                                                                                      \
-                                                                                                                           \
-    int nsAndroidMain(int argc, char** argv)                                                                               \
-    {                                                                                                                      \
-      nsTestSetup::InitTestFramework(szTestName, szNiceTestName, 0, nullptr);                                              \
-      /* Execute custom init code here by using the BEGIN/END macros directly */
-
-#else
-/// \brief Macro to define the application entry point for all test applications
-#  define NS_TESTFRAMEWORK_ENTRY_POINT_BEGIN(szTestName, szNiceTestName)                    \
-    /* Enables that on machines with multiple GPUs the NVIDIA GPU is preferred */           \
-    NS_NV_OPTIMUS                                                                           \
-    NS_APPLICATION_ENTRY_POINT_CODE_INJECTION                                               \
-    int main(int argc, char** argv)                                                         \
-    {                                                                                       \
-      nsTestSetup::InitTestFramework(szTestName, szNiceTestName, argc, (const char**)argv); \
-      /* Execute custom init code here by using the BEGIN/END macros directly */
-
-#endif
-
-#if NS_ENABLED(NS_PLATFORM_ANDROID)
-#  define NS_TESTFRAMEWORK_ENTRY_POINT_END()                                       \
-    /* TODO: This is too big for a macro now */                                    \
-    auto app = nsAndroidUtils::GetAndroidApp();                                    \
-    bool bRun = true;                                                              \
-    while (true)                                                                   \
-    {                                                                              \
-      struct android_poll_source* source = nullptr;                                \
-      int ident = 0;                                                               \
-      int events = 0;                                                              \
-      while ((ident = ALooper_pollAll(0, nullptr, &events, (void**)&source)) >= 0) \
-      {                                                                            \
-        if (source != nullptr)                                                     \
-          source->process(app, source);                                            \
-      }                                                                            \
-      if (bRun && nsTestSetup::RunTests() != nsTestAppRun::Continue)               \
-      {                                                                            \
-        bRun = false;                                                              \
-        ANativeActivity_finish(app->activity);                                     \
-      }                                                                            \
-      if (app->destroyRequested)                                                   \
-      {                                                                            \
-        const nsInt32 iFailedTests = nsTestSetup::GetFailedTestCount();            \
-        nsTestSetup::DeInitTestFramework();                                        \
-        return iFailedTests;                                                       \
-      }                                                                            \
-    }                                                                              \
-    }
-
-#else
-#  define NS_TESTFRAMEWORK_ENTRY_POINT_END()                        \
-    while (nsTestSetup::RunTests() == nsTestAppRun::Continue)       \
-    {                                                               \
-    }                                                               \
-    const nsInt32 iFailedTests = nsTestSetup::GetFailedTestCount(); \
-    nsTestSetup::DeInitTestFramework();                             \
-    return iFailedTests;                                            \
-    }
-
-#endif
-
-
-#define NS_TESTFRAMEWORK_ENTRY_POINT(szTestName, szNiceTestName)             \
-  NS_TESTFRAMEWORK_ENTRY_POINT_BEGIN(szTestName, szNiceTestName)             \
-  /* Execute custom init code here by using the BEGIN/END macros directly */ \
-  NS_TESTFRAMEWORK_ENTRY_POINT_END()
 
 /// \brief Enum for usage in NS_TEST_BLOCK to enable or disable the block.
 struct nsTestBlock

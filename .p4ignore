@@ -9,8 +9,7 @@
 *.user
 *.userosscache
 *.sln.docstates
-# CPM
-CPMCache/
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
@@ -348,22 +347,15 @@ healthchecksdb
 # Backup folder for Package Reference Convert tool in Visual Studio 2017
 MigrationBackup/
 
-# ez specific
+# Substance
+.autosave/
+
+# ns specific
 /Workspace
 /Output
 AssetCache
 /build/
 /buildUWP/
-Code/Engine/wdBuildInfo.h
-
-
-# ThirdParty Ignores
-
-Code/ThirdParty/V8-LocalBuild/
-Code/ThirdParty/v8_prebuilt/
-sln/
-*.dll
-*.lib
-*.dat
-*.x86
-*.7z
+Code/Engine/nsBuildInfo.h
+!Code/ThirdParty/fmod/**/*.lib
+!Code/ThirdParty/fmod/**/*.dll

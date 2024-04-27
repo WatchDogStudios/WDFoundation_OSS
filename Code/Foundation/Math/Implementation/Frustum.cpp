@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Math/Frustum.h>
@@ -30,29 +25,76 @@ nsPlane& nsFrustum::AccessPlane(nsUInt8 uiPlane)
 
 bool nsFrustum::IsValid() const
 {
+  // For frustums with infinite farplanes we test a finite frustum slice for validity, as the
+  // computations below don't work when 4 of the corner points are at infinity.
+  if (nsMath::Abs(m_Planes[FarPlane].m_fNegDistance) == nsMath::Infinity<float>())
+  {
+    nsFrustum finiteSlice = *this;
+    finiteSlice.m_Planes[FarPlane].m_fNegDistance = -2.f * nsMath::Abs(m_Planes[NearPlane].m_fNegDistance);
+    return finiteSlice.IsValid();
+  }
+
   for (nsUInt32 i = 0; i < PLANE_COUNT; ++i)
   {
-    if (!m_Planes[i].IsValid())
+    if (!m_Planes[i].IsValid() || (i != FarPlane && !nsMath::IsFinite(m_Planes[i].m_fNegDistance)))
       return false;
   }
+
+  nsVec3 corners[8];
+  if (ComputeCornerPoints(corners).Failed())
+    return false;
+
+  nsVec3 center = nsVec3::MakeZero();
+  for (nsUInt32 i = 0; i < 8; ++i)
+  {
+    center += corners[i];
+  }
+  center /= 8.0f;
+
+  if (GetObjectPosition(&center, 1) != nsVolumePosition::Inside)
+    return false;
 
   return true;
 }
 
 nsFrustum nsFrustum::MakeFromPlanes(const nsPlane* pPlanes)
 {
+  nsFrustum frustum;
+  const nsResult res = TryMakeFromPlanes(frustum, pPlanes);
+  NS_ASSERT_DEV(res.Succeeded() && frustum.IsValid(), "Frustum is not valid after construction.");
+  NS_IGNORE_UNUSED(res);
+  return frustum;
+}
+
+nsResult nsFrustum::TryMakeFromPlanes(nsFrustum& out_frustum , const nsPlane* pPlanes)
+{
   nsFrustum f;
 
   for (nsUInt32 i = 0; i < PLANE_COUNT; ++i)
     f.m_Planes[i] = pPlanes[i];
 
-  return f;
+  if (f.IsValid())
+  {
+    out_frustum  = std::move(f);
+    return NS_SUCCESS;
+  }
+
+  return NS_FAILURE;
 }
 
 void nsFrustum::TransformFrustum(const nsMat4& mTransform)
 {
   for (nsUInt32 i = 0; i < PLANE_COUNT; ++i)
+  {
     m_Planes[i].Transform(mTransform);
+  }
+}
+
+nsFrustum nsFrustum::GetTransformedFrustum(const nsMat4& mTransform) const
+{
+  nsFrustum result = *this;
+  result.TransformFrustum(mTransform);
+  return result;
 }
 
 nsVolumePosition::Enum nsFrustum::GetObjectPosition(const nsVec3* pVertices, nsUInt32 uiNumVertices) const
@@ -197,22 +239,31 @@ void nsFrustum::InvertFrustum()
     m_Planes[i].Flip();
 }
 
-void nsFrustum::ComputeCornerPoints(nsVec3 out_pPoints[FrustumCorner::CORNER_COUNT]) const
+nsResult nsFrustum::ComputeCornerPoints(nsVec3 out_pPoints[FrustumCorner::CORNER_COUNT]) const
 {
-  // clang-format off
-  nsPlane::GetPlanesIntersectionPoint(m_Planes[NearPlane], m_Planes[TopPlane], m_Planes[LeftPlane], out_pPoints[FrustumCorner::NearTopLeft]).IgnoreResult();
-  nsPlane::GetPlanesIntersectionPoint(m_Planes[NearPlane], m_Planes[TopPlane], m_Planes[RightPlane], out_pPoints[FrustumCorner::NearTopRight]).IgnoreResult();
-  nsPlane::GetPlanesIntersectionPoint(m_Planes[NearPlane], m_Planes[BottomPlane], m_Planes[LeftPlane], out_pPoints[FrustumCorner::NearBottomLeft]).IgnoreResult();
-  nsPlane::GetPlanesIntersectionPoint(m_Planes[NearPlane], m_Planes[BottomPlane], m_Planes[RightPlane], out_pPoints[FrustumCorner::NearBottomRight]).IgnoreResult();
+  NS_SUCCEED_OR_RETURN(nsPlane::GetPlanesIntersectionPoint(m_Planes[NearPlane], m_Planes[TopPlane], m_Planes[LeftPlane], out_pPoints[FrustumCorner::NearTopLeft]));
+  NS_SUCCEED_OR_RETURN(nsPlane::GetPlanesIntersectionPoint(m_Planes[NearPlane], m_Planes[TopPlane], m_Planes[RightPlane], out_pPoints[FrustumCorner::NearTopRight]));
+  NS_SUCCEED_OR_RETURN(nsPlane::GetPlanesIntersectionPoint(m_Planes[NearPlane], m_Planes[BottomPlane], m_Planes[LeftPlane], out_pPoints[FrustumCorner::NearBottomLeft]));
+  NS_SUCCEED_OR_RETURN(nsPlane::GetPlanesIntersectionPoint(m_Planes[NearPlane], m_Planes[BottomPlane], m_Planes[RightPlane], out_pPoints[FrustumCorner::NearBottomRight]));
 
-  nsPlane::GetPlanesIntersectionPoint(m_Planes[FarPlane], m_Planes[TopPlane], m_Planes[LeftPlane], out_pPoints[FrustumCorner::FarTopLeft]).IgnoreResult();
-  nsPlane::GetPlanesIntersectionPoint(m_Planes[FarPlane], m_Planes[TopPlane], m_Planes[RightPlane], out_pPoints[FrustumCorner::FarTopRight]).IgnoreResult();
-  nsPlane::GetPlanesIntersectionPoint(m_Planes[FarPlane], m_Planes[BottomPlane], m_Planes[LeftPlane], out_pPoints[FrustumCorner::FarBottomLeft]).IgnoreResult();
-  nsPlane::GetPlanesIntersectionPoint(m_Planes[FarPlane], m_Planes[BottomPlane], m_Planes[RightPlane], out_pPoints[FrustumCorner::FarBottomRight]).IgnoreResult();
-  // clang-format on
+  NS_SUCCEED_OR_RETURN(nsPlane::GetPlanesIntersectionPoint(m_Planes[FarPlane], m_Planes[TopPlane], m_Planes[LeftPlane], out_pPoints[FrustumCorner::FarTopLeft]));
+  NS_SUCCEED_OR_RETURN(nsPlane::GetPlanesIntersectionPoint(m_Planes[FarPlane], m_Planes[TopPlane], m_Planes[RightPlane], out_pPoints[FrustumCorner::FarTopRight]));
+  NS_SUCCEED_OR_RETURN(nsPlane::GetPlanesIntersectionPoint(m_Planes[FarPlane], m_Planes[BottomPlane], m_Planes[LeftPlane], out_pPoints[FrustumCorner::FarBottomLeft]));
+  NS_SUCCEED_OR_RETURN(nsPlane::GetPlanesIntersectionPoint(m_Planes[FarPlane], m_Planes[BottomPlane], m_Planes[RightPlane], out_pPoints[FrustumCorner::FarBottomRight]));
+
+  return NS_SUCCESS;
 }
 
 nsFrustum nsFrustum::MakeFromMVP(const nsMat4& mModelViewProjection0, nsClipSpaceDepthRange::Enum depthRange, nsHandedness::Enum handedness)
+{
+  nsFrustum frustum;
+  const nsResult res = TryMakeFromMVP(frustum, mModelViewProjection0, depthRange, handedness);
+  NS_ASSERT_DEV(res.Succeeded() && frustum.IsValid(), "Frustum is not valid after construction.");
+  NS_IGNORE_UNUSED(res);
+  return frustum;
+}
+
+nsResult nsFrustum::TryMakeFromMVP(nsFrustum& out_frustum , const nsMat4& mModelViewProjection0, nsClipSpaceDepthRange::Enum depthRange, nsHandedness::Enum handedness)
 {
   nsMat4 ModelViewProjection = mModelViewProjection0;
   nsGraphicsUtils::ConvertProjectionMatrixDepthRange(ModelViewProjection, depthRange, nsClipSpaceDepthRange::MinusOneToOne);
@@ -264,14 +315,27 @@ nsFrustum nsFrustum::MakeFromMVP(const nsMat4& mModelViewProjection0, nsClipSpac
     planes[FarPlane] = (-planes[NearPlane].GetAsVec3()).GetAsVec4(planes[FarPlane].w);
   }
 
-  static_assert(offsetof(nsPlane, m_vNormal) == offsetof(nsVec4, x) && offsetof(nsPlane, m_fNegDistance) == offsetof(nsVec4, w));
+  static_assert(sizeof(nsFrustum) == sizeof(planes));
+  if (reinterpret_cast<nsFrustum*>(planes)->IsValid())
+  {
+    static_assert(offsetof(nsPlane, m_vNormal) == offsetof(nsVec4, x) && offsetof(nsPlane, m_fNegDistance) == offsetof(nsVec4, w));
+    nsMemoryUtils::Copy(out_frustum .m_Planes, (nsPlane*)planes, 6);
+    return NS_SUCCESS;
+  }
 
-  nsFrustum res;
-  nsMemoryUtils::Copy(res.m_Planes, (nsPlane*)planes, 6);
-  return res;
+  return NS_FAILURE;
 }
 
 nsFrustum nsFrustum::MakeFromFOV(const nsVec3& vPosition, const nsVec3& vForwards, const nsVec3& vUp, nsAngle fovX, nsAngle fovY, float fNearPlane, float fFarPlane)
+{
+  nsFrustum frustum;
+  const nsResult res = TryMakeFromFOV(frustum, vPosition, vForwards, vUp, fovX, fovY, fNearPlane, fFarPlane);
+  NS_ASSERT_DEV(res.Succeeded() && frustum.IsValid(), "Frustum is not valid after construction.");
+  NS_IGNORE_UNUSED(res);
+  return frustum;
+}
+
+nsResult nsFrustum::TryMakeFromFOV(nsFrustum& out_frustum, const nsVec3& vPosition, const nsVec3& vForwards, const nsVec3& vUp, nsAngle fovX, nsAngle fovY, float fNearPlane, float fFarPlane)
 {
   NS_ASSERT_DEBUG(nsMath::Abs(vForwards.GetNormalized().Dot(vUp.GetNormalized())) < 0.999f, "Up dir must be different from forward direction");
 
@@ -336,7 +400,45 @@ nsFrustum nsFrustum::MakeFromFOV(const nsVec3& vPosition, const nsVec3& vForward
     res.m_Planes[TopPlane] = nsPlane::MakeFromNormalAndPoint(vPlaneNormal, vPosition);
   }
 
-  return res;
+  if (res.IsValid())
+  {
+    out_frustum = std::move(res);
+    return NS_SUCCESS;
+  }
+
+  return NS_FAILURE;
 }
 
-NS_STATICLINK_FILE(Foundation, Foundation_Math_Implementation_Frustum);
+nsFrustum nsFrustum::MakeFromCorners(const nsVec3 pCorners[FrustumCorner::CORNER_COUNT])
+{
+  nsFrustum frustum;
+  const nsResult res = TryMakeFromCorners(frustum, pCorners);
+  NS_ASSERT_DEV(res.Succeeded() && frustum.IsValid(), "Frustum is not valid after construction.");
+  NS_IGNORE_UNUSED(res);
+  return frustum;
+}
+
+nsResult nsFrustum::TryMakeFromCorners(nsFrustum& out_frustum , const nsVec3 pCorners[FrustumCorner::CORNER_COUNT])
+{
+  nsFrustum res;
+
+  res.m_Planes[PlaneType::LeftPlane] = nsPlane::MakeFromPoints(pCorners[FrustumCorner::FarTopLeft], pCorners[FrustumCorner::NearBottomLeft], pCorners[FrustumCorner::NearTopLeft]);
+
+  res.m_Planes[PlaneType::RightPlane] = nsPlane::MakeFromPoints(pCorners[FrustumCorner::NearTopRight], pCorners[FrustumCorner::FarBottomRight], pCorners[FrustumCorner::FarTopRight]);
+
+  res.m_Planes[PlaneType::BottomPlane] = nsPlane::MakeFromPoints(pCorners[FrustumCorner::NearBottomLeft], pCorners[FrustumCorner::FarBottomRight], pCorners[FrustumCorner::NearBottomRight]);
+
+  res.m_Planes[PlaneType::TopPlane] = nsPlane::MakeFromPoints(pCorners[FrustumCorner::FarTopLeft], pCorners[FrustumCorner::NearTopRight], pCorners[FrustumCorner::FarTopRight]);
+
+  res.m_Planes[PlaneType::FarPlane] = nsPlane::MakeFromPoints(pCorners[FrustumCorner::FarTopLeft], pCorners[FrustumCorner::FarBottomRight], pCorners[FrustumCorner::FarBottomLeft]);
+
+  res.m_Planes[PlaneType::NearPlane] = nsPlane::MakeFromPoints(pCorners[FrustumCorner::NearTopLeft], pCorners[FrustumCorner::NearBottomRight], pCorners[FrustumCorner::NearTopRight]);
+
+  if (res.IsValid())
+  {
+    out_frustum  = std::move(res);
+    return NS_SUCCESS; 
+  }
+
+  return NS_FAILURE;
+}

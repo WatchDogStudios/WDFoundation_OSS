@@ -1,11 +1,7 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/IO/Archive/ArchiveReader.h>
+#include <Foundation/IO/CompressedStreamZlib.h>
 #include <Foundation/IO/CompressedStreamZstd.h>
 #include <Foundation/IO/FileSystem/FileSystem.h>
 #include <Foundation/IO/FileSystem/Implementation/DataDirType.h>
@@ -56,23 +52,22 @@ namespace nsDataDirectory
     nsHybridArray<nsUniquePtr<ArchiveReaderZstd>, 4> m_ReadersZstd;
     nsHybridArray<ArchiveReaderZstd*, 4> m_FreeReadersZstd;
 #endif
+#ifdef BUILDSYSTEM_ENABLE_ZLIB_SUPPORT
+    nsHybridArray<nsUniquePtr<ArchiveReaderZip>, 4> m_ReadersZip;
+    nsHybridArray<ArchiveReaderZip*, 4> m_FreeReadersZip;
+#endif
   };
 
-  class NS_FOUNDATION_DLL ArchiveReaderUncompressed : public nsDataDirectoryReader
+  class NS_FOUNDATION_DLL ArchiveReaderCommon : public nsDataDirectoryReader
   {
-    NS_DISALLOW_COPY_AND_ASSIGN(ArchiveReaderUncompressed);
+    NS_DISALLOW_COPY_AND_ASSIGN(ArchiveReaderCommon);
 
   public:
-    ArchiveReaderUncompressed(nsInt32 iDataDirUserData);
-    ~ArchiveReaderUncompressed();
+    ArchiveReaderCommon(nsInt32 iDataDirUserData);
 
-    virtual nsUInt64 Read(void* pBuffer, nsUInt64 uiBytes) override;
     virtual nsUInt64 GetFileSize() const override;
 
   protected:
-    virtual nsResult InternalOpen(nsFileShareMode::Enum FileShareMode) override;
-    virtual void InternalClose() override;
-
     friend class ArchiveType;
 
     nsUInt64 m_uiUncompressedSize = 0;
@@ -80,14 +75,49 @@ namespace nsDataDirectory
     nsRawMemoryStreamReader m_MemStreamReader;
   };
 
+  class NS_FOUNDATION_DLL ArchiveReaderUncompressed : public ArchiveReaderCommon
+  {
+    NS_DISALLOW_COPY_AND_ASSIGN(ArchiveReaderUncompressed);
+
+  public:
+    ArchiveReaderUncompressed(nsInt32 iDataDirUserData);
+
+    virtual nsUInt64 Skip(nsUInt64 uiBytes) override;
+    virtual nsUInt64 Read(void* pBuffer, nsUInt64 uiBytes) override;
+
+  protected:
+    virtual nsResult InternalOpen(nsFileShareMode::Enum FileShareMode) override;
+    virtual void InternalClose() override;
+  };
+
 #ifdef BUILDSYSTEM_ENABLE_ZSTD_SUPPORT
-  class NS_FOUNDATION_DLL ArchiveReaderZstd : public ArchiveReaderUncompressed
+  class NS_FOUNDATION_DLL ArchiveReaderZstd : public ArchiveReaderCommon
   {
     NS_DISALLOW_COPY_AND_ASSIGN(ArchiveReaderZstd);
 
   public:
     ArchiveReaderZstd(nsInt32 iDataDirUserData);
-    ~ArchiveReaderZstd();
+
+    virtual nsUInt64 Read(void* pBuffer, nsUInt64 uiBytes) override;
+
+  protected:
+    virtual nsResult InternalOpen(nsFileShareMode::Enum FileShareMode) override;
+    virtual void InternalClose() override;
+
+    nsCompressedStreamReaderZstd m_CompressedStreamReader;
+  };
+#endif
+
+#ifdef BUILDSYSTEM_ENABLE_ZLIB_SUPPORT
+  /// \brief Allows reading of zip / apk containers.
+  /// Needed to allow Android to read data from the apk.
+  class NS_FOUNDATION_DLL ArchiveReaderZip : public ArchiveReaderUncompressed
+  {
+    NS_DISALLOW_COPY_AND_ASSIGN(ArchiveReaderZip);
+
+  public:
+    ArchiveReaderZip(nsInt32 iDataDirUserData);
+    ~ArchiveReaderZip();
 
     virtual nsUInt64 Read(void* pBuffer, nsUInt64 uiBytes) override;
 
@@ -96,9 +126,7 @@ namespace nsDataDirectory
 
     friend class ArchiveType;
 
-    nsCompressedStreamReaderZstd m_CompressedStreamReader;
+    nsCompressedStreamReaderZip m_CompressedStreamReader;
   };
 #endif
-
-
 } // namespace nsDataDirectory

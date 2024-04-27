@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Math/Vec3.h>
@@ -121,16 +116,15 @@ public:
 
   /// \brief Inverts the rotation, so instead of rotating N degrees around an axis, the quaternion will rotate -N degrees around its axis.
   ///
-  /// This modifies the quaternion in place. If you want to get the inverse as a copy, use the negation operator (-).
+  /// This modifies the quaternion in place. If you want to get the inverse as a copy, use GetInverse().
   void Invert();
 
-  // *** Operators ***
-public:
-  /// \brief Returns a Quaternion that represents the negative / inverted rotation.
-  const nsQuatTemplate operator-() const; // [tested]
+  /// \brief Returns a quaternion that represents the negative / inverted rotation. E.g. the one that would rotate back to identity.
+  const nsQuatTemplate<Type> GetInverse() const; // [tested]
 
-  // *** Common Quaternion operations ***
-public:
+  /// \brief Returns the Quaternion with all 4 components negated. This is not the same as the inverted rotation!
+  const nsQuatTemplate<Type> GetNegated() const;
+
   /// \brief Returns the dot-product of the two quaternions (commutative, order does not matter).
   Type Dot(const nsQuatTemplate& rhs) const; // [tested]
 
@@ -152,9 +146,9 @@ template <typename Type>
 const nsQuatTemplate<Type> operator*(const nsQuatTemplate<Type>& q1, const nsQuatTemplate<Type>& q2); // [tested]
 
 template <typename Type>
-bool operator==(const nsQuatTemplate<Type>& q1, const nsQuatTemplate<Type>& q2); // [tested]
+bool operator==(const nsQuatTemplate<Type>& q1, const nsQuatTemplate<Type>& q2);                      // [tested]
 
 template <typename Type>
-bool operator!=(const nsQuatTemplate<Type>& q1, const nsQuatTemplate<Type>& q2); // [tested]
+bool operator!=(const nsQuatTemplate<Type>& q1, const nsQuatTemplate<Type>& q2);                      // [tested]
 
 #include <Foundation/Math/Implementation/Quat_inl.h>

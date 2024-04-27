@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Algorithm/HashingUtils.h>
@@ -35,10 +30,7 @@ struct nsTypedObject
   {
     return m_pObject == rhs.m_pObject;
   }
-  bool operator!=(const nsTypedObject& rhs) const
-  {
-    return m_pObject != rhs.m_pObject;
-  }
+  NS_ADD_DEFAULT_OPERATOR_NOTEQUAL(const nsTypedObject&);
 };
 
 /// \brief nsVariant is a class that can store different types of variables, which is useful in situations where it is not clear up front,
@@ -159,16 +151,20 @@ public:
   /// that can either both be converted to double (\see CanConvertTo()) or whose types are equal.
   bool operator==(const nsVariant& other) const; // [tested]
 
-  /// \brief Same as operator== (with a twist!)
-  bool operator!=(const nsVariant& other) const; // [tested]
+  NS_ADD_DEFAULT_OPERATOR_NOTEQUAL(const nsVariant&);
 
   /// \brief See non-templated operator==
   template <typename T>
   bool operator==(const T& other) const; // [tested]
 
+#if NS_DISABLED(NS_USE_CPP20_OPERATORS)
   /// \brief See non-templated operator!=
   template <typename T>
-  bool operator!=(const T& other) const; // [tested]
+  bool operator!=(const T& other) const // [tested]
+  {
+    return !(*this == other);
+  }
+#endif
 
   /// \brief Returns whether this variant stores any other type than 'Invalid'.
   bool IsValid() const; // [tested]
@@ -217,10 +213,10 @@ public:
   const T& Get() const; // [tested]
 
   template <typename T, typename std::enable_if_t<nsVariantTypeDeduction<T>::classification == nsVariantClass::PointerCast, int> = 0>
-  T Get() const; // [tested]
+  T Get() const;        // [tested]
 
   template <typename T, typename std::enable_if_t<nsVariantTypeDeduction<T>::classification == nsVariantClass::TypedObject, int> = 0>
-  const T Get() const; // [tested]
+  const T Get() const;  // [tested]
 
   template <typename T, typename std::enable_if_t<nsVariantTypeDeduction<T>::classification == nsVariantClass::CustomTypeCast, int> = 0>
   const T& Get() const; // [tested]
@@ -230,13 +226,13 @@ public:
   nsTypedPointer GetWriteAccess(); // [tested]
 
   template <typename T, typename std::enable_if_t<nsVariantTypeDeduction<T>::classification == nsVariantClass::DirectCast, int> = 0>
-  T& GetWritable(); // [tested]
+  T& GetWritable();                // [tested]
 
   template <typename T, typename std::enable_if_t<nsVariantTypeDeduction<T>::classification == nsVariantClass::PointerCast, int> = 0>
-  T GetWritable(); // [tested]
+  T GetWritable();                 // [tested]
 
   template <typename T, typename std::enable_if_t<nsVariantTypeDeduction<T>::classification == nsVariantClass::CustomTypeCast, int> = 0>
-  T& GetWritable(); // [tested]
+  T& GetWritable();                // [tested]
 
 
   /// \brief Returns a const void* to the internal data.

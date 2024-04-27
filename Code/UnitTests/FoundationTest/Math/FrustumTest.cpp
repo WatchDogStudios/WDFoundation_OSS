@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/Math/Frustum.h>
@@ -16,12 +11,12 @@ NS_CREATE_SIMPLE_TEST(Math, Frustum)
     nsFrustum f;
 
     nsPlane p[6];
-    p[0] = nsPlane::MakeFromNormalAndPoint(nsVec3(1, 0, 0), nsVec3(1, 2, 3));
-    p[1] = nsPlane::MakeFromNormalAndPoint(nsVec3(0, 1, 0), nsVec3(2, 3, 4));
-    p[2] = nsPlane::MakeFromNormalAndPoint(nsVec3(0, 1, 0), nsVec3(2, 3, 4));
-    p[3] = nsPlane::MakeFromNormalAndPoint(nsVec3(0, 1, 0), nsVec3(2, 3, 4));
-    p[4] = nsPlane::MakeFromNormalAndPoint(nsVec3(0, 1, 0), nsVec3(2, 3, 4));
-    p[5] = nsPlane::MakeFromNormalAndPoint(nsVec3(0, 1, 0), nsVec3(2, 3, 4));
+    p[nsFrustum::PlaneType::LeftPlane] = nsPlane::MakeFromNormalAndPoint(nsVec3(-1, 0, 0), nsVec3(-2, 0, 0));
+    p[nsFrustum::PlaneType::RightPlane] = nsPlane::MakeFromNormalAndPoint(nsVec3(+1, 0, 0), nsVec3(+2, 0, 0));
+    p[nsFrustum::PlaneType::BottomPlane] = nsPlane::MakeFromNormalAndPoint(nsVec3(0, -1, 0), nsVec3(0, -2, 0));
+    p[nsFrustum::PlaneType::TopPlane] = nsPlane::MakeFromNormalAndPoint(nsVec3(0, +1, 0), nsVec3(0, +2, 0));
+    p[nsFrustum::PlaneType::NearPlane] = nsPlane::MakeFromNormalAndPoint(nsVec3(0, 0, -1), nsVec3(0, 0, 0));
+    p[nsFrustum::PlaneType::FarPlane] = nsPlane::MakeFromNormalAndPoint(nsVec3(0, 0, 1), nsVec3(0, 0, 100));
 
     f = nsFrustum::MakeFromPlanes(p);
 
@@ -29,17 +24,17 @@ NS_CREATE_SIMPLE_TEST(Math, Frustum)
     NS_TEST_BOOL(f.GetPlane(1) == p[1]);
   }
 
-  NS_TEST_BLOCK(nsTestBlock::Enabled, "TransformFrustum")
+  NS_TEST_BLOCK(nsTestBlock::Enabled, "TransformFrustum/GetTransformedFrustum")
   {
     nsFrustum f;
 
     nsPlane p[6];
-    p[0] = nsPlane::MakeFromNormalAndPoint(nsVec3(1, 0, 0), nsVec3(1, 2, 3));
-    p[1] = nsPlane::MakeFromNormalAndPoint(nsVec3(0, 1, 0), nsVec3(2, 3, 4));
-    p[2] = nsPlane::MakeFromNormalAndPoint(nsVec3(0, 1, 0), nsVec3(2, 3, 4));
-    p[3] = nsPlane::MakeFromNormalAndPoint(nsVec3(0, 1, 0), nsVec3(2, 3, 4));
-    p[4] = nsPlane::MakeFromNormalAndPoint(nsVec3(0, 1, 0), nsVec3(2, 3, 4));
-    p[5] = nsPlane::MakeFromNormalAndPoint(nsVec3(0, 1, 0), nsVec3(2, 3, 4));
+    p[nsFrustum::PlaneType::LeftPlane] = nsPlane::MakeFromNormalAndPoint(nsVec3(-1, 0, 0), nsVec3(-2, 0, 0));
+    p[nsFrustum::PlaneType::RightPlane] = nsPlane::MakeFromNormalAndPoint(nsVec3(+1, 0, 0), nsVec3(+2, 0, 0));
+    p[nsFrustum::PlaneType::BottomPlane] = nsPlane::MakeFromNormalAndPoint(nsVec3(0, -1, 0), nsVec3(0, -2, 0));
+    p[nsFrustum::PlaneType::TopPlane] = nsPlane::MakeFromNormalAndPoint(nsVec3(0, +1, 0), nsVec3(0, +2, 0));
+    p[nsFrustum::PlaneType::NearPlane] = nsPlane::MakeFromNormalAndPoint(nsVec3(0, 0, -1), nsVec3(0, 0, 0));
+    p[nsFrustum::PlaneType::FarPlane] = nsPlane::MakeFromNormalAndPoint(nsVec3(0, 0, 1), nsVec3(0, 0, 100));
 
     f = nsFrustum::MakeFromPlanes(p);
 
@@ -47,13 +42,19 @@ NS_CREATE_SIMPLE_TEST(Math, Frustum)
     mTransform = nsMat4::MakeRotationY(nsAngle::MakeFromDegree(90.0f));
     mTransform.SetTranslationVector(nsVec3(2, 3, 4));
 
-    f.TransformFrustum(mTransform);
+    nsFrustum tf = f;
+    tf.TransformFrustum(mTransform);
 
     p[0].Transform(mTransform);
     p[1].Transform(mTransform);
 
-    NS_TEST_BOOL(f.GetPlane(0).IsEqual(p[0], 0.001f));
-    NS_TEST_BOOL(f.GetPlane(1).IsEqual(p[1], 0.001f));
+    for (int planeIndex = 0; planeIndex < 6; ++planeIndex)
+    {
+      NS_TEST_BOOL(f.GetTransformedFrustum(mTransform).GetPlane(planeIndex) == tf.GetPlane(planeIndex));
+    }
+
+    NS_TEST_BOOL(tf.GetPlane(0).IsEqual(p[0], 0.001f));
+    NS_TEST_BOOL(tf.GetPlane(1).IsEqual(p[1], 0.001f));
   }
 
   NS_TEST_BLOCK(nsTestBlock::Enabled, "InvertFrustum")
@@ -61,12 +62,12 @@ NS_CREATE_SIMPLE_TEST(Math, Frustum)
     nsFrustum f;
 
     nsPlane p[6];
-    p[0] = nsPlane::MakeFromNormalAndPoint(nsVec3(1, 0, 0), nsVec3(1, 2, 3));
-    p[1] = nsPlane::MakeFromNormalAndPoint(nsVec3(0, 1, 0), nsVec3(2, 3, 4));
-    p[2] = nsPlane::MakeFromNormalAndPoint(nsVec3(0, 1, 0), nsVec3(2, 3, 4));
-    p[3] = nsPlane::MakeFromNormalAndPoint(nsVec3(0, 1, 0), nsVec3(2, 3, 4));
-    p[4] = nsPlane::MakeFromNormalAndPoint(nsVec3(0, 1, 0), nsVec3(2, 3, 4));
-    p[5] = nsPlane::MakeFromNormalAndPoint(nsVec3(0, 1, 0), nsVec3(2, 3, 4));
+    p[nsFrustum::PlaneType::LeftPlane] = nsPlane::MakeFromNormalAndPoint(nsVec3(-1, 0, 0), nsVec3(-2, 0, 0));
+    p[nsFrustum::PlaneType::RightPlane] = nsPlane::MakeFromNormalAndPoint(nsVec3(+1, 0, 0), nsVec3(+2, 0, 0));
+    p[nsFrustum::PlaneType::BottomPlane] = nsPlane::MakeFromNormalAndPoint(nsVec3(0, -1, 0), nsVec3(0, -2, 0));
+    p[nsFrustum::PlaneType::TopPlane] = nsPlane::MakeFromNormalAndPoint(nsVec3(0, +1, 0), nsVec3(0, +2, 0));
+    p[nsFrustum::PlaneType::NearPlane] = nsPlane::MakeFromNormalAndPoint(nsVec3(0, 0, -1), nsVec3(0, 0, 0));
+    p[nsFrustum::PlaneType::FarPlane] = nsPlane::MakeFromNormalAndPoint(nsVec3(0, 0, 1), nsVec3(0, 0, 100));
 
     f = nsFrustum::MakeFromPlanes(p);
 
@@ -247,7 +248,7 @@ NS_CREATE_SIMPLE_TEST(Math, Frustum)
     for (int f = 0; f < 2; ++f)
     {
       nsVec3 corner[8];
-      frustum[f].ComputeCornerPoints(corner);
+      frustum[f].ComputeCornerPoints(corner).AssertSuccess();
 
       nsPositionOnPlane::Enum results[8][6];
 
@@ -307,5 +308,39 @@ NS_CREATE_SIMPLE_TEST(Math, Frustum)
         }
       }
     }
+  }
+
+  NS_TEST_BLOCK(nsTestBlock::Enabled, "MakeFromCorners")
+  {
+    const nsFrustum fOrg = nsFrustum::MakeFromFOV(nsVec3(1, 2, 3), nsVec3(1, 1, 0).GetNormalized(), nsVec3(0, 0, 1).GetNormalized(), nsAngle::MakeFromDegree(110), nsAngle::MakeFromDegree(70), 0.1f, 100.0f);
+
+    nsVec3 corners[8];
+    fOrg.ComputeCornerPoints(corners).AssertSuccess();
+
+    const nsFrustum fNew = nsFrustum::MakeFromCorners(corners);
+
+    for (nsUInt32 i = 0; i < 6; ++i)
+    {
+      nsPlane p1 = fOrg.GetPlane(i);
+      nsPlane p2 = fNew.GetPlane(i);
+
+      NS_TEST_BOOL(p1.IsEqual(p2, nsMath::LargeEpsilon<float>()));
+    }
+
+    nsVec3 corners2[8];
+    fNew.ComputeCornerPoints(corners2).AssertSuccess();
+
+    for (nsUInt32 i = 0; i < 8; ++i)
+    {
+      NS_TEST_BOOL(corners[i].IsEqual(corners2[i], 0.01f));
+    }
+  }
+
+  NS_TEST_BLOCK(nsTestBlock::Enabled, "MakeFromMVPInfiniteFarPlane")
+  {
+    nsMat4 perspective = nsGraphicsUtils::CreatePerspectiveProjectionMatrixFromFovY(nsAngle::MakeFromDegree(90), 1.0f, nsMath::Infinity<float>(), 100.0f, nsClipSpaceDepthRange::ZeroToOne, nsClipSpaceYMode::Regular, nsHandedness::RightHanded);
+
+    auto frustum = nsFrustum::MakeFromMVP(perspective);
+    NS_TEST_BOOL(frustum.IsValid());
   }
 }

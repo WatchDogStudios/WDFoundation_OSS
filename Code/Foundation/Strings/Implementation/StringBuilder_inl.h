@@ -1,23 +1,16 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Strings/StringConversion.h>
 
-inline nsStringBuilder::nsStringBuilder(nsAllocatorBase* pAllocator)
+inline nsStringBuilder::nsStringBuilder(nsAllocator* pAllocator)
   : m_Data(pAllocator)
 {
-  m_uiCharacterCount = 0;
   AppendTerminator();
 }
 
 inline nsStringBuilder::nsStringBuilder(const nsStringBuilder& rhs)
   : m_Data(rhs.GetAllocator())
 {
-  m_uiCharacterCount = 0;
   AppendTerminator();
 
   *this = rhs;
@@ -26,40 +19,36 @@ inline nsStringBuilder::nsStringBuilder(const nsStringBuilder& rhs)
 inline nsStringBuilder::nsStringBuilder(nsStringBuilder&& rhs) noexcept
   : m_Data(rhs.GetAllocator())
 {
-  m_uiCharacterCount = 0;
   AppendTerminator();
 
   *this = std::move(rhs);
 }
 
-inline nsStringBuilder::nsStringBuilder(const char* szUTF8, nsAllocatorBase* pAllocator)
+inline nsStringBuilder::nsStringBuilder(const char* szUTF8, nsAllocator* pAllocator)
   : m_Data(pAllocator)
 {
-  m_uiCharacterCount = 0;
   AppendTerminator();
 
   *this = szUTF8;
 }
 
-inline nsStringBuilder::nsStringBuilder(const wchar_t* pWChar, nsAllocatorBase* pAllocator)
+inline nsStringBuilder::nsStringBuilder(const wchar_t* pWChar, nsAllocator* pAllocator)
   : m_Data(pAllocator)
 {
-  m_uiCharacterCount = 0;
   AppendTerminator();
 
   *this = pWChar;
 }
 
-inline nsStringBuilder::nsStringBuilder(nsStringView rhs, nsAllocatorBase* pAllocator)
+inline nsStringBuilder::nsStringBuilder(nsStringView rhs, nsAllocator* pAllocator)
   : m_Data(pAllocator)
 {
-  m_uiCharacterCount = 0;
   AppendTerminator();
 
   *this = rhs;
 }
 
-NS_ALWAYS_INLINE nsAllocatorBase* nsStringBuilder::GetAllocator() const
+NS_ALWAYS_INLINE nsAllocator* nsStringBuilder::GetAllocator() const
 {
   return m_Data.GetAllocator();
 }
@@ -78,13 +67,11 @@ NS_FORCE_INLINE void nsStringBuilder::operator=(const wchar_t* pWChar)
 
 NS_ALWAYS_INLINE void nsStringBuilder::operator=(const nsStringBuilder& rhs)
 {
-  m_uiCharacterCount = rhs.m_uiCharacterCount;
   m_Data = rhs.m_Data;
 }
 
 NS_ALWAYS_INLINE void nsStringBuilder::operator=(nsStringBuilder&& rhs) noexcept
 {
-  m_uiCharacterCount = rhs.m_uiCharacterCount;
   m_Data = std::move(rhs.m_Data);
 }
 
@@ -95,12 +82,11 @@ NS_ALWAYS_INLINE nsUInt32 nsStringBuilder::GetElementCount() const
 
 NS_ALWAYS_INLINE nsUInt32 nsStringBuilder::GetCharacterCount() const
 {
-  return m_uiCharacterCount;
+  return nsStringUtils::GetCharacterCount(m_Data.GetData());
 }
 
 NS_FORCE_INLINE void nsStringBuilder::Clear()
 {
-  m_uiCharacterCount = 0;
   m_Data.SetCountUninitialized(1);
   m_Data[0] = '\0';
 }
@@ -120,7 +106,6 @@ inline void nsStringBuilder::Append(nsUInt32 uiChar)
     m_Data[uiOldCount + i] = szChar[i];
   }
   m_Data[uiOldCount + uiCharLen] = '\0';
-  ++m_uiCharacterCount;
 }
 
 inline void nsStringBuilder::Prepend(nsUInt32 uiChar)
@@ -209,11 +194,6 @@ inline void nsStringBuilder::ChangeCharacter(iterator& ref_it, nsUInt32 uiCharac
   }
 
   ChangeCharacterNonASCII(ref_it, uiCharacter);
-}
-
-NS_ALWAYS_INLINE bool nsStringBuilder::IsPureASCII() const
-{
-  return m_uiCharacterCount + 1 == m_Data.GetCount();
 }
 
 NS_ALWAYS_INLINE void nsStringBuilder::Reserve(nsUInt32 uiNumElements)

@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/IO/Stream.h>
@@ -328,7 +323,7 @@ void nsCurve1D::ApproximateMinMaxValues(const ControlPoint& lhs, const ControlPo
 void nsCurve1D::ApproximateCurve(
   const nsVec2d& p0, const nsVec2d& p1, const nsVec2d& p2, const nsVec2d& p3, double fMaxErrorX, double fMaxErrorY, nsInt32 iSubDivLeft)
 {
-  const nsVec2d cubicCenter = nsMath::EvaluateBnsierCurve(0.5, p0, p1, p2, p3);
+  const nsVec2d cubicCenter = nsMath::EvaluateBeziserCurve(0.5, p0, p1, p2, p3);
 
   ApproximateCurvePiece(p0, p1, p2, p3, 0.0f, p0, 0.5, cubicCenter, fMaxErrorX, fMaxErrorY, iSubDivLeft);
 
@@ -348,7 +343,7 @@ void nsCurve1D::ApproximateCurvePiece(const nsVec2d& p0, const nsVec2d& p1, cons
 
   const double tCenter = nsMath::Lerp(tLeft, tRight, 0.5);
 
-  const nsVec2d cubicCenter = nsMath::EvaluateBnsierCurve(tCenter, p0, p1, p2, p3);
+  const nsVec2d cubicCenter = nsMath::EvaluateBeziserCurve(tCenter, p0, p1, p2, p3);
   const nsVec2d linearCenter = nsMath::Lerp(pLeft, pRight, 0.5);
 
   // check whether the linear interpolation between pLeft and pRight would already result in a good enough approximation
@@ -569,5 +564,3 @@ void nsCurve1D::MakeAutoTangentRight(nsUInt32 uiCpIdx)
 
   tCP.m_RightTangent.Set((float)tangent.x, (float)tangent.y);
 }
-
-NS_STATICLINK_FILE(Foundation, Foundation_Tracks_Implementation_Curve1D);

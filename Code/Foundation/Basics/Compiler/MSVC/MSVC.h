@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #if defined(_MSC_VER) && !defined(__clang__)
@@ -72,5 +67,14 @@
 #    define NS_RIGHT_PARENTHESIS )
 #    define NS_VA_NUM_ARGS(...) NS_VA_NUM_ARGS_HELPER NS_LEFT_PARENTHESIS __VA_ARGS__, NS_VA_NUM_ARGS_REVERSE_SEQUENCE NS_RIGHT_PARENTHESIS
 #  endif
+
+#  define NS_WARNING_PUSH() __pragma(warning(push))
+#  define NS_WARNING_POP() __pragma(warning(pop))
+#  define NS_WARNING_DISABLE_MSVC(_x) __pragma(warning(disable \
+                                                       : _x))
+
+#else
+
+#  define NS_WARNING_DISABLE_MSVC(_x)
 
 #endif

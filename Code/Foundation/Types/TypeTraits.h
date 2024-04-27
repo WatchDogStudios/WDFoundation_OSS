@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 /// \file
@@ -13,10 +8,7 @@
 template <int v>
 struct nsTraitInt
 {
-  enum
-  {
-    value = v
-  };
+  static constexpr int value = v;
 };
 
 using nsTypeIsMemRelocatable = nsTraitInt<2>;
@@ -106,20 +98,6 @@ struct nsGetStrongestTypeClass : public nsTraitInt<(T1::value == 0 || T2::value 
 };
 
 
-/// \brief Determines whether a type is a pointer.
-template <typename T>
-struct nsIsPointer
-{
-  static constexpr bool value = false;
-};
-
-template <typename T>
-struct nsIsPointer<T*>
-{
-  static constexpr bool value = true;
-};
-
-
 #ifdef __INTELLISENSE__
 
 /// \brief Embed this into a class to mark it as a POD type.
@@ -145,21 +123,30 @@ struct nsIsPointer<T*>
 
 /// \brief Embed this into a class to mark it as a POD type.
 /// POD types will get special treatment from allocators and container classes, such that they are faster to construct and copy.
-#  define NS_DECLARE_POD_TYPE() \
-    nsCompileTimeTrueType operator%(const nsTypeIsPod&) const { return {}; }
+#  define NS_DECLARE_POD_TYPE()                               \
+    nsCompileTimeTrueType operator%(const nsTypeIsPod&) const \
+    {                                                         \
+      return {};                                              \
+    }
 
 /// \brief Embed this into a class to mark it as memory relocatable.
 /// Memory relocatable types will get special treatment from allocators and container classes, such that they are faster to construct and
 /// copy. A type is memory relocatable if it does not have any internal references. e.g: struct example { char[16] buffer; char* pCur;
 /// example() pCur(buffer) {} }; A memory relocatable type also must not give out any pointers to its own location. If these two conditions
 /// are met, a type is memory relocatable.
-#  define NS_DECLARE_MEM_RELOCATABLE_TYPE() \
-    nsCompileTimeTrueType operator%(const nsTypeIsMemRelocatable&) const { return {}; }
+#  define NS_DECLARE_MEM_RELOCATABLE_TYPE()                              \
+    nsCompileTimeTrueType operator%(const nsTypeIsMemRelocatable&) const \
+    {                                                                    \
+      return {};                                                         \
+    }
 
 /// \brief mark a class as memory relocatable if the passed type is relocatable or pod.
 #  define NS_DECLARE_MEM_RELOCATABLE_TYPE_CONDITIONAL(T)                                                                                       \
     typename nsConditionToCompileTimeBool<nsGetTypeClass<T>::value == nsTypeIsMemRelocatable::value || nsIsPodType<T>::value>::type operator%( \
-      const nsTypeIsMemRelocatable&) const { return {}; }
+      const nsTypeIsMemRelocatable&) const                                                                                                     \
+    {                                                                                                                                          \
+      return {};                                                                                                                               \
+    }
 
 #  define NS_DETECT_TYPE_CLASS_1(T1) nsGetTypeClass<T1>
 #  define NS_DETECT_TYPE_CLASS_2(T1, T2) nsGetStrongestTypeClass<NS_DETECT_TYPE_CLASS_1(T1), NS_DETECT_TYPE_CLASS_1(T2)>
@@ -172,9 +159,12 @@ struct nsIsPointer<T*>
 // \brief embed this into a class to automatically detect which type class it belongs to
 // This macro is only guaranteed to work for classes / structs which don't have any constructor / destructor / assignment operator!
 // As arguments you have to list the types of all the members of the class / struct.
-#  define NS_DETECT_TYPE_CLASS(...)  \
-    nsCompileTimeTrueType operator%( \
-      const nsTraitInt<NS_CALL_MACRO(NS_CONCAT(NS_DETECT_TYPE_CLASS_, NS_VA_NUM_ARGS(__VA_ARGS__)), (__VA_ARGS__))::value>&) const { return {}; }
+#  define NS_DETECT_TYPE_CLASS(...)                                                                                                \
+    nsCompileTimeTrueType operator%(                                                                                               \
+      const nsTraitInt<NS_CALL_MACRO(NS_CONCAT(NS_DETECT_TYPE_CLASS_, NS_VA_NUM_ARGS(__VA_ARGS__)), (__VA_ARGS__))::value>&) const \
+    {                                                                                                                              \
+      return {};                                                                                                                   \
+    }
 #endif
 
 /// \brief Defines a type T as Pod.

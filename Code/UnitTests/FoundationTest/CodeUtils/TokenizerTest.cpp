@@ -1,21 +1,13 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
+#include <Foundation/CodeUtils/TokenParseUtils.h>
 #include <Foundation/CodeUtils/Tokenizer.h>
 
 namespace
 {
-  struct ExpectedToken
-  {
-    nsTokenType::Enum type;
-    nsStringView value;
-  };
+  using TokenMatch = nsTokenParseUtils::TokenMatch;
 
-  void CompareResults(const nsDynamicArray<ExpectedToken>& expected, nsTokenizer& inout_tokenizer, bool bIgnoreWhitespace)
+  void CompareResults(const nsDynamicArray<TokenMatch>& expected, nsTokenizer& inout_tokenizer, bool bIgnoreWhitespace)
   {
     auto& tokens = inout_tokenizer.GetTokens();
 
@@ -34,12 +26,12 @@ namespace
 
       auto& e = expected[expectedIndex];
 
-      if (!NS_TEST_BOOL_MSG(e.type == token.m_iType, "Token with index %u does not match in type, expected %d actual %d", expectedIndex, e.type, token.m_iType))
+      if (!NS_TEST_BOOL_MSG(e.m_Type == token.m_iType, "Token with index %u does not match in type, expected %d actual %d", expectedIndex, e.m_Type, token.m_iType))
       {
         return;
       }
 
-      if (!NS_TEST_BOOL_MSG(e.value == token.m_DataView, "Token with index %u does not match, expected '%.*s' actual '%.*s'", expectedIndex, e.value.GetElementCount(), e.value.GetStartPointer(), token.m_DataView.GetElementCount(), token.m_DataView.GetStartPointer()))
+      if (!NS_TEST_BOOL_MSG(e.m_sToken == token.m_DataView, "Token with index %u does not match, expected '%.*s' actual '%.*s'", expectedIndex, e.m_sToken.GetElementCount(), e.m_sToken.GetStartPointer(), token.m_DataView.GetElementCount(), token.m_DataView.GetStartPointer()))
       {
         return;
       }
@@ -85,9 +77,11 @@ char c='f';
 const char* bla =  "blup";
 )";
     nsTokenizer tokenizer(nsFoundation::GetDefaultAllocator());
-    tokenizer.Tokenize(nsMakeArrayPtr(reinterpret_cast<const nsUInt8*>(stringLiteral), nsStringUtils::GetStringElementCount(stringLiteral)), nsLog::GetThreadLocalLogSystem());
+    tokenizer.Tokenize(nsMakeArrayPtr(reinterpret_cast<const nsUInt8*>(stringLiteral), nsStringUtils::GetStringElementCount(stringLiteral)), nsLog::GetThreadLocalLogSystem(), false);
 
-    nsDynamicArray<ExpectedToken> expectedResult;
+    NS_TEST_BOOL(tokenizer.GetTokenizedData().IsEmpty());
+
+    nsDynamicArray<TokenMatch> expectedResult;
     expectedResult.PushBack({nsTokenType::Newline, "\n"});
 
     expectedResult.PushBack({nsTokenType::Identifier, "float"});
@@ -157,7 +151,7 @@ fuenf
     nsTokenizer tokenizer(nsFoundation::GetDefaultAllocator());
     tokenizer.Tokenize(nsMakeArrayPtr(reinterpret_cast<const nsUInt8*>(stringLiteral), nsStringUtils::GetStringElementCount(stringLiteral)), nsLog::GetThreadLocalLogSystem());
 
-    nsDynamicArray<ExpectedToken> expectedResult;
+    nsDynamicArray<TokenMatch> expectedResult;
     expectedResult.PushBack({nsTokenType::Identifier, "const"});
     expectedResult.PushBack({nsTokenType::Identifier, "char"});
     expectedResult.PushBack({nsTokenType::NonIdentifier, "*"});

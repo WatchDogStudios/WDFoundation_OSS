@@ -1,4 +1,4 @@
-name: nsEngine_ClangTidyVerification_$(Date:yyyyMMdd)$(Rev:.r)
+name: ezEngine_ClangTidyVerification_$(Date:yyyyMMdd)$(Rev:.r)
 
 trigger:
   branches:

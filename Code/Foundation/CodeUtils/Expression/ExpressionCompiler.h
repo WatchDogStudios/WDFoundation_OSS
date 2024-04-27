@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/CodeUtils/Expression/ExpressionAST.h>
@@ -24,7 +19,7 @@ private:
   nsResult UpdateRegisterLifetime(const nsExpressionAST& ast);
   nsResult AssignRegisters();
   nsResult GenerateByteCode(const nsExpressionAST& ast, nsExpressionByteCode& out_byteCode);
-  nsResult GenerateConstantByteCode(const nsExpressionAST::Constant* pConstant, nsExpressionByteCode& out_byteCode);
+  nsResult GenerateConstantByteCode(const nsExpressionAST::Constant* pConstant);
 
   using TransformFunc = nsDelegate<nsExpressionAST::Node*(nsExpressionAST::Node*)>;
   nsResult TransformASTPreOrder(nsExpressionAST& ast, TransformFunc func);
@@ -42,6 +37,8 @@ private:
   nsHashTable<nsHashedString, nsUInt32> m_InputToIndex;
   nsHashTable<nsHashedString, nsUInt32> m_OutputToIndex;
   nsHashTable<nsHashedString, nsUInt32> m_FunctionToIndex;
+
+  nsDynamicArray<nsUInt32> m_ByteCode;
 
   struct LiveInterval
   {

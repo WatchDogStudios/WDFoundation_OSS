@@ -1,13 +1,9 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 /// \file
 
 #include <Foundation/Basics.h>
+#include <Foundation/Containers/Implementation/BitIterator.h>
 #include <Foundation/Types/Enum.h>
 
 /// \brief The nsBitflags class allows you to work with type-safe bitflags.
@@ -90,6 +86,8 @@ private:
   using StorageType = typename T::StorageType;
 
 public:
+  using ConstIterator = nsBitIterator<Enum, false>;
+
   /// \brief Constructor. Initializes the flags to the default value.
   NS_ALWAYS_INLINE nsBitflags()
     : m_Value(T::Default) // [tested]
@@ -221,6 +219,19 @@ public:
     return m_Value != 0;
   }
 
+  /// \brief Returns a constant iterator to the very first set bit.
+  /// Note that due to the way iterating through bits is accelerated, changes to the bitflags will not affect the iterator after creation.
+  NS_ALWAYS_INLINE ConstIterator GetIterator() const // [tested]
+  {
+    return ConstIterator((Enum)m_Value);
+  }
+
+  /// \brief Returns an invalid iterator. Needed to support range based for loops.
+  NS_ALWAYS_INLINE ConstIterator GetEndIterator() const // [tested]
+  {
+    return ConstIterator();
+  }
+
 private:
   NS_ALWAYS_INLINE explicit nsBitflags(StorageType flags)
     : m_Value(flags)
@@ -234,6 +245,31 @@ private:
   };
 };
 
+//////////////////////////////////////////////////////////////////////////
+// begin() /end() for range-based for-loop support
+template <typename T>
+typename nsBitflags<T>::ConstIterator begin(const nsBitflags<T>& container)
+{
+  return container.GetIterator();
+}
+
+template <typename T>
+typename nsBitflags<T>::ConstIterator cbegin(const nsBitflags<T>& container)
+{
+  return container.GetIterator();
+}
+
+template <typename T>
+typename nsBitflags<T>::ConstIterator end(const nsBitflags<T>& container)
+{
+  return container.GetEndIterator();
+}
+
+template <typename T>
+typename nsBitflags<T>::ConstIterator cend(const nsBitflags<T>& container)
+{
+  return container.GetEndIterator();
+}
 
 /// \brief This macro will define the operator| and operator& function that is required for class \a FlagsType to work with nsBitflags.
 /// See class nsBitflags for more information.
@@ -269,7 +305,7 @@ private:
 #define NS_DECLARE_FLAGS_WITH_DEFAULT(InternalStorageType, BitflagsTypeName, DefaultValue, ...) \
   struct BitflagsTypeName                                                                       \
   {                                                                                             \
-    static const nsUInt32 Count = NS_VA_NUM_ARGS(__VA_ARGS__);                                  \
+    static constexpr nsUInt32 Count = NS_VA_NUM_ARGS(__VA_ARGS__);                              \
     using StorageType = InternalStorageType;                                                    \
     enum Enum                                                                                   \
     {                                                                                           \
@@ -294,137 +330,3 @@ private:
 #define NS_DECLARE_FLAGS_BITS(name) StorageType name : 1;
 
 /// \endcond
-
-//////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////
-
-/// \brief Similar to nsBitflags but without type-safety.
-///
-/// This class is intended for use cases where type-safety can get in the way,
-/// for example when it is intended for the user to extend a flags enum with custom flags a separate file / enum.
-template <typename T>
-struct nsTypelessBitflags
-{
-public:
-  using StorageType = T;
-
-  /// \brief Initializes the flags zero.
-  NS_ALWAYS_INLINE nsTypelessBitflags() // [tested]
-    : m_Value(0)
-  {
-  }
-
-  NS_ALWAYS_INLINE nsTypelessBitflags(StorageType flags) // [tested]
-  {
-    m_Value = flags;
-  }
-
-  NS_ALWAYS_INLINE void operator=(StorageType flags) // [tested]
-  {
-    m_Value = flags;
-  }
-
-  NS_ALWAYS_INLINE bool operator==(const StorageType rhs) const { return m_Value == rhs; }                              // [tested]
-  NS_ALWAYS_INLINE bool operator!=(const StorageType rhs) const { return m_Value != rhs; }                              // [tested]
-  NS_ALWAYS_INLINE bool operator==(const nsTypelessBitflags<StorageType>& rhs) const { return m_Value == rhs.m_Value; } // [tested]
-  NS_ALWAYS_INLINE bool operator!=(const nsTypelessBitflags<StorageType>& rhs) const { return m_Value != rhs.m_Value; } // [tested]
-
-  /// \brief Clears all flags
-  NS_ALWAYS_INLINE void Clear() { m_Value = 0; } // [tested]
-
-  /// \brief Returns whether all the given flags are set.
-  NS_ALWAYS_INLINE bool AreAllSet(const nsTypelessBitflags<StorageType>& rhs) const // [tested]
-  {
-    return (m_Value & rhs.m_Value) == rhs.m_Value;
-  }
-
-  /// \brief Returns whether none of the given flags is set.
-  NS_ALWAYS_INLINE bool AreNoneSet(const nsTypelessBitflags<StorageType>& rhs) const // [tested]
-  {
-    return (m_Value & rhs.m_Value) == 0;
-  }
-
-  /// \brief  Returns whether any of the given flags is set.
-  NS_ALWAYS_INLINE bool IsAnySet(const nsTypelessBitflags<StorageType>& rhs) const // [tested]
-  {
-    return (m_Value & rhs.m_Value) != 0;
-  }
-
-  /// \brief Sets the given flag.
-  NS_ALWAYS_INLINE void Add(const nsTypelessBitflags<StorageType>& rhs) // [tested]
-  {
-    m_Value |= rhs.m_Value;
-  }
-
-  /// \brief Removes the given flag.
-  NS_ALWAYS_INLINE void Remove(const nsTypelessBitflags<StorageType>& rhs) // [tested]
-  {
-    m_Value &= (~rhs.m_Value);
-  }
-
-  /// \brief Toggles the state of the given flag.
-  NS_ALWAYS_INLINE void Toggle(const nsTypelessBitflags<StorageType>& rhs) // [tested]
-  {
-    m_Value ^= rhs.m_Value;
-  }
-
-  /// \brief Sets or clears the given flag.
-  NS_ALWAYS_INLINE void AddOrRemove(const nsTypelessBitflags<StorageType>& rhs, bool bState) // [tested]
-  {
-    m_Value = (bState) ? m_Value | rhs.m_Value : m_Value & (~rhs.m_Value);
-  }
-
-  /// \brief Returns an object that has the flags of \a this and \a rhs combined.
-  NS_ALWAYS_INLINE nsTypelessBitflags<StorageType> operator|(const nsTypelessBitflags<StorageType>& rhs) const // [tested]
-  {
-    return nsTypelessBitflags<StorageType>(m_Value | rhs.m_Value);
-  }
-
-  /// \brief Returns an object that has the flags that were set both in \a this and \a rhs.
-  NS_ALWAYS_INLINE nsTypelessBitflags<StorageType> operator&(const nsTypelessBitflags<StorageType>& rhs) const // [tested]
-  {
-    return nsTypelessBitflags<StorageType>(m_Value & rhs.m_Value);
-  }
-
-  /// \brief Modifies \a this to also contain the bits from \a rhs.
-  NS_ALWAYS_INLINE void operator|=(const nsTypelessBitflags<StorageType>& rhs) // [tested]
-  {
-    m_Value |= rhs.m_Value;
-  }
-
-  /// \brief Modifies \a this to only contain the bits that were set in \a this and \a rhs.
-  NS_ALWAYS_INLINE void operator&=(const nsTypelessBitflags<StorageType>& rhs) // [tested]
-  {
-    m_Value &= rhs.m_Value;
-  }
-
-  /// \brief Returns the stored value as the underlying integer type.
-  NS_ALWAYS_INLINE StorageType GetValue() const // [tested]
-  {
-    return m_Value;
-  }
-
-  /// \brief Overwrites the flags with a new value.
-  NS_ALWAYS_INLINE void SetValue(StorageType value) // [tested]
-  {
-    m_Value = value;
-  }
-
-  /// \brief Returns true if not a single bit is set.
-  NS_ALWAYS_INLINE bool IsNoFlagSet() const // [tested]
-  {
-    return m_Value == 0;
-  }
-
-  /// \brief Returns true if any bitflag is set.
-  NS_ALWAYS_INLINE bool IsAnyFlagSet() const // [tested]
-  {
-    return m_Value != 0;
-  }
-
-private:
-  StorageType m_Value;
-};

@@ -1,15 +1,10 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 /// \brief Operator to serialize nsIAllocator::Stats objects.
-NS_FOUNDATION_DLL void operator<<(nsStreamWriter& inout_stream, const nsAllocatorBase::Stats& rhs);
+NS_FOUNDATION_DLL void operator<<(nsStreamWriter& inout_stream, const nsAllocator::Stats& rhs);
 
 /// \brief Operator to serialize nsIAllocator::Stats objects.
-NS_FOUNDATION_DLL void operator>>(nsStreamReader& inout_stream, nsAllocatorBase::Stats& rhs);
+NS_FOUNDATION_DLL void operator>>(nsStreamReader& inout_stream, nsAllocator::Stats& rhs);
 
 struct nsTime;
 

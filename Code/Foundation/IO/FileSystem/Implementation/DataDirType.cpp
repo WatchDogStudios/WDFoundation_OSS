@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/IO/FileSystem/FileSystem.h>
@@ -42,7 +37,3 @@ void nsDataDirectoryReaderWriterBase::Close()
 
   m_pDataDirectory->OnReaderWriterClose(this);
 }
-
-
-
-NS_STATICLINK_FILE(Foundation, Foundation_IO_FileSystem_Implementation_DataDirType);

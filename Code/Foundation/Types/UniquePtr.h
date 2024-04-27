@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Basics.h>
@@ -27,7 +22,7 @@ public:
   /// \brief Creates a unique ptr from a pointer and an allocator. The passed allocator will be used to destroy the instance when the unique
   /// ptr goes out of scope.
   template <typename U>
-  nsUniquePtr(U* pInstance, nsAllocatorBase* pAllocator);
+  nsUniquePtr(U* pInstance, nsAllocator* pAllocator);
 
   /// \brief Move constructs a unique ptr from another. The other unique ptr will be empty afterwards to guarantee that there is only one
   /// unique ptr managing the same object.
@@ -57,7 +52,7 @@ public:
 
   /// \brief Releases the managed object without destroying it. The unique ptr will be empty afterwards. Also returns the allocator that
   /// should be used to destroy the object.
-  T* Release(nsAllocatorBase*& out_pAllocator);
+  T* Release(nsAllocator*& out_pAllocator);
 
   /// \brief Borrows the managed object. The unique ptr stays unmodified.
   T* Borrow() const;
@@ -95,7 +90,7 @@ private:
   friend class nsUniquePtr;
 
   T* m_pInstance = nullptr;
-  nsAllocatorBase* m_pAllocator = nullptr;
+  nsAllocator* m_pAllocator = nullptr;
 };
 
 #include <Foundation/Types/Implementation/UniquePtr_inl.h>

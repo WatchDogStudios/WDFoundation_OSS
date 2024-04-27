@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Basics.h>
@@ -29,7 +24,7 @@ public:
   virtual ~nsTranslator();
 
   /// \brief The given string (with the given hash) shall be translated
-  virtual const char* Translate(const char* szString, nsUInt64 uiStringHash, nsTranslationUsage usage) = 0;
+  virtual nsStringView Translate(nsStringView sString, nsUInt64 uiStringHash, nsTranslationUsage usage) = 0;
 
   /// \brief Called to reset internal state
   virtual void Reset();
@@ -53,7 +48,7 @@ private:
 class NS_FOUNDATION_DLL nsTranslatorPassThrough : public nsTranslator
 {
 public:
-  virtual const char* Translate(const char* szString, nsUInt64 uiStringHash, nsTranslationUsage usage) override { return szString; }
+  virtual nsStringView Translate(nsStringView sString, nsUInt64 uiStringHash, nsTranslationUsage usage) override { return sString; }
 };
 
 /// \brief Can store translated strings and all translation requests will come from that storage. Returns nullptr if the requested string is
@@ -62,10 +57,10 @@ class NS_FOUNDATION_DLL nsTranslatorStorage : public nsTranslator
 {
 public:
   /// \brief Stores szString as the translation for the string with the given hash
-  virtual void StoreTranslation(const char* szString, nsUInt64 uiStringHash, nsTranslationUsage usage);
+  virtual void StoreTranslation(nsStringView sString, nsUInt64 uiStringHash, nsTranslationUsage usage);
 
   /// \brief Returns the translated string for uiStringHash, or nullptr, if not available
-  virtual const char* Translate(const char* szString, nsUInt64 uiStringHash, nsTranslationUsage usage) override;
+  virtual nsStringView Translate(nsStringView sString, nsUInt64 uiStringHash, nsTranslationUsage usage) override;
 
   /// \brief Clears all stored translation strings
   virtual void Reset() override;
@@ -85,7 +80,7 @@ public:
   /// Can be used from external code to (temporarily) deactivate error logging (a bit hacky)
   static bool s_bActive;
 
-  virtual const char* Translate(const char* szString, nsUInt64 uiStringHash, nsTranslationUsage usage) override;
+  virtual nsStringView Translate(nsStringView sString, nsUInt64 uiStringHash, nsTranslationUsage usage) override;
 };
 
 /// \brief Loads translations from files. Each translator can have different search paths, but the files to be loaded are the same for all of them.
@@ -99,7 +94,7 @@ public:
   /// This function depends on nsFileSystemIterator to be available.
   void AddTranslationFilesFromFolder(const char* szFolder);
 
-  virtual const char* Translate(const char* szString, nsUInt64 uiStringHash, nsTranslationUsage usage) override;
+  virtual nsStringView Translate(nsStringView sString, nsUInt64 uiStringHash, nsTranslationUsage usage) override;
 
   virtual void Reload() override;
 
@@ -113,7 +108,7 @@ private:
 class NS_FOUNDATION_DLL nsTranslatorMakeMoreReadable : public nsTranslatorStorage
 {
 public:
-  virtual const char* Translate(const char* szString, nsUInt64 uiStringHash, nsTranslationUsage usage) override;
+  virtual nsStringView Translate(nsStringView sString, nsUInt64 uiStringHash, nsTranslationUsage usage) override;
 };
 
 /// \brief Handles looking up translations for strings.
@@ -127,7 +122,7 @@ public:
 
   /// \brief Prefer to use the nsTranslate macro instead of calling this function directly. Will query all translators for a translation,
   /// until one is found.
-  static const char* Translate(const char* szString, nsUInt64 uiStringHash, nsTranslationUsage usage);
+  static nsStringView Translate(nsStringView sString, nsUInt64 uiStringHash, nsTranslationUsage usage);
 
   /// \brief Deletes all translators.
   static void Clear();

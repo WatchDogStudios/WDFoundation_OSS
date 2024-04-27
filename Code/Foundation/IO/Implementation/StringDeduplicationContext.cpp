@@ -1,13 +1,8 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/IO/StringDeduplicationContext.h>
 
-static const nsTypeVersion s_uiStringDeduplicationVersion = 1;
+static constexpr nsTypeVersion s_uiStringDeduplicationVersion = 1;
 
 NS_IMPLEMENT_SERIALIZATION_CONTEXT(nsStringDeduplicationWriteContext)
 
@@ -121,6 +116,3 @@ nsStringView nsStringDeduplicationReadContext::DeserializeString(nsStreamReader&
 
   return m_DeduplicatedStrings[uiIndex].GetView();
 }
-
-
-NS_STATICLINK_FILE(Foundation, Foundation_IO_Implementation_StringDeduplicationContext);

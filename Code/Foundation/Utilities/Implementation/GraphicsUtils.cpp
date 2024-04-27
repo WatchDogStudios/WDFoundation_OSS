@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Utilities/GraphicsUtils.h>
@@ -407,8 +402,8 @@ nsMat4 nsGraphicsUtils::CreatePerspectiveProjectionMatrix(float fLeft, float fRi
     // Algebraically reordering the z-row fractions from the above source in a way so infinite fNearZ or fFarZ will zero out
     // instead of producing NaNs due to inf/inf divisions will yield these generalized formulas which could be used instead
     // of the branching below. Insert infinity for either fNearZ or fFarZ to see that these will yield exactly these simplifications:
-    //res.Element(2, 2) = 1.f / (fNearZ / fFarZ - 1.f) + 1.f / (1.f - fFarZ / fNearZ);
-    //res.Element(3, 2) = 2.f / (1.f / fFarZ - 1.f / fNearZ);
+    // res.Element(2, 2) = 1.f / (fNearZ / fFarZ - 1.f) + 1.f / (1.f - fFarZ / fNearZ);
+    // res.Element(3, 2) = 2.f / (1.f / fFarZ - 1.f / fNearZ);
     if (!nsMath::IsFinite(fNearZ))
     {
       res.Element(2, 2) = 1.f;
@@ -433,8 +428,8 @@ nsMat4 nsGraphicsUtils::CreatePerspectiveProjectionMatrix(float fLeft, float fRi
     // Algebraically reordering the z-row fractions from the above source in a way so infinite fNearZ or fFarZ will zero out
     // instead of producing NaNs due to inf/inf divisions will yield these generalized formulas which could be used instead
     // of the branching below. Insert infinity for either fNearZ or fFarZ to see that these will yield exactly these simplifications:
-    //res.Element(2, 2) = 1.f / (fNearZ / fFarZ - 1.f);
-    //res.Element(3, 2) = 1.f / (1.f / fFarZ - 1.f / fNearZ);
+    // res.Element(2, 2) = 1.f / (fNearZ / fFarZ - 1.f);
+    // res.Element(3, 2) = 1.f / (1.f / fFarZ - 1.f / fNearZ);
     if (!nsMath::IsFinite(fNearZ))
     {
       res.Element(2, 2) = 0.f;
@@ -666,5 +661,3 @@ nsResult nsGraphicsUtils::ComputeBarycentricCoordinates(nsVec3& out_vCoordinates
 
   return NS_SUCCESS;
 }
-
-NS_STATICLINK_FILE(Foundation, Foundation_Utilities_Implementation_GraphicsUtils);

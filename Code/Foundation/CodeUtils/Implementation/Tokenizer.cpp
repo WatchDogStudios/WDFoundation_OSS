@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/CodeUtils/Tokenizer.h>
@@ -29,13 +24,13 @@ namespace
 {
   // This allocator is used to get rid of some of the memory allocation tracking
   // that would otherwise occur for allocations made by the tokenizer.
-  thread_local nsAllocator<nsMemoryPolicies::nsHeapAllocation, nsMemoryTrackingFlags::None> s_ClassAllocator("nsTokenizer", nsFoundation::GetDefaultAllocator());
+  thread_local nsAllocatorWithPolicy<nsAllocPolicyHeap, nsAllocatorTrackingMode::Nothing> s_ClassAllocator("nsTokenizer", nsFoundation::GetDefaultAllocator());
 } // namespace
 
 
-nsTokenizer::nsTokenizer(nsAllocatorBase* pAllocator)
-  : m_Data(pAllocator != nullptr ? pAllocator : &s_ClassAllocator)
-  , m_Tokens(pAllocator != nullptr ? pAllocator : &s_ClassAllocator)
+nsTokenizer::nsTokenizer(nsAllocator* pAllocator)
+  : m_Tokens(pAllocator != nullptr ? pAllocator : &s_ClassAllocator)
+  , m_Data(pAllocator != nullptr ? pAllocator : &s_ClassAllocator)
 {
 }
 
@@ -53,7 +48,7 @@ void nsTokenizer::NextChar()
     m_uiCurColumn = 0;
   }
 
-  if (!m_sIterator.IsValid())
+  if (!m_sIterator.IsValid() || m_sIterator.IsEmpty())
   {
     m_szNextCharStart = m_sIterator.GetEndPointer();
     m_uiNextChar = '\0';
@@ -86,8 +81,18 @@ void nsTokenizer::AddToken()
   m_CurMode = nsTokenType::Unknown;
 }
 
-void nsTokenizer::Tokenize(nsArrayPtr<const nsUInt8> data, nsLogInterface* pLog)
+void nsTokenizer::Tokenize(nsArrayPtr<const nsUInt8> data, nsLogInterface* pLog, bool bCopyData)
 {
+  if (bCopyData)
+  {
+    m_Data = data;
+    data = m_Data;
+  }
+  else
+  {
+    m_Data.Clear();
+  }
+
   if (data.GetCount() >= 3)
   {
     const char* dataStart = reinterpret_cast<const char*>(data.GetPtr());
@@ -101,13 +106,6 @@ void nsTokenizer::Tokenize(nsArrayPtr<const nsUInt8> data, nsLogInterface* pLog)
       data = nsArrayPtr<const nsUInt8>((const nsUInt8*)dataStart, data.GetCount() - 3);
     }
   }
-
-  m_Data.Clear();
-  m_Data.Reserve(m_Data.GetCount() + 1);
-  m_Data = data;
-
-  if (m_Data.IsEmpty() || m_Data[m_Data.GetCount() - 1] != 0)
-    m_Data.PushBack('\0'); // make sure the string is zero terminated
 
   m_Tokens.Clear();
   m_pLog = pLog;
@@ -126,9 +124,13 @@ void nsTokenizer::Tokenize(nsArrayPtr<const nsUInt8> data, nsLogInterface* pLog)
     m_szTokenStart = nullptr;
   }
 
-  m_sIterator = nsStringView((const char*)&m_Data[0], (const char*)&m_Data[0] + m_Data.GetCount() - 1);
+  m_sIterator = {};
+  if (!data.IsEmpty())
+  {
+    m_sIterator = nsStringView((const char*)&data[0], (const char*)&data[0] + data.GetCount());
+  }
 
-  if (!m_sIterator.IsValid())
+  if (!m_sIterator.IsValid() || m_sIterator.IsEmpty())
   {
     nsToken t;
     t.m_uiLine = 1;
@@ -142,7 +144,7 @@ void nsTokenizer::Tokenize(nsArrayPtr<const nsUInt8> data, nsLogInterface* pLog)
 
   m_szTokenStart = m_szCurCharStart;
 
-  while (m_szTokenStart != nullptr && *m_szTokenStart != '\0')
+  while (m_szTokenStart != nullptr && m_szTokenStart != m_sIterator.GetEndPointer())
   {
     switch (m_CurMode)
     {
@@ -584,7 +586,18 @@ void nsTokenizer::HandleNonIdentifier()
   AddToken();
 }
 
-void nsTokenizer::GetAllLines(nsHybridArray<const nsToken*, 32>& ref_tokens) const
+void nsTokenizer::GetAllTokens(nsDynamicArray<const nsToken*>& ref_tokens) const
+{
+  ref_tokens.Clear();
+  ref_tokens.Reserve(m_Tokens.GetCount());
+
+  for (const nsToken& curToken : m_Tokens)
+  {
+    ref_tokens.PushBack(&curToken);
+  }
+}
+
+void nsTokenizer::GetAllLines(nsDynamicArray<const nsToken*>& ref_tokens) const
 {
   ref_tokens.Clear();
   ref_tokens.Reserve(m_Tokens.GetCount());
@@ -667,7 +680,3 @@ nsResult nsTokenizer::GetNextLine(nsUInt32& ref_uiFirstToken, nsHybridArray<cons
 
   return NS_SUCCESS;
 }
-
-
-
-NS_STATICLINK_FILE(Foundation, Foundation_CodeUtils_Implementation_Tokenizer);

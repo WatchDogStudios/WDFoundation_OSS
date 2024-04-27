@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Containers/HybridArray.h>
@@ -24,11 +19,11 @@
 class NS_FOUNDATION_DLL nsStringWChar
 {
 public:
-  nsStringWChar(nsAllocatorBase* pAllocator = nsFoundation::GetDefaultAllocator());
-  nsStringWChar(const nsUInt16* pUtf16, nsAllocatorBase* pAllocator = nsFoundation::GetDefaultAllocator());
-  nsStringWChar(const nsUInt32* pUtf32, nsAllocatorBase* pAllocator = nsFoundation::GetDefaultAllocator());
-  nsStringWChar(const wchar_t* pUtf32, nsAllocatorBase* pAllocator = nsFoundation::GetDefaultAllocator());
-  nsStringWChar(nsStringView sUtf8, nsAllocatorBase* pAllocator = nsFoundation::GetDefaultAllocator());
+  nsStringWChar(nsAllocator* pAllocator = nsFoundation::GetDefaultAllocator());
+  nsStringWChar(const nsUInt16* pUtf16, nsAllocator* pAllocator = nsFoundation::GetDefaultAllocator());
+  nsStringWChar(const nsUInt32* pUtf32, nsAllocator* pAllocator = nsFoundation::GetDefaultAllocator());
+  nsStringWChar(const wchar_t* pUtf32, nsAllocator* pAllocator = nsFoundation::GetDefaultAllocator());
+  nsStringWChar(nsStringView sUtf8, nsAllocator* pAllocator = nsFoundation::GetDefaultAllocator());
 
   void operator=(const nsUInt16* pUtf16);
   void operator=(const nsUInt32* pUtf32);
@@ -51,15 +46,15 @@ private:
 class NS_FOUNDATION_DLL nsStringUtf8
 {
 public:
-  nsStringUtf8(nsAllocatorBase* pAllocator = nsFoundation::GetDefaultAllocator());
-  nsStringUtf8(const char* szUtf8, nsAllocatorBase* pAllocator = nsFoundation::GetDefaultAllocator());
-  nsStringUtf8(const nsUInt16* pUtf16, nsAllocatorBase* pAllocator = nsFoundation::GetDefaultAllocator());
-  nsStringUtf8(const nsUInt32* pUtf32, nsAllocatorBase* pAllocator = nsFoundation::GetDefaultAllocator());
-  nsStringUtf8(const wchar_t* pWChar, nsAllocatorBase* pAllocator = nsFoundation::GetDefaultAllocator());
+  nsStringUtf8(nsAllocator* pAllocator = nsFoundation::GetDefaultAllocator());
+  nsStringUtf8(const char* szUtf8, nsAllocator* pAllocator = nsFoundation::GetDefaultAllocator());
+  nsStringUtf8(const nsUInt16* pUtf16, nsAllocator* pAllocator = nsFoundation::GetDefaultAllocator());
+  nsStringUtf8(const nsUInt32* pUtf32, nsAllocator* pAllocator = nsFoundation::GetDefaultAllocator());
+  nsStringUtf8(const wchar_t* pWChar, nsAllocator* pAllocator = nsFoundation::GetDefaultAllocator());
 
 #if NS_ENABLED(NS_PLATFORM_WINDOWS_UWP)
-  nsStringUtf8(const Microsoft::WRL::Wrappers::HString& hstring, nsAllocatorBase* pAllocator = nsFoundation::GetDefaultAllocator());
-  nsStringUtf8(const HSTRING& hstring, nsAllocatorBase* pAllocator = nsFoundation::GetDefaultAllocator());
+  nsStringUtf8(const Microsoft::WRL::Wrappers::HString& hstring, nsAllocator* pAllocator = nsFoundation::GetDefaultAllocator());
+  nsStringUtf8(const HSTRING& hstring, nsAllocator* pAllocator = nsFoundation::GetDefaultAllocator());
 #endif
 
   void operator=(const char* szUtf8);
@@ -108,11 +103,11 @@ private:
 class NS_FOUNDATION_DLL nsStringUtf16
 {
 public:
-  nsStringUtf16(nsAllocatorBase* pAllocator = nsFoundation::GetDefaultAllocator());
-  nsStringUtf16(const char* szUtf8, nsAllocatorBase* pAllocator = nsFoundation::GetDefaultAllocator());
-  nsStringUtf16(const nsUInt16* pUtf16, nsAllocatorBase* pAllocator = nsFoundation::GetDefaultAllocator());
-  nsStringUtf16(const nsUInt32* pUtf32, nsAllocatorBase* pAllocator = nsFoundation::GetDefaultAllocator());
-  nsStringUtf16(const wchar_t* pUtf32, nsAllocatorBase* pAllocator = nsFoundation::GetDefaultAllocator());
+  nsStringUtf16(nsAllocator* pAllocator = nsFoundation::GetDefaultAllocator());
+  nsStringUtf16(const char* szUtf8, nsAllocator* pAllocator = nsFoundation::GetDefaultAllocator());
+  nsStringUtf16(const nsUInt16* pUtf16, nsAllocator* pAllocator = nsFoundation::GetDefaultAllocator());
+  nsStringUtf16(const nsUInt32* pUtf32, nsAllocator* pAllocator = nsFoundation::GetDefaultAllocator());
+  nsStringUtf16(const wchar_t* pUtf32, nsAllocator* pAllocator = nsFoundation::GetDefaultAllocator());
 
   void operator=(const char* szUtf8);
   void operator=(const nsUInt16* pUtf16);
@@ -135,11 +130,11 @@ private:
 class NS_FOUNDATION_DLL nsStringUtf32
 {
 public:
-  nsStringUtf32(nsAllocatorBase* pAllocator = nsFoundation::GetDefaultAllocator());
-  nsStringUtf32(const char* szUtf8, nsAllocatorBase* pAllocator = nsFoundation::GetDefaultAllocator());
-  nsStringUtf32(const nsUInt16* pUtf16, nsAllocatorBase* pAllocator = nsFoundation::GetDefaultAllocator());
-  nsStringUtf32(const nsUInt32* pUtf32, nsAllocatorBase* pAllocator = nsFoundation::GetDefaultAllocator());
-  nsStringUtf32(const wchar_t* pWChar, nsAllocatorBase* pAllocator = nsFoundation::GetDefaultAllocator());
+  nsStringUtf32(nsAllocator* pAllocator = nsFoundation::GetDefaultAllocator());
+  nsStringUtf32(const char* szUtf8, nsAllocator* pAllocator = nsFoundation::GetDefaultAllocator());
+  nsStringUtf32(const nsUInt16* pUtf16, nsAllocator* pAllocator = nsFoundation::GetDefaultAllocator());
+  nsStringUtf32(const nsUInt32* pUtf32, nsAllocator* pAllocator = nsFoundation::GetDefaultAllocator());
+  nsStringUtf32(const wchar_t* pWChar, nsAllocator* pAllocator = nsFoundation::GetDefaultAllocator());
 
   void operator=(const char* szUtf8);
   void operator=(const nsUInt16* pUtf16);

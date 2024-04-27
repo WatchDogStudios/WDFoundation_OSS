@@ -8,9 +8,7 @@
 
 function(ns_nuget_init)
 	find_program(NUGET nuget
-		HINTS ${CMAKE_BINARY_DIR} 
-		HINTS "${CMAKE_SOURCE_DIR}/Workspace/vs2022x64"
-		)
+		HINTS ${CMAKE_BINARY_DIR})
 
 	if(NOT NUGET)
 		message(STATUS "Downloading Nuget...")

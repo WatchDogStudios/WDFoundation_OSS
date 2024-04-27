@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 NS_ALWAYS_INLINE nsColorBaseUB::nsColorBaseUB(nsUInt8 r, nsUInt8 g, nsUInt8 b, nsUInt8 a /* = 255*/)

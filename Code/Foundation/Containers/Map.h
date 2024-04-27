@@ -1,11 +1,169 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Containers/Deque.h>
+
+template <typename KeyType, typename ValueType, typename Comparer>
+class nsMapBase;
+
+/// \brief Base class for all iterators.
+template <typename KeyType, typename ValueType, typename Comparer, bool REVERSE>
+struct nsMapBaseConstIteratorBase
+{
+  using iterator_category = std::forward_iterator_tag;
+  using value_type = nsMapBaseConstIteratorBase<KeyType, ValueType, Comparer, false>;
+  using difference_type = std::ptrdiff_t;
+  using pointer = nsMapBaseConstIteratorBase<KeyType, ValueType, Comparer, false>*;
+  using reference = nsMapBaseConstIteratorBase<KeyType, ValueType, Comparer, false>&;
+
+  NS_DECLARE_POD_TYPE();
+
+  /// \brief Constructs an invalid iterator.
+  NS_ALWAYS_INLINE nsMapBaseConstIteratorBase()
+    : m_pElement(nullptr)
+  {
+  } // [tested]
+
+  /// \brief Checks whether this iterator points to a valid element.
+  NS_ALWAYS_INLINE bool IsValid() const { return (m_pElement != nullptr); } // [tested]
+
+  /// \brief Checks whether the two iterators point to the same element.
+  NS_ALWAYS_INLINE bool operator==(const nsMapBaseConstIteratorBase& it2) const { return (m_pElement == it2.m_pElement); }
+  NS_ADD_DEFAULT_OPERATOR_NOTEQUAL(const nsMapBaseConstIteratorBase&);
+
+  /// \brief Returns the 'key' of the element that this iterator points to.
+  NS_FORCE_INLINE const KeyType& Key() const
+  {
+    NS_ASSERT_DEBUG(IsValid(), "Cannot access the 'key' of an invalid iterator.");
+    return m_pElement->m_Key;
+  } // [tested]
+
+  /// \brief Returns the 'value' of the element that this iterator points to.
+  NS_FORCE_INLINE const ValueType& Value() const
+  {
+    NS_ASSERT_DEBUG(IsValid(), "Cannot access the 'value' of an invalid iterator.");
+    return m_pElement->m_Value;
+  } // [tested]
+
+  /// \brief Returns '*this' to enable foreach
+  NS_ALWAYS_INLINE nsMapBaseConstIteratorBase& operator*() { return *this; } // [tested]
+
+  /// \brief Advances the iterator to the next element in the map. The iterator will not be valid anymore, if the end is reached.
+  void Next(); // [tested]
+
+  /// \brief Advances the iterator to the previous element in the map. The iterator will not be valid anymore, if the end is reached.
+  void Prev(); // [tested]
+
+  /// \brief Shorthand for 'Next'
+  NS_ALWAYS_INLINE void operator++() { Next(); } // [tested]
+
+  /// \brief Shorthand for 'Prev'
+  NS_ALWAYS_INLINE void operator--() { Prev(); } // [tested]
+
+protected:
+  void Advance(const nsInt32 dir0, const nsInt32 dir1);
+
+  friend class nsMapBase<KeyType, ValueType, Comparer>;
+
+  NS_ALWAYS_INLINE explicit nsMapBaseConstIteratorBase(typename nsMapBase<KeyType, ValueType, Comparer>::Node* pInit)
+    : m_pElement(pInit)
+  {
+  }
+
+  typename nsMapBase<KeyType, ValueType, Comparer>::Node* m_pElement;
+
+#if NS_ENABLED(NS_USE_CPP20_OPERATORS)
+public:
+  struct Pointer
+  {
+    std::pair<const KeyType&, const ValueType&> value;
+    const std::pair<const KeyType&, const ValueType&>* operator->() const { return &value; }
+  };
+
+  NS_ALWAYS_INLINE Pointer operator->() const
+  {
+    return Pointer{.value = {Key(), Value()}};
+  }
+
+  // This function is used to return the values for structured bindings.
+  // The number and type of each slot are defined in the inl file.
+  template <std::size_t Index>
+  std::tuple_element_t<Index, nsMapBaseConstIteratorBase>& get() const
+  {
+    if constexpr (Index == 0)
+      return Key();
+    if constexpr (Index == 1)
+      return Value();
+  }
+#endif
+};
+
+/// \brief Forward Iterator to iterate over all elements in sorted order.
+template <typename KeyType, typename ValueType, typename Comparer, bool REVERSE>
+struct nsMapBaseIteratorBase : public nsMapBaseConstIteratorBase<KeyType, ValueType, Comparer, REVERSE>
+{
+  using iterator_category = std::forward_iterator_tag;
+  using value_type = nsMapBaseIteratorBase<KeyType, ValueType, Comparer, REVERSE>;
+  using difference_type = std::ptrdiff_t;
+  using pointer = nsMapBaseIteratorBase<KeyType, ValueType, Comparer, REVERSE>*;
+  using reference = nsMapBaseIteratorBase<KeyType, ValueType, Comparer, REVERSE>&;
+
+  NS_DECLARE_POD_TYPE();
+
+  /// \brief Constructs an invalid iterator.
+  NS_ALWAYS_INLINE nsMapBaseIteratorBase()
+    : nsMapBaseConstIteratorBase<KeyType, ValueType, Comparer, REVERSE>()
+  {
+  }
+
+  /// \brief Returns the 'value' of the element that this iterator points to.
+  NS_FORCE_INLINE ValueType& Value()
+  {
+    NS_ASSERT_DEBUG(this->IsValid(), "Cannot access the 'value' of an invalid iterator.");
+    return this->m_pElement->m_Value;
+  }
+
+  /// \brief Returns the 'value' of the element that this iterator points to.
+  NS_FORCE_INLINE ValueType& Value() const
+  {
+    NS_ASSERT_DEBUG(this->IsValid(), "Cannot access the 'value' of an invalid iterator.");
+    return this->m_pElement->m_Value;
+  }
+
+  /// \brief Returns '*this' to enable foreach
+  NS_ALWAYS_INLINE nsMapBaseIteratorBase& operator*() { return *this; } // [tested]
+
+private:
+  friend class nsMapBase<KeyType, ValueType, Comparer>;
+
+  NS_ALWAYS_INLINE explicit nsMapBaseIteratorBase(typename nsMapBase<KeyType, ValueType, Comparer>::Node* pInit)
+    : nsMapBaseConstIteratorBase<KeyType, ValueType, Comparer, REVERSE>(pInit)
+  {
+  }
+
+#if NS_ENABLED(NS_USE_CPP20_OPERATORS)
+public:
+  // These functions are used to return the values for structured bindings.
+  // The number and type of type of each slot are defined in the inl file.
+
+  template <std::size_t Index>
+  std::tuple_element_t<Index, nsMapBaseIteratorBase>& get()
+  {
+    if constexpr (Index == 0)
+      return nsMapBaseConstIteratorBase<KeyType, ValueType, Comparer, REVERSE>::Key();
+    if constexpr (Index == 1)
+      return Value();
+  }
+
+  template <std::size_t Index>
+  std::tuple_element_t<Index, nsMapBaseIteratorBase>& get() const
+  {
+    if constexpr (Index == 0)
+      return nsMapBaseConstIteratorBase<KeyType, ValueType, Comparer, REVERSE>::Key();
+    if constexpr (Index == 1)
+      return Value();
+  }
+#endif
+};
 
 /// \brief An associative container. Similar to STL::map
 ///
@@ -21,7 +179,19 @@
 template <typename KeyType, typename ValueType, typename Comparer>
 class nsMapBase
 {
+
+public:
+  using ConstIterator = nsMapBaseConstIteratorBase<KeyType, ValueType, Comparer, false>;
+  using ConstReverseIterator = nsMapBaseConstIteratorBase<KeyType, ValueType, Comparer, true>;
+
+  using Iterator = nsMapBaseIteratorBase<KeyType, ValueType, Comparer, false>;
+  using ReverseIterator = nsMapBaseIteratorBase<KeyType, ValueType, Comparer, true>;
+
 private:
+  friend ConstIterator;
+  friend ConstReverseIterator;
+  friend Iterator;
+  friend ReverseIterator;
   struct Node;
 
   /// \brief Only used by the sentinel node.
@@ -39,118 +209,12 @@ private:
     ValueType m_Value;
   };
 
-public:
-  /// \brief Base class for all iterators.
-  struct ConstIterator
-  {
-    using iterator_category = std::forward_iterator_tag;
-    using value_type = ConstIterator;
-    using difference_type = ptrdiff_t;
-    using pointer = ConstIterator*;
-    using reference = ConstIterator&;
-
-    NS_DECLARE_POD_TYPE();
-
-    /// \brief Constructs an invalid iterator.
-    NS_ALWAYS_INLINE ConstIterator()
-      : m_pElement(nullptr)
-    {
-    } // [tested]
-
-    /// \brief Checks whether this iterator points to a valid element.
-    NS_ALWAYS_INLINE bool IsValid() const { return (m_pElement != nullptr); } // [tested]
-
-    /// \brief Checks whether the two iterators point to the same element.
-    NS_ALWAYS_INLINE bool operator==(const typename nsMapBase<KeyType, ValueType, Comparer>::ConstIterator& it2) const { return (m_pElement == it2.m_pElement); }
-
-    /// \brief Checks whether the two iterators point to the same element.
-    NS_ALWAYS_INLINE bool operator!=(const typename nsMapBase<KeyType, ValueType, Comparer>::ConstIterator& it2) const { return (m_pElement != it2.m_pElement); }
-
-    /// \brief Returns the 'key' of the element that this iterator points to.
-    NS_FORCE_INLINE const KeyType& Key() const
-    {
-      NS_ASSERT_DEBUG(IsValid(), "Cannot access the 'key' of an invalid iterator.");
-      return m_pElement->m_Key;
-    } // [tested]
-
-    /// \brief Returns the 'value' of the element that this iterator points to.
-    NS_FORCE_INLINE const ValueType& Value() const
-    {
-      NS_ASSERT_DEBUG(IsValid(), "Cannot access the 'value' of an invalid iterator.");
-      return m_pElement->m_Value;
-    } // [tested]
-
-    /// \brief Returns '*this' to enable foreach
-    NS_ALWAYS_INLINE ConstIterator& operator*() { return *this; } // [tested]
-
-    /// \brief Advances the iterator to the next element in the map. The iterator will not be valid anymore, if the end is reached.
-    void Next(); // [tested]
-
-    /// \brief Advances the iterator to the previous element in the map. The iterator will not be valid anymore, if the end is reached.
-    void Prev(); // [tested]
-
-    /// \brief Shorthand for 'Next'
-    NS_ALWAYS_INLINE void operator++() { Next(); } // [tested]
-
-    /// \brief Shorthand for 'Prev'
-    NS_ALWAYS_INLINE void operator--() { Prev(); } // [tested]
-
-  protected:
-    friend class nsMapBase<KeyType, ValueType, Comparer>;
-
-    NS_ALWAYS_INLINE explicit ConstIterator(Node* pInit)
-      : m_pElement(pInit)
-    {
-    }
-
-    Node* m_pElement;
-  };
-
-  /// \brief Forward Iterator to iterate over all elements in sorted order.
-  struct Iterator : public ConstIterator
-  {
-    using iterator_category = std::forward_iterator_tag;
-    using value_type = Iterator;
-    using difference_type = ptrdiff_t;
-    using pointer = Iterator*;
-    using reference = Iterator&;
-
-    // this is required to pull in the const version of this function
-    using ConstIterator::Value;
-
-    NS_DECLARE_POD_TYPE();
-
-    /// \brief Constructs an invalid iterator.
-    NS_ALWAYS_INLINE Iterator()
-      : ConstIterator()
-    {
-    }
-
-    /// \brief Returns the 'value' of the element that this iterator points to.
-    NS_FORCE_INLINE ValueType& Value()
-    {
-      NS_ASSERT_DEBUG(this->IsValid(), "Cannot access the 'value' of an invalid iterator.");
-      return this->m_pElement->m_Value;
-    }
-
-    /// \brief Returns '*this' to enable foreach
-    NS_ALWAYS_INLINE Iterator& operator*() { return *this; } // [tested]
-
-  private:
-    friend class nsMapBase<KeyType, ValueType, Comparer>;
-
-    NS_ALWAYS_INLINE explicit Iterator(Node* pInit)
-      : ConstIterator(pInit)
-    {
-    }
-  };
-
 protected:
   /// \brief Initializes the map to be empty.
-  nsMapBase(const Comparer& comparer, nsAllocatorBase* pAllocator); // [tested]
+  nsMapBase(const Comparer& comparer, nsAllocator* pAllocator); // [tested]
 
   /// \brief Copies all key/value pairs from the given map into this one.
-  nsMapBase(const nsMapBase<KeyType, ValueType, Comparer>& cc, nsAllocatorBase* pAllocator); // [tested]
+  nsMapBase(const nsMapBase<KeyType, ValueType, Comparer>& cc, nsAllocator* pAllocator); // [tested]
 
   /// \brief Destroys all elements from the map.
   ~nsMapBase(); // [tested]
@@ -171,14 +235,14 @@ public:
   /// \brief Returns an Iterator to the very first element.
   Iterator GetIterator(); // [tested]
 
+  /// \brief Returns a ReverseIterator to the very last element.
+  ReverseIterator GetReverseIterator(); // [tested]
+
   /// \brief Returns a constant Iterator to the very first element.
   ConstIterator GetIterator() const; // [tested]
 
-  /// \brief Returns an Iterator to the very last element. For reverse traversal.
-  Iterator GetLastIterator(); // [tested]
-
-  /// \brief Returns a constant Iterator to the very last element. For reverse traversal.
-  ConstIterator GetLastIterator() const; // [tested]
+  /// \brief Returns a constant ReverseIterator to the very last element.
+  ConstReverseIterator GetReverseIterator() const; // [tested]
 
   /// \brief Inserts the key/value pair into the tree and returns an Iterator to it. O(log n) operation.
   template <typename CompatibleKeyType, typename CompatibleValueType>
@@ -259,13 +323,11 @@ public:
   ConstIterator UpperBound(const CompatibleKeyType& key) const; // [tested]
 
   /// \brief Returns the allocator that is used by this instance.
-  nsAllocatorBase* GetAllocator() const { return m_Elements.GetAllocator(); }
+  nsAllocator* GetAllocator() const { return m_Elements.GetAllocator(); }
 
   /// \brief Comparison operator
   bool operator==(const nsMapBase<KeyType, ValueType, Comparer>& rhs) const; // [tested]
-
-  /// \brief Comparison operator
-  bool operator!=(const nsMapBase<KeyType, ValueType, Comparer>& rhs) const; // [tested]
+  NS_ADD_DEFAULT_OPERATOR_NOTEQUAL(const nsMapBase<KeyType, ValueType, Comparer>&);
 
   /// \brief Returns the amount of bytes that are currently allocated on the heap.
   nsUInt64 GetHeapMemoryUsage() const { return m_Elements.GetHeapMemoryUsage(); } // [tested]
@@ -334,8 +396,8 @@ class nsMap : public nsMapBase<KeyType, ValueType, Comparer>
 {
 public:
   nsMap();
-  explicit nsMap(nsAllocatorBase* pAllocator);
-  nsMap(const Comparer& comparer, nsAllocatorBase* pAllocator);
+  explicit nsMap(nsAllocator* pAllocator);
+  nsMap(const Comparer& comparer, nsAllocator* pAllocator);
 
   nsMap(const nsMap<KeyType, ValueType, Comparer, AllocatorWrapper>& other);
   nsMap(const nsMapBase<KeyType, ValueType, Comparer>& other);

@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Basics.h>
@@ -103,25 +98,25 @@ void nsProcessingStream::FreeData()
 }
 
 static nsUInt16 s_TypeSize[] = {
-  2, // Half,
-  4, // Half2,
-  6, // Half3,
-  8, // Half4,
+  2,  // Half,
+  4,  // Half2,
+  6,  // Half3,
+  8,  // Half4,
 
   4,  // Float,
   8,  // Float2,
   12, // Float3,
   16, // Float4,
 
-  1, // Byte,
-  2, // Byte2,
-  3, // Byte3,
-  4, // Byte4,
+  1,  // Byte,
+  2,  // Byte2,
+  3,  // Byte3,
+  4,  // Byte4,
 
-  2, // Short,
-  4, // Short2,
-  6, // Short3,
-  8, // Short4,
+  2,  // Short,
+  4,  // Short2,
+  6,  // Short3,
+  8,  // Short4,
 
   4,  // Int,
   8,  // Int2,
@@ -137,30 +132,30 @@ nsUInt16 nsProcessingStream::GetDataTypeSize(DataType type)
 }
 
 static nsStringView s_TypeName[] = {
-  "Half"_nssv,  // Half,
-  "Half2"_nssv, // Half2,
-  "Half3"_nssv, // Half3,
-  "Half4"_nssv, // Half4,
+  "Half"_nssv,   // Half,
+  "Half2"_nssv,  // Half2,
+  "Half3"_nssv,  // Half3,
+  "Half4"_nssv,  // Half4,
 
   "Float"_nssv,  // Float,
   "Float2"_nssv, // Float2,
   "Float3"_nssv, // Float3,
   "Float4"_nssv, // Float4,
 
-  "Byte"_nssv,  // Byte,
-  "Byte2"_nssv, // Byte2,
-  "Byte3"_nssv, // Byte3,
-  "Byte4"_nssv, // Byte4,
+  "Byte"_nssv,   // Byte,
+  "Byte2"_nssv,  // Byte2,
+  "Byte3"_nssv,  // Byte3,
+  "Byte4"_nssv,  // Byte4,
 
   "Short"_nssv,  // Short,
   "Short2"_nssv, // Short2,
   "Short3"_nssv, // Short3,
   "Short4"_nssv, // Short4,
 
-  "Int"_nssv,  // Int,
-  "Int2"_nssv, // Int2,
-  "Int3"_nssv, // Int3,
-  "Int4"_nssv, // Int4,
+  "Int"_nssv,    // Int,
+  "Int2"_nssv,   // Int2,
+  "Int3"_nssv,   // Int3,
+  "Int4"_nssv,   // Int4,
 };
 static_assert(NS_ARRAY_SIZE(s_TypeName) == (size_t)nsProcessingStream::DataType::Count);
 
@@ -169,5 +164,3 @@ nsStringView nsProcessingStream::GetDataTypeName(DataType type)
 {
   return s_TypeName[(nsUInt32)type];
 }
-
-NS_STATICLINK_FILE(Foundation, Foundation_DataProcessing_Stream_Implementation_ProcessingStream);

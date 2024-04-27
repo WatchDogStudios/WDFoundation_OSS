@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 // ***** Definition of types *****
@@ -43,6 +38,7 @@ NS_CHECK_AT_COMPILETIME(sizeof(long long int) == 8);
 #endif
 
 NS_CHECK_AT_COMPILETIME(sizeof(void*) == NS_ALIGNMENT_MINIMUM);
+NS_CHECK_AT_COMPILETIME(alignof(void*) == NS_ALIGNMENT_MINIMUM);
 
 /// \brief Enum values for success and failure. To be used by functions as return values mostly, instead of bool.
 enum nsResultEnum

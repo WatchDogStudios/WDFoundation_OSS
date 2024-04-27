@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Time/Timestamp.h>
@@ -250,7 +245,7 @@ nsStringView BuildString(char* szTmp, nsUInt32 uiLength, const nsArgDateTime& ar
       offset += nsStringUtils::snprintf(szTmp + offset, uiLength - offset, ".%03u", dateTime.GetMicroseconds() / 1000);
     }
 
-    if ((arg.m_uiFormattingFlags & nsArgDateTime::ShowTimnsone) == nsArgDateTime::ShowTimnsone)
+    if ((arg.m_uiFormattingFlags & nsArgDateTime::ShowTimeZone) == nsArgDateTime::ShowTimeZone)
     {
       nsStringUtils::snprintf(szTmp + offset, uiLength - offset, " (UTC)");
     }
@@ -258,18 +253,5 @@ nsStringView BuildString(char* szTmp, nsUInt32 uiLength, const nsArgDateTime& ar
 
   return szTmp;
 }
-
-// Include inline file
-#if NS_ENABLED(NS_PLATFORM_WINDOWS)
-#  include <Foundation/Time/Implementation/Win/Timestamp_win.h>
-#elif NS_ENABLED(NS_PLATFORM_OSX)
-#  include <Foundation/Time/Implementation/OSX/Timestamp_osx.h>
-#elif NS_ENABLED(NS_PLATFORM_ANDROID)
-#  include <Foundation/Time/Implementation/Android/Timestamp_android.h>
-#elif NS_ENABLED(NS_PLATFORM_LINUX)
-#  include <Foundation/Time/Implementation/Posix/Timestamp_posix.h>
-#else
-#  error "Time functions are not implemented on current platform"
-#endif
 
 NS_STATICLINK_FILE(Foundation, Foundation_Time_Implementation_Timestamp);

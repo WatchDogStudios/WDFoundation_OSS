@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 
 template <typename T>
 NS_ALWAYS_INLINE nsSharedPtr<T>::nsSharedPtr()
@@ -23,7 +18,7 @@ NS_ALWAYS_INLINE nsSharedPtr<T>::nsSharedPtr(const nsInternal::NewInstance<U>& i
 
 template <typename T>
 template <typename U>
-NS_ALWAYS_INLINE nsSharedPtr<T>::nsSharedPtr(U* pInstance, nsAllocatorBase* pAllocator)
+NS_ALWAYS_INLINE nsSharedPtr<T>::nsSharedPtr(U* pInstance, nsAllocator* pAllocator)
 {
   m_pInstance = pInstance;
   m_pAllocator = pAllocator;

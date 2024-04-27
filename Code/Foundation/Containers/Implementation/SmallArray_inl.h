@@ -1,27 +1,22 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 
 template <typename T, nsUInt16 Size>
 nsSmallArrayBase<T, Size>::nsSmallArrayBase() = default;
 
 template <typename T, nsUInt16 Size>
-NS_ALWAYS_INLINE nsSmallArrayBase<T, Size>::nsSmallArrayBase(const nsSmallArrayBase<T, Size>& other, nsAllocatorBase* pAllocator)
+NS_ALWAYS_INLINE nsSmallArrayBase<T, Size>::nsSmallArrayBase(const nsSmallArrayBase<T, Size>& other, nsAllocator* pAllocator)
 {
   CopyFrom((nsArrayPtr<const T>)other, pAllocator);
   m_uiUserData = other.m_uiUserData;
 }
 
 template <typename T, nsUInt16 Size>
-NS_ALWAYS_INLINE nsSmallArrayBase<T, Size>::nsSmallArrayBase(const nsArrayPtr<const T>& other, nsAllocatorBase* pAllocator)
+NS_ALWAYS_INLINE nsSmallArrayBase<T, Size>::nsSmallArrayBase(const nsArrayPtr<const T>& other, nsAllocator* pAllocator)
 {
   CopyFrom(other, pAllocator);
 }
 
 template <typename T, nsUInt16 Size>
-NS_ALWAYS_INLINE nsSmallArrayBase<T, Size>::nsSmallArrayBase(nsSmallArrayBase<T, Size>&& other, nsAllocatorBase* pAllocator)
+NS_ALWAYS_INLINE nsSmallArrayBase<T, Size>::nsSmallArrayBase(nsSmallArrayBase<T, Size>&& other, nsAllocator* pAllocator)
 {
   MoveFrom(std::move(other), pAllocator);
 }
@@ -34,7 +29,7 @@ NS_FORCE_INLINE nsSmallArrayBase<T, Size>::~nsSmallArrayBase()
 }
 
 template <typename T, nsUInt16 Size>
-void nsSmallArrayBase<T, Size>::CopyFrom(const nsArrayPtr<const T>& other, nsAllocatorBase* pAllocator)
+void nsSmallArrayBase<T, Size>::CopyFrom(const nsArrayPtr<const T>& other, nsAllocator* pAllocator)
 {
   NS_ASSERT_DEV(other.GetCount() <= nsSmallInvalidIndex, "Can't copy {} elements to small array. Maximum count is {}", other.GetCount(), nsSmallInvalidIndex);
 
@@ -71,7 +66,7 @@ void nsSmallArrayBase<T, Size>::CopyFrom(const nsArrayPtr<const T>& other, nsAll
 }
 
 template <typename T, nsUInt16 Size>
-void nsSmallArrayBase<T, Size>::MoveFrom(nsSmallArrayBase<T, Size>&& other, nsAllocatorBase* pAllocator)
+void nsSmallArrayBase<T, Size>::MoveFrom(nsSmallArrayBase<T, Size>&& other, nsAllocator* pAllocator)
 {
   Clear();
 
@@ -118,6 +113,7 @@ NS_ALWAYS_INLINE bool nsSmallArrayBase<T, Size>::operator==(const nsSmallArrayBa
   return *this == rhs.GetArrayPtr();
 }
 
+#if NS_DISABLED(NS_USE_CPP20_OPERATORS)
 template <typename T, nsUInt16 Size>
 bool nsSmallArrayBase<T, Size>::operator==(const nsArrayPtr<const T>& rhs) const
 {
@@ -126,18 +122,7 @@ bool nsSmallArrayBase<T, Size>::operator==(const nsArrayPtr<const T>& rhs) const
 
   return nsMemoryUtils::IsEqual(GetElementsPtr(), rhs.GetPtr(), m_uiCount);
 }
-
-template <typename T, nsUInt16 Size>
-NS_ALWAYS_INLINE bool nsSmallArrayBase<T, Size>::operator!=(const nsSmallArrayBase<T, Size>& rhs) const
-{
-  return !(*this == rhs);
-}
-
-template <typename T, nsUInt16 Size>
-NS_ALWAYS_INLINE bool nsSmallArrayBase<T, Size>::operator!=(const nsArrayPtr<const T>& rhs) const
-{
-  return !(*this == rhs);
-}
+#endif
 
 template <typename T, nsUInt16 Size>
 NS_ALWAYS_INLINE const T& nsSmallArrayBase<T, Size>::operator[](const nsUInt32 uiIndex) const
@@ -154,7 +139,7 @@ NS_ALWAYS_INLINE T& nsSmallArrayBase<T, Size>::operator[](const nsUInt32 uiIndex
 }
 
 template <typename T, nsUInt16 Size>
-void nsSmallArrayBase<T, Size>::SetCount(nsUInt16 uiCount, nsAllocatorBase* pAllocator)
+void nsSmallArrayBase<T, Size>::SetCount(nsUInt16 uiCount, nsAllocator* pAllocator)
 {
   const nsUInt32 uiOldCount = m_uiCount;
   const nsUInt32 uiNewCount = uiCount;
@@ -162,7 +147,7 @@ void nsSmallArrayBase<T, Size>::SetCount(nsUInt16 uiCount, nsAllocatorBase* pAll
   if (uiNewCount > uiOldCount)
   {
     Reserve(static_cast<nsUInt16>(uiNewCount), pAllocator);
-    nsMemoryUtils::DefaultConstruct(GetElementsPtr() + uiOldCount, uiNewCount - uiOldCount);
+    nsMemoryUtils::Construct<ConstructAll>(GetElementsPtr() + uiOldCount, uiNewCount - uiOldCount);
   }
   else if (uiNewCount < uiOldCount)
   {
@@ -173,7 +158,7 @@ void nsSmallArrayBase<T, Size>::SetCount(nsUInt16 uiCount, nsAllocatorBase* pAll
 }
 
 template <typename T, nsUInt16 Size>
-void nsSmallArrayBase<T, Size>::SetCount(nsUInt16 uiCount, const T& fillValue, nsAllocatorBase* pAllocator)
+void nsSmallArrayBase<T, Size>::SetCount(nsUInt16 uiCount, const T& fillValue, nsAllocator* pAllocator)
 {
   const nsUInt32 uiOldCount = m_uiCount;
   const nsUInt32 uiNewCount = uiCount;
@@ -192,7 +177,7 @@ void nsSmallArrayBase<T, Size>::SetCount(nsUInt16 uiCount, const T& fillValue, n
 }
 
 template <typename T, nsUInt16 Size>
-void nsSmallArrayBase<T, Size>::EnsureCount(nsUInt16 uiCount, nsAllocatorBase* pAllocator)
+void nsSmallArrayBase<T, Size>::EnsureCount(nsUInt16 uiCount, nsAllocator* pAllocator)
 {
   if (uiCount > m_uiCount)
   {
@@ -202,7 +187,7 @@ void nsSmallArrayBase<T, Size>::EnsureCount(nsUInt16 uiCount, nsAllocatorBase* p
 
 template <typename T, nsUInt16 Size>
 template <typename> // Second template needed so that the compiler does only instantiate it when called. Otherwise the static_assert would trigger early.
-void nsSmallArrayBase<T, Size>::SetCountUninitialized(nsUInt16 uiCount, nsAllocatorBase* pAllocator)
+void nsSmallArrayBase<T, Size>::SetCountUninitialized(nsUInt16 uiCount, nsAllocator* pAllocator)
 {
   static_assert(nsIsPodType<T>::value == nsTypeIsPod::value, "SetCountUninitialized is only supported for POD types.");
   const nsUInt32 uiOldCount = m_uiCount;
@@ -211,7 +196,7 @@ void nsSmallArrayBase<T, Size>::SetCountUninitialized(nsUInt16 uiCount, nsAlloca
   if (uiNewCount > uiOldCount)
   {
     Reserve(uiNewCount, pAllocator);
-    nsMemoryUtils::Construct(GetElementsPtr() + uiOldCount, uiNewCount - uiOldCount);
+    nsMemoryUtils::Construct<SkipTrivialTypes>(GetElementsPtr() + uiOldCount, uiNewCount - uiOldCount);
   }
   else if (uiNewCount < uiOldCount)
   {
@@ -247,7 +232,7 @@ bool nsSmallArrayBase<T, Size>::Contains(const T& value) const
 }
 
 template <typename T, nsUInt16 Size>
-void nsSmallArrayBase<T, Size>::Insert(const T& value, nsUInt32 uiIndex, nsAllocatorBase* pAllocator)
+void nsSmallArrayBase<T, Size>::Insert(const T& value, nsUInt32 uiIndex, nsAllocator* pAllocator)
 {
   NS_ASSERT_DEV(uiIndex <= m_uiCount, "Invalid index. Array has {0} elements, trying to insert element at index {1}.", m_uiCount, uiIndex);
 
@@ -258,7 +243,7 @@ void nsSmallArrayBase<T, Size>::Insert(const T& value, nsUInt32 uiIndex, nsAlloc
 }
 
 template <typename T, nsUInt16 Size>
-void nsSmallArrayBase<T, Size>::Insert(T&& value, nsUInt32 uiIndex, nsAllocatorBase* pAllocator)
+void nsSmallArrayBase<T, Size>::Insert(T&& value, nsUInt32 uiIndex, nsAllocator* pAllocator)
 {
   NS_ASSERT_DEV(uiIndex <= m_uiCount, "Invalid index. Array has {0} elements, trying to insert element at index {1}.", m_uiCount, uiIndex);
 
@@ -293,7 +278,7 @@ bool nsSmallArrayBase<T, Size>::RemoveAndSwap(const T& value)
 }
 
 template <typename T, nsUInt16 Size>
-void nsSmallArrayBase<T, Size>::RemoveAtAndCopy(nsUInt32 uiIndex, nsUInt32 uiNumElements /*= 1*/)
+void nsSmallArrayBase<T, Size>::RemoveAtAndCopy(nsUInt32 uiIndex, nsUInt16 uiNumElements /*= 1*/)
 {
   NS_ASSERT_DEV(uiIndex + uiNumElements <= m_uiCount, "Out of bounds access. Array has {0} elements, trying to remove element at index {1}.", m_uiCount, uiIndex + uiNumElements - 1);
 
@@ -304,7 +289,7 @@ void nsSmallArrayBase<T, Size>::RemoveAtAndCopy(nsUInt32 uiIndex, nsUInt32 uiNum
 }
 
 template <typename T, nsUInt16 Size>
-void nsSmallArrayBase<T, Size>::RemoveAtAndSwap(nsUInt32 uiIndex, nsUInt32 uiNumElements /*= 1*/)
+void nsSmallArrayBase<T, Size>::RemoveAtAndSwap(nsUInt32 uiIndex, nsUInt16 uiNumElements /*= 1*/)
 {
   NS_ASSERT_DEV(uiIndex + uiNumElements <= m_uiCount, "Out of bounds access. Array has {0} elements, trying to remove element at index {1}.", m_uiCount, uiIndex + uiNumElements - 1);
 
@@ -350,13 +335,13 @@ nsUInt32 nsSmallArrayBase<T, Size>::LastIndexOf(const T& value, nsUInt32 uiStart
 }
 
 template <typename T, nsUInt16 Size>
-T& nsSmallArrayBase<T, Size>::ExpandAndGetRef(nsAllocatorBase* pAllocator)
+T& nsSmallArrayBase<T, Size>::ExpandAndGetRef(nsAllocator* pAllocator)
 {
   Reserve(m_uiCount + 1, pAllocator);
 
   T* pElements = GetElementsPtr();
 
-  nsMemoryUtils::Construct(pElements + m_uiCount, 1);
+  nsMemoryUtils::Construct<SkipTrivialTypes>(pElements + m_uiCount, 1);
 
   T& ReturnRef = *(pElements + m_uiCount);
 
@@ -366,7 +351,7 @@ T& nsSmallArrayBase<T, Size>::ExpandAndGetRef(nsAllocatorBase* pAllocator)
 }
 
 template <typename T, nsUInt16 Size>
-void nsSmallArrayBase<T, Size>::PushBack(const T& value, nsAllocatorBase* pAllocator)
+void nsSmallArrayBase<T, Size>::PushBack(const T& value, nsAllocator* pAllocator)
 {
   Reserve(m_uiCount + 1, pAllocator);
 
@@ -375,7 +360,7 @@ void nsSmallArrayBase<T, Size>::PushBack(const T& value, nsAllocatorBase* pAlloc
 }
 
 template <typename T, nsUInt16 Size>
-void nsSmallArrayBase<T, Size>::PushBack(T&& value, nsAllocatorBase* pAllocator)
+void nsSmallArrayBase<T, Size>::PushBack(T&& value, nsAllocator* pAllocator)
 {
   Reserve(m_uiCount + 1, pAllocator);
 
@@ -402,7 +387,7 @@ void nsSmallArrayBase<T, Size>::PushBackUnchecked(T&& value)
 }
 
 template <typename T, nsUInt16 Size>
-void nsSmallArrayBase<T, Size>::PushBackRange(const nsArrayPtr<const T>& range, nsAllocatorBase* pAllocator)
+void nsSmallArrayBase<T, Size>::PushBackRange(const nsArrayPtr<const T>& range, nsAllocator* pAllocator)
 {
   const nsUInt32 uiRangeCount = range.GetCount();
   Reserve(m_uiCount + uiRangeCount, pAllocator);
@@ -498,7 +483,7 @@ NS_ALWAYS_INLINE nsArrayPtr<typename nsArrayPtr<const T>::ByteType> nsSmallArray
 }
 
 template <typename T, nsUInt16 Size>
-void nsSmallArrayBase<T, Size>::Reserve(nsUInt16 uiCapacity, nsAllocatorBase* pAllocator)
+void nsSmallArrayBase<T, Size>::Reserve(nsUInt16 uiCapacity, nsAllocator* pAllocator)
 {
   if (m_uiCapacity >= uiCapacity)
     return;
@@ -514,7 +499,7 @@ void nsSmallArrayBase<T, Size>::Reserve(nsUInt16 uiCapacity, nsAllocatorBase* pA
 }
 
 template <typename T, nsUInt16 Size>
-void nsSmallArrayBase<T, Size>::Compact(nsAllocatorBase* pAllocator)
+void nsSmallArrayBase<T, Size>::Compact(nsAllocator* pAllocator)
 {
   if (IsEmpty())
   {
@@ -560,7 +545,7 @@ NS_ALWAYS_INLINE U& nsSmallArrayBase<T, Size>::GetUserData()
 }
 
 template <typename T, nsUInt16 Size>
-void nsSmallArrayBase<T, Size>::SetCapacity(nsUInt16 uiCapacity, nsAllocatorBase* pAllocator)
+void nsSmallArrayBase<T, Size>::SetCapacity(nsUInt16 uiCapacity, nsAllocator* pAllocator)
 {
   if (m_uiCapacity > Size && uiCapacity > m_uiCapacity)
   {
@@ -683,13 +668,13 @@ NS_ALWAYS_INLINE void nsSmallArray<T, Size, AllocatorWrapper>::SetCountUninitial
 }
 
 template <typename T, nsUInt16 Size, typename AllocatorWrapper /*= nsDefaultAllocatorWrapper*/>
-NS_ALWAYS_INLINE void nsSmallArray<T, Size, AllocatorWrapper>::Insert(const T& value, nsUInt32 uiIndex)
+NS_ALWAYS_INLINE void nsSmallArray<T, Size, AllocatorWrapper>::InsertAt(nsUInt32 uiIndex, const T& value)
 {
   SUPER::Insert(value, uiIndex, AllocatorWrapper::GetAllocator());
 }
 
 template <typename T, nsUInt16 Size, typename AllocatorWrapper /*= nsDefaultAllocatorWrapper*/>
-NS_ALWAYS_INLINE void nsSmallArray<T, Size, AllocatorWrapper>::Insert(T&& value, nsUInt32 uiIndex)
+NS_ALWAYS_INLINE void nsSmallArray<T, Size, AllocatorWrapper>::InsertAt(nsUInt32 uiIndex, T&& value)
 {
   SUPER::Insert(value, uiIndex, AllocatorWrapper::GetAllocator());
 }

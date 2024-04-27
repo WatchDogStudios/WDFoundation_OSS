@@ -1,15 +1,10 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 NS_ALWAYS_INLINE nsSimdVec4i::nsSimdVec4i()
 {
   NS_CHECK_SIMD_ALIGNMENT(this);
 
-#if NS_ENABLED(NS_COMPILE_FOR_DEBUG)
+#if NS_ENABLED(NS_MATH_CHECK_FOR_NAN)
   m_v = _mm_set1_epi32(0xCDCDCDCD);
 #endif
 }

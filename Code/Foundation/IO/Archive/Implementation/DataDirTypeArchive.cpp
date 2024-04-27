@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Configuration/Startup.h>
@@ -46,6 +41,7 @@ nsDataDirectoryReader* nsDataDirectory::ArchiveType::OpenFileToRead(nsStringView
   const nsArchiveTOC& toc = m_ArchiveReader.GetArchiveTOC();
   nsStringBuilder sArchivePath = m_sArchiveSubFolder;
   sArchivePath.AppendPath(sFile);
+  sArchivePath.MakeCleanPath();
 
   const nsUInt32 uiEntryIndex = toc.FindEntry(sArchivePath);
 
@@ -54,7 +50,7 @@ nsDataDirectoryReader* nsDataDirectory::ArchiveType::OpenFileToRead(nsStringView
 
   const nsArchiveEntry* pEntry = &toc.m_Entries[uiEntryIndex];
 
-  ArchiveReaderUncompressed* pReader = nullptr;
+  ArchiveReaderCommon* pReader = nullptr;
 
   {
     NS_LOCK(m_ReaderMutex);
@@ -92,6 +88,22 @@ nsDataDirectoryReader* nsDataDirectory::ArchiveType::OpenFileToRead(nsStringView
         break;
       }
 #endif
+#ifdef BUILDSYSTEM_ENABLE_ZLIB_SUPPORT
+      case nsArchiveCompressionMode::Compressed_zip:
+      {
+        if (!m_FreeReadersZip.IsEmpty())
+        {
+          pReader = m_FreeReadersZip.PeekBack();
+          m_FreeReadersZip.PopBack();
+        }
+        else
+        {
+          m_ReadersZip.PushBack(NS_DEFAULT_NEW(ArchiveReaderZip, 2));
+          pReader = m_ReadersZip.PeekBack().Borrow();
+        }
+        break;
+      }
+#endif
 
       default:
         NS_REPORT_FAILURE("Compression mode {} is unknown (or not compiled in)", (nsUInt8)pEntry->m_CompressionMode);
@@ -123,6 +135,7 @@ bool nsDataDirectory::ArchiveType::ExistsFile(nsStringView sFile, bool bOneSpeci
 {
   nsStringBuilder sArchivePath = m_sArchiveSubFolder;
   sArchivePath.AppendPath(sFile);
+  sArchivePath.MakeCleanPath();
   return m_ArchiveReader.GetArchiveTOC().FindEntry(sArchivePath) != nsInvalidIndex;
 }
 
@@ -131,6 +144,8 @@ nsResult nsDataDirectory::ArchiveType::GetFileStats(nsStringView sFileOrFolder, 
   const nsArchiveTOC& toc = m_ArchiveReader.GetArchiveTOC();
   nsStringBuilder sArchivePath = m_sArchiveSubFolder;
   sArchivePath.AppendPath(sFileOrFolder);
+  // We might be called with paths like AAA/../BBB which we won't find in the toc unless we clean the path first.
+  sArchivePath.MakeCleanPath();
   const nsUInt32 uiEntryIndex = toc.FindEntry(sArchivePath);
 
   if (uiEntryIndex == nsInvalidIndex)
@@ -163,8 +178,12 @@ nsResult nsDataDirectory::ArchiveType::InternalInitializeDataDirectory(nsStringV
   bool bSupported = false;
   nsStringBuilder sArchivePath;
 
-  nsHybridArray<nsString, 4, nsStaticAllocatorWrapper> extensions = nsArchiveUtils::GetAcceptedArchiveFileExtensions();
+  nsHybridArray<nsString, 4, nsStaticsAllocatorWrapper> extensions = nsArchiveUtils::GetAcceptedArchiveFileExtensions();
 
+#ifdef BUILDSYSTEM_ENABLE_ZLIB_SUPPORT
+  extensions.PushBack("zip");
+  extensions.PushBack("apk");
+#endif
 
   for (const auto& ext : extensions)
   {
@@ -194,13 +213,14 @@ endloop:
   if (!bSupported)
     return NS_FAILURE;
 
+#if NS_ENABLED(NS_SUPPORTS_FILE_STATS)
   nsFileStats stats;
   if (nsOSFile::GetFileStats(sArchivePath, stats).Failed())
     return NS_FAILURE;
+  m_LastModificationTime = stats.m_LastModificationTime;
+#endif
 
   NS_LOG_BLOCK("nsArchiveDataDir", sDirectory);
-
-  m_LastModificationTime = stats.m_LastModificationTime;
 
   NS_SUCCEED_OR_RETURN(m_ArchiveReader.OpenArchive(sArchivePath));
 
@@ -227,27 +247,44 @@ void nsDataDirectory::ArchiveType::OnReaderWriterClose(nsDataDirectoryReaderWrit
   }
 #endif
 
+#ifdef BUILDSYSTEM_ENABLE_ZLIB_SUPPORT
+  if (pClosed->GetDataDirUserData() == 2)
+  {
+    m_FreeReadersZip.PushBack(static_cast<ArchiveReaderZip*>(pClosed));
+    return;
+  }
+#endif
 
   NS_ASSERT_NOT_IMPLEMENTED;
 }
 
 //////////////////////////////////////////////////////////////////////////
 
-nsDataDirectory::ArchiveReaderUncompressed::ArchiveReaderUncompressed(nsInt32 iDataDirUserData)
+nsDataDirectory::ArchiveReaderCommon::ArchiveReaderCommon(nsInt32 iDataDirUserData)
   : nsDataDirectoryReader(iDataDirUserData)
 {
 }
 
-nsDataDirectory::ArchiveReaderUncompressed::~ArchiveReaderUncompressed() = default;
+nsUInt64 nsDataDirectory::ArchiveReaderCommon::GetFileSize() const
+{
+  return m_uiUncompressedSize;
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+nsDataDirectory::ArchiveReaderUncompressed::ArchiveReaderUncompressed(nsInt32 iDataDirUserData)
+  : ArchiveReaderCommon(iDataDirUserData)
+{
+}
+
+nsUInt64 nsDataDirectory::ArchiveReaderUncompressed::Skip(nsUInt64 uiBytes)
+{
+  return m_MemStreamReader.SkipBytes(uiBytes);
+}
 
 nsUInt64 nsDataDirectory::ArchiveReaderUncompressed::Read(void* pBuffer, nsUInt64 uiBytes)
 {
   return m_MemStreamReader.ReadBytes(pBuffer, uiBytes);
-}
-
-nsUInt64 nsDataDirectory::ArchiveReaderUncompressed::GetFileSize() const
-{
-  return m_uiUncompressedSize;
 }
 
 nsResult nsDataDirectory::ArchiveReaderUncompressed::InternalOpen(nsFileShareMode::Enum FileShareMode)
@@ -268,11 +305,9 @@ void nsDataDirectory::ArchiveReaderUncompressed::InternalClose()
 #ifdef BUILDSYSTEM_ENABLE_ZSTD_SUPPORT
 
 nsDataDirectory::ArchiveReaderZstd::ArchiveReaderZstd(nsInt32 iDataDirUserData)
-  : ArchiveReaderUncompressed(iDataDirUserData)
+  : ArchiveReaderCommon(iDataDirUserData)
 {
 }
-
-nsDataDirectory::ArchiveReaderZstd::~ArchiveReaderZstd() = default;
 
 nsUInt64 nsDataDirectory::ArchiveReaderZstd::Read(void* pBuffer, nsUInt64 uiBytes)
 {
@@ -287,10 +322,36 @@ nsResult nsDataDirectory::ArchiveReaderZstd::InternalOpen(nsFileShareMode::Enum 
   return NS_SUCCESS;
 }
 
+void nsDataDirectory::ArchiveReaderZstd::InternalClose()
+{
+  // nothing to do
+}
 #endif
 
 //////////////////////////////////////////////////////////////////////////
 
+#ifdef BUILDSYSTEM_ENABLE_ZLIB_SUPPORT
 
+nsDataDirectory::ArchiveReaderZip::ArchiveReaderZip(nsInt32 iDataDirUserData)
+  : ArchiveReaderUncompressed(iDataDirUserData)
+{
+}
+
+nsDataDirectory::ArchiveReaderZip::~ArchiveReaderZip() = default;
+
+nsUInt64 nsDataDirectory::ArchiveReaderZip::Read(void* pBuffer, nsUInt64 uiBytes)
+{
+  return m_CompressedStreamReader.ReadBytes(pBuffer, uiBytes);
+}
+
+nsResult nsDataDirectory::ArchiveReaderZip::InternalOpen(nsFileShareMode::Enum FileShareMode)
+{
+  NS_ASSERT_DEBUG(FileShareMode != nsFileShareMode::Exclusive, "Archives only support shared reading of files. Exclusive access cannot be guaranteed.");
+
+  m_CompressedStreamReader.SetInputStream(&m_MemStreamReader, m_uiCompressedSize);
+  return NS_SUCCESS;
+}
+
+#endif
 
 NS_STATICLINK_FILE(Foundation, Foundation_IO_Archive_Implementation_DataDirTypeArchive);

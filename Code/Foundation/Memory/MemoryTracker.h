@@ -1,48 +1,19 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Basics.h>
 #include <Foundation/Time/Time.h>
 #include <Foundation/Types/Bitflags.h>
 
-struct nsMemoryTrackingFlags
+enum class nsAllocatorTrackingMode : nsUInt32
 {
-  using StorageType = nsUInt32;
+  Nothing,                       ///< The allocator doesn't track anything. Use this for best performance.
+  Basics,                        ///< The allocator will be known to the system, so it can show up in debugging tools, but barely anything more.
+  AllocationStats,               ///< The allocator keeps track of how many allocations and deallocations it did and how large its memory usage is.
+  AllocationStatsIgnoreLeaks,    ///< Same as AllocationStats, but any remaining allocations at shutdown are not reported as leaks.
+  AllocationStatsAndStacktraces, ///< The allocator will record stack traces for each allocation, which can be used to find memory leaks.
 
-  enum Enum
-  {
-    None,
-    RegisterAllocator = NS_BIT(0),        ///< Register the allocator with the memory tracker. If EnableAllocationTracking is not set as well it is up to the
-                                          ///< allocator implementation whether it collects usable stats or not.
-    EnableAllocationTracking = NS_BIT(1), ///< Enable tracking of individual allocations
-    EnableStackTrace = NS_BIT(2),         ///< Enable stack traces for each allocation
-
-    All = RegisterAllocator | EnableAllocationTracking | EnableStackTrace,
-
-    Default = 0
-#if NS_ENABLED(NS_USE_ALLOCATION_TRACKING)
-              | RegisterAllocator | EnableAllocationTracking
-#endif
-#if NS_ENABLED(NS_USE_ALLOCATION_STACK_TRACING)
-              | EnableStackTrace
-#endif
-  };
-
-  struct Bits
-  {
-    StorageType RegisterAllocator : 1;
-    StorageType EnableAllocationTracking : 1;
-    StorageType EnableStackTrace : 1;
-  };
+  Default = NS_ALLOC_TRACKING_DEFAULT,
 };
-
-// NS_DECLARE_FLAGS_OPERATORS(nsMemoryTrackingFlags);
-
-#define NS_STATIC_ALLOCATOR_NAME "Statics"
 
 /// \brief Memory tracker which keeps track of all allocations and constructions
 class NS_FOUNDATION_DLL nsMemoryTracker
@@ -81,7 +52,7 @@ public:
     nsAllocatorId Id() const;
     nsStringView Name() const;
     nsAllocatorId ParentId() const;
-    const nsAllocatorBase::Stats& Stats() const;
+    const nsAllocator::Stats& Stats() const;
 
     void Next();
     bool IsValid() const;
@@ -99,23 +70,33 @@ public:
     void* m_pData;
   };
 
-  static nsAllocatorId RegisterAllocator(nsStringView sName, nsBitflags<nsMemoryTrackingFlags> flags, nsAllocatorId parentId);
+  static nsAllocatorId RegisterAllocator(nsStringView sName, nsAllocatorTrackingMode mode, nsAllocatorId parentId);
   static void DeregisterAllocator(nsAllocatorId allocatorId);
 
-  static void AddAllocation(
-    nsAllocatorId allocatorId, nsBitflags<nsMemoryTrackingFlags> flags, const void* pPtr, size_t uiSize, size_t uiAlign, nsTime allocationTime);
+  static void AddAllocation(nsAllocatorId allocatorId, nsAllocatorTrackingMode mode, const void* pPtr, size_t uiSize, size_t uiAlign, nsTime allocationTime);
   static void RemoveAllocation(nsAllocatorId allocatorId, const void* pPtr);
   static void RemoveAllAllocations(nsAllocatorId allocatorId);
-  static void SetAllocatorStats(nsAllocatorId allocatorId, const nsAllocatorBase::Stats& stats);
+  static void SetAllocatorStats(nsAllocatorId allocatorId, const nsAllocator::Stats& stats);
 
   static void ResetPerFrameAllocatorStats();
 
   static nsStringView GetAllocatorName(nsAllocatorId allocatorId);
-  static const nsAllocatorBase::Stats& GetAllocatorStats(nsAllocatorId allocatorId);
+  static const nsAllocator::Stats& GetAllocatorStats(nsAllocatorId allocatorId);
   static nsAllocatorId GetAllocatorParentId(nsAllocatorId allocatorId);
   static const AllocationInfo& GetAllocationInfo(nsAllocatorId allocatorId, const void* pPtr);
 
-  static void DumpMemoryLeaks();
-
   static Iterator GetIterator();
+
+  /// \brief Callback for printing strings.
+  using PrintFunc = void (*)(const char* szLine);
+
+  /// \brief Reports back information about all currently known root memory leaks.
+  ///
+  /// Returns the number of found memory leaks.
+  static nsUInt32 PrintMemoryLeaks(PrintFunc printfunc);
+
+  /// \brief Prints the known memory leaks to nsLog and triggers an assert if there are any.
+  ///
+  /// This is useful to call at the end of an application, to get a debug breakpoint in case of memory leaks.
+  static void DumpMemoryLeaks();
 };

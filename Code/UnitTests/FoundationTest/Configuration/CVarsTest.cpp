@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/Configuration/CVar.h>
@@ -14,7 +9,7 @@ NS_CREATE_SIMPLE_TEST_GROUP(Configuration);
 
 #define nsCVarValueDefault nsCVarValue::Default
 #define nsCVarValueStored nsCVarValue::Stored
-#define nsCVarValueRestart nsCVarValue::Restart
+#define nsCVarValueRestart nsCVarValue::DelayedSync
 
 // Interestingly using 'nsCVarValue::Default' directly inside a macro does not work. (?!)
 #define CHECK_CVAR(var, Current, Default, Stored, Restart)      \
@@ -39,7 +34,7 @@ static void ChangedCVar(const nsCVarEvent& e)
     case nsCVarEvent::ValueChanged:
       ++iChangedValue;
       break;
-    case nsCVarEvent::RestartValueChanged:
+    case nsCVarEvent::DelayedSyncValueChanged:
       ++iChangedRestart;
       break;
     default:
@@ -352,7 +347,7 @@ NS_CREATE_SIMPLE_TEST(Configuration, CVars)
         NS_TEST_INT(iChangedValue, 1);
         NS_TEST_INT(iChangedRestart, 1);
 
-        pFloat->SetToRestartValue();
+        pFloat->SetToDelayedSyncValue();
         CHECK_CVAR(pFloat, 1.2f, 1.1f, 1.1f, 1.2f);
 
         NS_TEST_INT(iChangedValue, 2);
@@ -427,7 +422,7 @@ NS_CREATE_SIMPLE_TEST(Configuration, CVars)
         *pString = "test2_value2";
         CHECK_CVAR(pString, "test2", "test2", "test2", "test2_value2");
 
-        pString->SetToRestartValue();
+        pString->SetToDelayedSyncValue();
         CHECK_CVAR(pString, "test2_value2", "test2", "test2", "test2_value2");
       }
     }

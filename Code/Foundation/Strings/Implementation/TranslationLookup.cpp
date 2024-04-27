@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Algorithm/HashingUtils.h>
@@ -58,17 +53,20 @@ void nsTranslationLookup::AddTranslator(nsUniquePtr<nsTranslator> pTranslator)
 }
 
 
-const char* nsTranslationLookup::Translate(const char* szString, nsUInt64 uiStringHash, nsTranslationUsage usage)
+nsStringView nsTranslationLookup::Translate(nsStringView sString, nsUInt64 uiStringHash, nsTranslationUsage usage)
 {
   for (nsUInt32 i = s_Translators.GetCount(); i > 0; --i)
   {
-    const char* szResult = s_Translators[i - 1]->Translate(szString, uiStringHash, usage);
+    nsStringView sResult = s_Translators[i - 1]->Translate(sString, uiStringHash, usage);
 
-    if (szResult != nullptr)
-      return szResult;
+    if (!sResult.IsEmpty())
+      return sResult;
   }
 
-  return szString;
+  if (usage != nsTranslationUsage::Default)
+    return {};
+
+  return sString;
 }
 
 
@@ -112,9 +110,9 @@ void nsTranslatorFromFiles::AddTranslationFilesFromFolder(const char* szFolder)
 #endif
 }
 
-const char* nsTranslatorFromFiles::Translate(const char* szString, nsUInt64 uiStringHash, nsTranslationUsage usage)
+nsStringView nsTranslatorFromFiles::Translate(nsStringView sString, nsUInt64 uiStringHash, nsTranslationUsage usage)
 {
-  return nsTranslatorStorage::Translate(szString, uiStringHash, usage);
+  return nsTranslatorStorage::Translate(sString, uiStringHash, usage);
 }
 
 void nsTranslatorFromFiles::Reload()
@@ -196,18 +194,18 @@ void nsTranslatorFromFiles::LoadTranslationFile(const char* szFullPath)
 
 //////////////////////////////////////////////////////////////////////////
 
-void nsTranslatorStorage::StoreTranslation(const char* szString, nsUInt64 uiStringHash, nsTranslationUsage usage)
+void nsTranslatorStorage::StoreTranslation(nsStringView sString, nsUInt64 uiStringHash, nsTranslationUsage usage)
 {
-  m_Translations[(nsUInt32)usage][uiStringHash] = szString;
+  m_Translations[(nsUInt32)usage][uiStringHash] = sString;
 }
 
-const char* nsTranslatorStorage::Translate(const char* szString, nsUInt64 uiStringHash, nsTranslationUsage usage)
+nsStringView nsTranslatorStorage::Translate(nsStringView sString, nsUInt64 uiStringHash, nsTranslationUsage usage)
 {
   auto it = m_Translations[(nsUInt32)usage].Find(uiStringHash);
   if (it.IsValid())
     return it.Value().GetData();
 
-  return nullptr;
+  return {};
 }
 
 void nsTranslatorStorage::Reset()
@@ -227,35 +225,38 @@ void nsTranslatorStorage::Reload()
 
 bool nsTranslatorLogMissing::s_bActive = true;
 
-const char* nsTranslatorLogMissing::Translate(const char* szString, nsUInt64 uiStringHash, nsTranslationUsage usage)
+nsStringView nsTranslatorLogMissing::Translate(nsStringView sString, nsUInt64 uiStringHash, nsTranslationUsage usage)
 {
   if (!nsTranslatorLogMissing::s_bActive && !GetHighlightUntranslated())
-    return nullptr;
+    return {};
 
   if (usage != nsTranslationUsage::Default)
-    return nullptr;
+    return {};
 
-  const char* szResult = nsTranslatorStorage::Translate(szString, uiStringHash, usage);
+  nsStringView sResult = nsTranslatorStorage::Translate(sString, uiStringHash, usage);
 
-  if (szResult == nullptr)
+  if (sResult.IsEmpty())
   {
-    nsLog::Warning("Missing translation: {0};", szString);
+    nsLog::Warning("Missing translation: {0};", sString);
 
-    StoreTranslation(szString, uiStringHash, usage);
+    StoreTranslation(sString, uiStringHash, usage);
   }
 
-  return nullptr;
+  return {};
 }
 
-const char* nsTranslatorMakeMoreReadable::Translate(const char* szString, nsUInt64 uiStringHash, nsTranslationUsage usage)
+nsStringView nsTranslatorMakeMoreReadable::Translate(nsStringView sString, nsUInt64 uiStringHash, nsTranslationUsage usage)
 {
-  const char* szResult = nsTranslatorStorage::Translate(szString, uiStringHash, usage);
+  if (usage != nsTranslationUsage::Default)
+    return {};
 
-  if (szResult != nullptr)
-    return szResult;
+  nsStringView sResult = nsTranslatorStorage::Translate(sString, uiStringHash, usage);
+
+  if (!sResult.IsEmpty())
+    return sResult;
 
   nsStringBuilder result;
-  nsStringBuilder tmp = szString;
+  nsStringBuilder tmp = sString;
   tmp.Trim(" _-");
 
   tmp.TrimWordStart("ns");
@@ -266,8 +267,10 @@ const char* nsTranslatorMakeMoreReadable::Translate(const char* szString, nsUInt
     tmp.Shrink(0, sComponent.GetElementCount());
   }
 
-  auto IsUpper = [](nsUInt32 c) { return c == nsStringUtils::ToUpperChar(c); };
-  auto IsNumber = [](nsUInt32 c) { return c >= '0' && c <= '9'; };
+  auto IsUpper = [](nsUInt32 c)
+  { return c == nsStringUtils::ToUpperChar(c); };
+  auto IsNumber = [](nsUInt32 c)
+  { return c >= '0' && c <= '9'; };
 
   nsUInt32 uiPrev = ' ';
   nsUInt32 uiCur = ' ';
@@ -337,12 +340,10 @@ const char* nsTranslatorMakeMoreReadable::Translate(const char* szString, nsUInt
 
   if (GetHighlightUntranslated())
   {
-    result.Append(" (@", szString, ")");
+    result.Append(" (@", sString, ")");
   }
 
   StoreTranslation(result, uiStringHash, usage);
 
-  return nsTranslatorStorage::Translate(szString, uiStringHash, usage);
+  return nsTranslatorStorage::Translate(sString, uiStringHash, usage);
 }
-
-NS_STATICLINK_FILE(Foundation, Foundation_Strings_Implementation_TranslationLookup);

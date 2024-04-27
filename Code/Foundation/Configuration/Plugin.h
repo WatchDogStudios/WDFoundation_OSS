@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 /// \file
@@ -16,19 +11,19 @@ struct nsPluginEvent
 {
   enum Type
   {
-    BeforeLoading,          ///< Sent shortly before a new plugin is loaded.
-    AfterLoadingBeforeInit, ///< Sent immediately after a new plugin has been loaded, even before it is initialized (which might trigger loading of other plugins).
-    AfterLoading,           ///< Sent after a new plugin has been loaded and initialized.
-    BeforeUnloading,        ///< Sent before a plugin is going to be unloaded.
-    StartupShutdown,        ///< Used by the startup system for automatic shutdown.
-    AfterStartupShutdown,   ///< Used by the ResourceManager to unload now unreferenced resources after the startup system shutdown is through.
-    AfterUnloading,         ///< Sent after a plugin has been unloaded.
-    BeforePluginChanges,    ///< Sent (once) before any (group) plugin changes (load/unload) are done.
-    AfterPluginChanges,     ///< Sent (once) after all (group) plugin changes (unload/load) are finished.
+    BeforeLoading,              ///< Sent shortly before a new plugin is loaded.
+    AfterLoadingBeforeInit,     ///< Sent immediately after a new plugin has been loaded, even before it is initialized (which might trigger loading of other plugins).
+    AfterLoading,               ///< Sent after a new plugin has been loaded and initialized.
+    BeforeUnloading,            ///< Sent before a plugin is going to be unloaded.
+    StartupShutdown,            ///< Used by the startup system for automatic shutdown.
+    AfterStartupShutdown,       ///< Used by the ResourceManager to unload now unreferenced resources after the startup system shutdown is through.
+    AfterUnloading,             ///< Sent after a plugin has been unloaded.
+    BeforePluginChanges,        ///< Sent (once) before any (group) plugin changes (load/unload) are done.
+    AfterPluginChanges,         ///< Sent (once) after all (group) plugin changes (unload/load) are finished.
   };
 
-  Type m_EventType;                       ///< Which type of event this is.
-  nsStringView m_sPluginBinary;           ///< The file name of the affected plugin.
+  Type m_EventType;             ///< Which type of event this is.
+  nsStringView m_sPluginBinary; ///< The file name of the affected plugin.
 };
 
 /// \brief Flags for loading a plugin.
@@ -131,6 +126,9 @@ public:
 
   /// \internal Determines the plugin paths.
   static void GetPluginPaths(nsStringView sPluginName, nsStringBuilder& ref_sOriginalFile, nsStringBuilder& ref_sCopiedFile, nsUInt8 uiFileCopyNumber);
+
+  /// \internal determines if a plugin copy is required for hot reloading for plugin code
+  static bool PlatformNeedsPluginCopy();
 
 private:
   nsPlugin() = delete;

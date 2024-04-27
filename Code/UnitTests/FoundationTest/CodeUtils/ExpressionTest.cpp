@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/CodeUtils/Expression/ExpressionByteCode.h>
@@ -23,7 +18,7 @@ namespace
     nsUInt32 uiCounter = s_uiNumASTDumps;
     ++s_uiNumASTDumps;
 
-    out_sOutputPath.Format(":output/Expression/{}_{}_AST.dgml", nsArgU(uiCounter, 2, true), sOutputName);
+    out_sOutputPath.SetFormat(":output/Expression/{}_{}_AST.dgml", nsArgU(uiCounter, 2, true), sOutputName);
   }
 
   void DumpDisassembly(const nsExpressionByteCode& byteCode, nsStringView sOutputName, nsUInt32 uiCounter)
@@ -32,7 +27,7 @@ namespace
     byteCode.Disassemble(sDisassembly);
 
     nsStringBuilder sFileName;
-    sFileName.Format(":output/Expression/{}_{}_ByteCode.txt", nsArgU(uiCounter, 2, true), sOutputName);
+    sFileName.SetFormat(":output/Expression/{}_{}_ByteCode.txt", nsArgU(uiCounter, 2, true), sOutputName);
 
     nsFileWriter fileWriter;
     if (fileWriter.Open(sFileName).Succeeded())
@@ -219,7 +214,8 @@ namespace
       expectedResultAsU = expectedResult;
     }
 
-    auto TestRes = [](U res, U expectedRes, const char* szCode, const char* szAValue, const char* szBValue) {
+    auto TestRes = [](U res, U expectedRes, const char* szCode, const char* szAValue, const char* szBValue)
+    {
       if constexpr (std::is_same<T, float>::value)
       {
         NS_TEST_FLOAT_MSG(res, expectedRes, nsMath::DefaultEpsilon<float>(), "%s (a=%s, b=%s)", szCode, szAValue, szBValue);
@@ -259,13 +255,13 @@ namespace
     nsStringBuilder bValue;
     if constexpr (std::is_same<T, nsVec3>::value || std::is_same<T, nsVec3I32>::value)
     {
-      aValue.Format("vec3({}, {}, {})", a.x, a.y, a.z);
-      bValue.Format("vec3({}, {}, {})", b.x, b.y, b.z);
+      aValue.SetFormat("vec3({}, {}, {})", a.x, a.y, a.z);
+      bValue.SetFormat("vec3({}, {}, {})", b.x, b.y, b.z);
     }
     else
     {
-      aValue.Format("{}", a);
-      bValue.Format("{}", b);
+      aValue.SetFormat("{}", a);
+      bValue.SetFormat("{}", b);
     }
 
     int oneConstantInstructions = 3; // LoadX, OpX_RC, StoreX
@@ -299,11 +295,11 @@ namespace
     nsStringBuilder code;
     nsExpressionByteCode byteCode;
 
-    code.Format(formatString, sOp, aInput, bInput);
+    code.SetFormat(formatString, sOp, aInput, bInput);
     Compile<U>(code, byteCode, bDumpASTs ? "BinaryNoConstants" : "");
     TestRes(Execute<U>(byteCode, aAsU, bAsU), expectedResultAsU, code, aValue, bValue);
 
-    code.Format(formatString, sOp, aValue, bInput);
+    code.SetFormat(formatString, sOp, aValue, bInput);
     Compile<U>(code, byteCode, bDumpASTs ? "BinaryLeftConstant" : "");
     if constexpr ((flags & NoInstructionsCountCheck) == 0)
     {
@@ -324,7 +320,7 @@ namespace
     }
     TestRes(Execute<U>(byteCode, aAsU, bAsU), expectedResultAsU, code, aValue, bValue);
 
-    code.Format(formatString, sOp, aInput, bValue);
+    code.SetFormat(formatString, sOp, aInput, bValue);
     Compile<U>(code, byteCode, bDumpASTs ? "BinaryRightConstant" : "");
     if constexpr ((flags & NoInstructionsCountCheck) == 0)
     {
@@ -337,7 +333,7 @@ namespace
     }
     TestRes(Execute<U>(byteCode, aAsU, bAsU), expectedResultAsU, code, aValue, bValue);
 
-    code.Format(formatString, sOp, aValue, bValue);
+    code.SetFormat(formatString, sOp, aValue, bValue);
     Compile<U>(code, byteCode, bDumpASTs ? "BinaryConstant" : "");
     if (hasDifferentOutputElements == false)
     {
@@ -391,13 +387,15 @@ namespace
     nsProcessingStream inputs[] = {
       nsProcessingStream(s_sA, a.GetByteArrayPtr(), StreamDataTypeDeduction<T>::Type),
       nsProcessingStream(s_sB, b.GetByteArrayPtr(), StreamDataTypeDeduction<T>::Type),
+      nsProcessingStream(s_sC, a.GetByteArrayPtr(), StreamDataTypeDeduction<T>::Type), // Dummy stream, not actually used
+      nsProcessingStream(s_sD, a.GetByteArrayPtr(), StreamDataTypeDeduction<T>::Type), // Dummy stream, not actually used
     };
 
     nsProcessingStream outputs[] = {
       nsProcessingStream(s_sOutput, o.GetByteArrayPtr(), StreamDataTypeDeduction<T>::Type),
     };
 
-    NS_TEST_BOOL(s_pVM->Execute(testByteCode, inputs, outputs, uiCount).Succeeded());
+    NS_TEST_BOOL(s_pVM->Execute(testByteCode, inputs, outputs, uiCount, nsExpression::GlobalData(), nsExpressionVM::Flags::BestPerformance).Succeeded());
 
     for (nsUInt32 i = 0; i < uiCount; ++i)
     {
@@ -726,7 +724,7 @@ NS_CREATE_SIMPLE_TEST(CodeUtils, Expression)
     for (int i = 0; i <= 16; ++i)
     {
       nsStringBuilder testCode;
-      testCode.Format("output = pow(a, {})", i);
+      testCode.SetFormat("output = pow(a, {})", i);
 
       nsExpressionByteCode testByteCode;
       Compile<int>(testCode, testByteCode);
@@ -865,6 +863,24 @@ NS_CREATE_SIMPLE_TEST(CodeUtils, Expression)
     NS_TEST_FLOAT(TestInstruction("output = lerp(a, b, c)", -1.0f, -11.0f, 0.1f), -2.0f, nsMath::DefaultEpsilon<float>());
     NS_TEST_FLOAT(TestConstant<float>("output = lerp(1, 5, 0.75)"), 4.0f, nsMath::DefaultEpsilon<float>());
     NS_TEST_FLOAT(TestConstant<float>("output = lerp(-1, -11, 0.1)"), -2.0f, nsMath::DefaultEpsilon<float>());
+
+    // SmoothStep
+    NS_TEST_FLOAT(TestInstruction("output = smoothstep(a, b, c)", 0.0f, 0.0f, 1.0f), 0.0f, nsMath::DefaultEpsilon<float>());
+    NS_TEST_FLOAT(TestInstruction("output = smoothstep(a, b, c)", 0.2f, 0.0f, 1.0f), nsMath::SmoothStep(0.2f, 0.0f, 1.0f), nsMath::DefaultEpsilon<float>());
+    NS_TEST_FLOAT(TestInstruction("output = smoothstep(a, b, c)", 0.5f, 0.0f, 1.0f), 0.5f, nsMath::DefaultEpsilon<float>());
+    NS_TEST_FLOAT(TestInstruction("output = smoothstep(a, b, c)", 0.2f, 0.2f, 0.8f), 0.0f, nsMath::DefaultEpsilon<float>());
+    NS_TEST_FLOAT(TestInstruction("output = smoothstep(a, b, c)", 0.4f, 0.2f, 0.8f), nsMath::SmoothStep(0.4f, 0.2f, 0.8f), nsMath::DefaultEpsilon<float>());
+    NS_TEST_FLOAT(TestConstant<float>("output = smoothstep(0.2, 0, 1)"), nsMath::SmoothStep(0.2f, 0.0f, 1.0f), nsMath::DefaultEpsilon<float>());
+    NS_TEST_FLOAT(TestConstant<float>("output = smoothstep(0.4, 0.2, 0.8)"), nsMath::SmoothStep(0.4f, 0.2f, 0.8f), nsMath::DefaultEpsilon<float>());
+
+    // SmootherStep
+    NS_TEST_FLOAT(TestInstruction("output = smootherstep(a, b, c)", 0.0f, 0.0f, 1.0f), 0.0f, nsMath::DefaultEpsilon<float>());
+    NS_TEST_FLOAT(TestInstruction("output = smootherstep(a, b, c)", 0.2f, 0.0f, 1.0f), nsMath::SmootherStep(0.2f, 0.0f, 1.0f), nsMath::DefaultEpsilon<float>());
+    NS_TEST_FLOAT(TestInstruction("output = smootherstep(a, b, c)", 0.5f, 0.0f, 1.0f), 0.5f, nsMath::DefaultEpsilon<float>());
+    NS_TEST_FLOAT(TestInstruction("output = smootherstep(a, b, c)", 0.2f, 0.2f, 0.8f), 0.0f, nsMath::DefaultEpsilon<float>());
+    NS_TEST_FLOAT(TestInstruction("output = smootherstep(a, b, c)", 0.4f, 0.2f, 0.8f), nsMath::SmootherStep(0.4f, 0.2f, 0.8f), nsMath::DefaultEpsilon<float>());
+    NS_TEST_FLOAT(TestConstant<float>("output = smootherstep(0.2, 0, 1)"), nsMath::SmootherStep(0.2f, 0.0f, 1.0f), nsMath::DefaultEpsilon<float>());
+    NS_TEST_FLOAT(TestConstant<float>("output = smootherstep(0.4, 0.2, 0.8)"), nsMath::SmootherStep(0.4f, 0.2f, 0.8f), nsMath::DefaultEpsilon<float>());
   }
 
   NS_TEST_BLOCK(nsTestBlock::Enabled, "Local variables")

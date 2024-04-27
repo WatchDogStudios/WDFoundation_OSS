@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 /// \file
@@ -10,8 +5,8 @@
 #include <Foundation/Reflection/Implementation/AbstractProperty.h>
 #include <Foundation/Reflection/Implementation/DynamicRTTI.h>
 #include <Foundation/Reflection/Implementation/RTTI.h>
-#include <Foundation/Types/Variant.h>
 #include <Foundation/Types/Interval.h>
+#include <Foundation/Types/Variant.h>
 
 NS_DECLARE_REFLECTABLE_TYPE(NS_FOUNDATION_DLL, nsEnumBase);
 NS_DECLARE_REFLECTABLE_TYPE(NS_FOUNDATION_DLL, nsBitflagsBase);

@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/Containers/DynamicArray.h>
@@ -335,8 +330,6 @@ NS_CREATE_SIMPLE_TEST(Performance, Container)
   {
     nsUInt32 sum = 0;
 
-
-
     for (nsUInt32 size = 1024; size < 4096 * 32; size += 1024)
     {
       nsMap<void*, nsUInt32> map;
@@ -362,21 +355,19 @@ NS_CREATE_SIMPLE_TEST(Performance, Container)
         for (nsUInt32 i = 0; i < 1024; i++)
           free(ptrs[i]);
 
-        auto last = map.GetLastIterator();
-        for (auto it = map.GetIterator(); it != last; ++it)
+        for (auto it = map.GetIterator(); it.IsValid(); ++it)
         {
           sum += it.Value();
         }
       }
       nsTime t1 = nsTime::Now();
 
-      auto last = map.GetLastIterator();
-      for (auto it = map.GetIterator(); it != last; ++it)
+      for (auto it = map.GetIterator(); it.IsValid(); ++it)
       {
         free(it.Key());
       }
-      nsLog::Info(
-        "[test]nsMap<void*, nsUInt32> size = {0} => {1}ms", size, nsArgF((t1 - t0).GetMilliseconds() / static_cast<double>(NUM_SAMPLES), 4), sum);
+
+      nsLog::Info("[test]nsMap<void*, nsUInt32> size = {0} => {1}ms", size, nsArgF((t1 - t0).GetMilliseconds() / static_cast<double>(NUM_SAMPLES), 4), sum);
     }
   }
 

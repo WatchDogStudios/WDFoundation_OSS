@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/IO/OpenDdlWriter.h>
@@ -38,7 +33,7 @@ public:
   /// or, if none is provided, the default allocator for the type is used.
   ///
   /// All properties are set to the values as described in the DDL data, as long as the properties can be matched to the runtime type.
-  static void* ReadObjectFromDDL(nsStreamReader& inout_stream, const nsRTTI*& ref_pRtti); // [tested]
+  static void* ReadObjectFromDDL(nsStreamReader& inout_stream, const nsRTTI*& ref_pRtti);               // [tested]
 
   static void* ReadObjectFromDDL(const nsOpenDdlReaderElement* pRootElement, const nsRTTI*& ref_pRtti); // [tested]
 

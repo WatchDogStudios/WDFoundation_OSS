@@ -1,9 +1,4 @@
-﻿/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
-#include <FoundationTest/FoundationTestPCH.h>
+﻿#include <FoundationTest/FoundationTestPCH.h>
 
 //////////////////////////////////////////////////////////////////////
 // Start of the definition of a example Enum
@@ -53,9 +48,15 @@ void TakeEnum2(nsTestEnum value) {}
 
 NS_CREATE_SIMPLE_TEST(Basics, Enum)
 {
-  NS_TEST_BLOCK(nsTestBlock::Enabled, "Default initialized enum") { nsTestEnum e1; }
+  NS_TEST_BLOCK(nsTestBlock::Enabled, "Default initialized enum")
+  {
+    nsTestEnum e1;
+  }
 
-  NS_TEST_BLOCK(nsTestBlock::Enabled, "Enum with explicit initialization") { nsTestEnum e2(nsTestEnum::Yes); }
+  NS_TEST_BLOCK(nsTestBlock::Enabled, "Enum with explicit initialization")
+  {
+    nsTestEnum e2(nsTestEnum::Yes);
+  }
 
   NS_TEST_BLOCK(nsTestBlock::Enabled, "This tests if the default initialization works and if the implicit conversion works")
   {

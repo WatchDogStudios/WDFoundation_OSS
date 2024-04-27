@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Basics.h>
@@ -109,13 +104,13 @@ class NS_FOUNDATION_DLL nsCommandLineOptionDoc : public nsCommandLineOption
 public:
   nsCommandLineOptionDoc(nsStringView sSortingGroup, nsStringView sArgument, nsStringView sParamShortDesc, nsStringView sLongDesc, nsStringView sDefaultValue, bool bCaseSensitive = false);
 
-  virtual void GetOptions(nsStringBuilder& ref_sOut) const override; // [tested]
+  virtual void GetOptions(nsStringBuilder& ref_sOut) const override;               // [tested]
 
-  virtual void GetParamShortDesc(nsStringBuilder& ref_sOut) const override; // [tested]
+  virtual void GetParamShortDesc(nsStringBuilder& ref_sOut) const override;        // [tested]
 
   virtual void GetParamDefaultValueDesc(nsStringBuilder& ref_sOut) const override; // [tested]
 
-  virtual void GetLongDesc(nsStringBuilder& ref_sOut) const override; // [tested]
+  virtual void GetLongDesc(nsStringBuilder& ref_sOut) const override;              // [tested]
 
   /// \brief Returns "Doc"
   virtual nsStringView GetType() override { return "Doc"; }
@@ -179,7 +174,7 @@ public:
 
   virtual void GetParamDefaultValueDesc(nsStringBuilder& ref_sOut) const override; // [tested]
 
-  virtual void GetParamShortDesc(nsStringBuilder& ref_sOut) const override; // [tested]
+  virtual void GetParamShortDesc(nsStringBuilder& ref_sOut) const override;        // [tested]
 
   /// \brief Returns the value of this option. Either what was specified on the command line, or the default value.
   int GetOptionValue(LogMode logMode, const nsCommandLineUtils* pUtils = nsCommandLineUtils::GetGlobalInstance()) const; // [tested]
@@ -223,7 +218,7 @@ public:
 
   virtual void GetParamDefaultValueDesc(nsStringBuilder& ref_sOut) const override; // [tested]
 
-  virtual void GetParamShortDesc(nsStringBuilder& ref_sOut) const override; // [tested]
+  virtual void GetParamShortDesc(nsStringBuilder& ref_sOut) const override;        // [tested]
 
   /// \brief Returns the value of this option. Either what was specified on the command line, or the default value.
   float GetOptionValue(LogMode logMode, const nsCommandLineUtils* pUtils = nsCommandLineUtils::GetGlobalInstance()) const; // [tested]
@@ -331,9 +326,9 @@ public:
   /// \brief Returns the value of this option. Either what was specified on the command line, or the default value.
   nsInt32 GetOptionValue(LogMode logMode, const nsCommandLineUtils* pUtils = nsCommandLineUtils::GetGlobalInstance()) const; // [tested]
 
-  virtual void GetParamShortDesc(nsStringBuilder& ref_sOut) const override; // [tested]
+  virtual void GetParamShortDesc(nsStringBuilder& ref_sOut) const override;                                                  // [tested]
 
-  virtual void GetParamDefaultValueDesc(nsStringBuilder& ref_sOut) const override; // [tested]
+  virtual void GetParamDefaultValueDesc(nsStringBuilder& ref_sOut) const override;                                           // [tested]
 
   struct EnumKeyValue
   {

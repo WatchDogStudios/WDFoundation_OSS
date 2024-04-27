@@ -1,9 +1,4 @@
-﻿/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
-#include <FoundationTest/FoundationTestPCH.h>
+﻿#include <FoundationTest/FoundationTestPCH.h>
 
 // NOTE: always save as Unicode UTF-8 with signature
 
@@ -342,8 +337,8 @@ NS_CREATE_SIMPLE_TEST(Strings, StringBase)
     nsStringView it2(sz + 1, sz + 5);
     it2.SetStartPosition(sz + 2);
 
-    NS_TEST_BOOL(it2.IsEqualN("cdnsX", 3));
-    NS_TEST_BOOL(!it2.IsEqualN("cdnsX", 4));
+    NS_TEST_BOOL(it2.IsEqualN("cdeZX", 3));
+    NS_TEST_BOOL(!it2.IsEqualN("cdeZX", 4));
   }
 
   NS_TEST_BLOCK(nsTestBlock::Enabled, "IsEqualN_NoCase")
@@ -357,8 +352,8 @@ NS_CREATE_SIMPLE_TEST(Strings, StringBase)
     nsStringView it2(sz + 1, sz + 5);
     it2.SetStartPosition(sz + 2);
 
-    NS_TEST_BOOL(it2.IsEqualN_NoCase("cdnsX", 3));
-    NS_TEST_BOOL(!it2.IsEqualN_NoCase("cdnsX", 4));
+    NS_TEST_BOOL(it2.IsEqualN_NoCase("cdeZX", 3));
+    NS_TEST_BOOL(!it2.IsEqualN_NoCase("cdeZX", 4));
   }
 
   NS_TEST_BLOCK(nsTestBlock::Enabled, "operator==/!=")

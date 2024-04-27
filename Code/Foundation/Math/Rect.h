@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Basics.h>
@@ -35,6 +30,9 @@ public:
 
   /// \brief Initializes x and y with zero, width and height with the given values.
   nsRectTemplate(Type width, Type height);
+
+  /// \brief Initializes x and y from pos, width and height from vSize.
+  nsRectTemplate<Type>(const nsVec2Template<Type>& vTopLeftPosition, const nsVec2Template<Type>& vSize);
 
   /// \brief Creates an 'invalid' rect.
   ///
@@ -77,6 +75,24 @@ public:
   /// The larger value along y. Same as Bottom().
   Type GetY2() const { return y + height; }
 
+  /// \brief Returns the minimum corner position. Same as GetTopLeft().
+  nsVec2Template<Type> GetMinCorner() const { return nsVec2Template<Type>(x, y); }
+
+  /// \brief Returns the maximum corner position. Same as GetBottomRight().
+  nsVec2Template<Type> GetMaxCorner() const { return nsVec2Template<Type>(x + width, y + height); }
+
+  /// \brief Returns the top left corner. Same as GetMinCorner().
+  nsVec2Template<Type> GetTopLeft() const { return nsVec2Template<Type>(x, y); }
+
+  /// \brief Returns the top right corner.
+  nsVec2Template<Type> GetTopRight() const { return nsVec2Template<Type>(x + width, y); }
+
+  /// \brief Returns the bottom left corner.
+  nsVec2Template<Type> GetBottomLeft() const { return nsVec2Template<Type>(x, y + height); }
+
+  /// \brief Returns the bottom right corner. Same as GetMaxCorner().
+  nsVec2Template<Type> GetBottomRight() const { return nsVec2Template<Type>(x + width, y + height); }
+
   /// \brief Returns the center point of the rectangle.
   nsVec2Template<Type> GetCenter() const { return nsVec2Template<Type>(x + width / 2, y + height / 2); }
 
@@ -91,22 +107,23 @@ public:
 
   // *** Common Functions ***
 public:
-  bool operator==(const nsRectTemplate<Type>& rhs) const;
-
-  bool operator!=(const nsRectTemplate<Type>& rhs) const;
+  [[nodiscard]] bool operator==(const nsRectTemplate<Type>& rhs) const;
+  [[nodiscard]] bool operator!=(const nsRectTemplate<Type>& rhs) const;
 
   /// \brief Checks whether the position and size contain valid values.
-  bool IsValid() const;
+  [[nodiscard]] bool IsValid() const;
 
   /// \brief Returns true if the area of the rectangle is non zero
-  bool HasNonZeroArea() const;
+  [[nodiscard]] bool HasNonZeroArea() const;
 
   /// \brief Returns true if the rectangle contains the provided point
-  bool Contains(const nsVec2Template<Type>& vPoint) const;
+  [[nodiscard]] bool Contains(const nsVec2Template<Type>& vPoint) const;
+
+  [[nodiscard]] bool Contains(const nsRectTemplate<Type>& r) const;
 
   /// \brief Returns true if the rectangle overlaps the provided rectangle.
   /// Also returns true if the rectangles are contained within each other completely(no intersecting edges).
-  bool Overlaps(const nsRectTemplate<Type>& other) const;
+  [[nodiscard]] bool Overlaps(const nsRectTemplate<Type>& other) const;
 
   /// \brief Extends this rectangle so that the provided rectangle is completely contained within it.
   void ExpandToInclude(const nsRectTemplate<Type>& other);
@@ -120,6 +137,16 @@ public:
   /// \brief The given point is clamped to the area of the rect, i.e. it will be either inside the rect or on its edge and it will have the closest
   /// possible distance to the original point.
   [[nodiscard]] const nsVec2Template<Type> GetClampedPoint(const nsVec2Template<Type>& vPoint) const;
+
+  /// \brief Clamps the given rect to the area of this rect and returns it.
+  ///
+  /// If the input rect is entirely outside this rect, the result will be reduced to a point or a line closest to the input rect.
+  [[nodiscard]] const nsRectTemplate<Type> GetClampedRect(const nsRectTemplate<Type>& r) const
+  {
+    const nsVec2Template<Type> vNewMin = GetClampedPoint(r.GetMinCorner());
+    const nsVec2Template<Type> vNewMax = GetClampedPoint(r.GetMaxCorner());
+    return nsRectTemplate<Type>(vNewMin, vNewMax - vNewMin);
+  }
 
   /// \brief Moves the rectangle
   void Translate(Type tX, Type tY);

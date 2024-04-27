@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Math/Random.h>
@@ -25,7 +20,7 @@ nsSimdPerlinNoise::nsSimdPerlinNoise(nsUInt32 uiSeed)
   }
 }
 
-nsSimdVec4f nsSimdPerlinNoise::NoisnseroToOne(const nsSimdVec4f& vX, const nsSimdVec4f& vY, const nsSimdVec4f& vZ, nsUInt32 uiNumOctaves /*= 1*/)
+nsSimdVec4f nsSimdPerlinNoise::NoiseZeroToOne(const nsSimdVec4f& vX, const nsSimdVec4f& vY, const nsSimdVec4f& vZ, nsUInt32 uiNumOctaves /*= 1*/)
 {
   nsSimdVec4f result = nsSimdVec4f::MakeZero();
   nsSimdFloat amplitude = 1.0f;
@@ -66,7 +61,10 @@ namespace
            nsSimdVec4f::Select((h & nsSimdVec4i(2)) == nsSimdVec4i::MakeZero(), v, -v);
   }
 
-  NS_ALWAYS_INLINE nsSimdVec4f Lerp(const nsSimdVec4f& t, const nsSimdVec4f& a, const nsSimdVec4f& b) { return nsSimdVec4f::Lerp(a, b, t); }
+  NS_ALWAYS_INLINE nsSimdVec4f Lerp(const nsSimdVec4f& t, const nsSimdVec4f& a, const nsSimdVec4f& b)
+  {
+    return nsSimdVec4f::Lerp(a, b, t);
+  }
 
 } // namespace
 
@@ -125,6 +123,3 @@ nsSimdVec4f nsSimdPerlinNoise::Noise(const nsSimdVec4f& inX, const nsSimdVec4f& 
 
   return Lerp(w, Lerp(v, c000_c100, c010_c110), Lerp(v, c001_c101, c011_c111));
 }
-
-
-NS_STATICLINK_FILE(Foundation, Foundation_SimdMath_Implementation_SimdNoise);

@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/IO/FileSystem/FileWriter.h>
@@ -198,8 +193,8 @@ NS_CREATE_SIMPLE_TEST(Strings, FormatString)
     TestFormat(nsFmt("{}", nsTime()), "0ns");
     TestFormat(nsFmt("{}", nsTime::MakeFromNanoseconds(999)), "999ns");
     TestFormat(nsFmt("{}", nsTime::MakeFromNanoseconds(999.1)), "999.1ns");
-    TestFormat(nsFmt("{}", nsTime::MakeFromMicroseconds(999)), u8"999\u00B5s");     // Utf-8 encoding for the microsecond sign
-    TestFormat(nsFmt("{}", nsTime::MakeFromMicroseconds(999.2)), u8"999.2\u00B5s"); // Utf-8 encoding for the microsecond sign
+    TestFormat(nsFmt("{}", nsTime::MakeFromMicroseconds(999)), (const char*)u8"999\u00B5s");     // Utf-8 encoding for the microsecond sign
+    TestFormat(nsFmt("{}", nsTime::MakeFromMicroseconds(999.2)), (const char*)u8"999.2\u00B5s"); // Utf-8 encoding for the microsecond sign
     TestFormat(nsFmt("{}", nsTime::MakeFromMilliseconds(-999)), "-999ms");
     TestFormat(nsFmt("{}", nsTime::MakeFromMilliseconds(-999.3)), "-999.3ms");
     TestFormat(nsFmt("{}", nsTime::MakeFromSeconds(59)), "59sec");
@@ -250,10 +245,10 @@ NS_CREATE_SIMPLE_TEST(Strings, FormatString)
 
     nsStringBuilder fmt;
 
-    fmt.Format("Password: {}", nsArgSensitive("hunter2", "pwd"));
+    fmt.SetFormat("Password: {}", nsArgSensitive("hunter2", "pwd"));
     NS_TEST_STRING(fmt, "Password: sud:pwd#96d66ce6($7)");
 
-    fmt.Format("Password: {}", nsArgSensitive("hunter2"));
+    fmt.SetFormat("Password: {}", nsArgSensitive("hunter2"));
     NS_TEST_STRING(fmt, "Password: sud:#96d66ce6($7)");
   }
 }

@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Math/Declarations.h>
@@ -30,13 +25,13 @@ public:
   /// \brief Default constructor does not do any initialization.
   NS_ALWAYS_INLINE nsFixedPoint() = default; // [tested]
 
-  /// \brief Construct from an integer.
+                                             /// \brief Construct from an integer.
   /* implicit */ nsFixedPoint(nsInt32 iIntVal) { *this = iIntVal; } // [tested]
 
-  /// \brief Construct from a float.
+                                                                    /// \brief Construct from a float.
   /* implicit */ nsFixedPoint(float fVal) { *this = fVal; } // [tested]
 
-  /// \brief Construct from a double.
+                                                            /// \brief Construct from a double.
   /* implicit */ nsFixedPoint(double fVal) { *this = fVal; } // [tested]
 
   /// \brief Assignment from an integer.

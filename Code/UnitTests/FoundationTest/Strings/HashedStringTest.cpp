@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/Strings/HashedString.h>
@@ -45,7 +40,7 @@ NS_CREATE_SIMPLE_TEST(Strings, HashedString)
     NS_TEST_INT(s.GetHash(), 0x890e0a4c7111eb87llu);
 
     nsTempHashedString ts("dummy");
-    ts = "test"; // compile time hashing
+    ts = "test";       // compile time hashing
     NS_TEST_INT(ts.GetHash(), 0x4fdcca5ddb678139llu);
 
     ts = sb.GetData(); // runtime hashing

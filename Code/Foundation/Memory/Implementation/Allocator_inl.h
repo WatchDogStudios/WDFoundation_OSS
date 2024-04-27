@@ -1,174 +1,145 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
+
+NS_ALWAYS_INLINE nsAllocator::nsAllocator() = default;
+
+NS_ALWAYS_INLINE nsAllocator::~nsAllocator() = default;
+
+
+namespace nsMath
+{
+  // due to #include order issues, we have to forward declare this function here
+
+  NS_FOUNDATION_DLL nsUInt64 SafeMultiply64(nsUInt64 a, nsUInt64 b, nsUInt64 c, nsUInt64 d);
+} // namespace nsMath
+
 namespace nsInternal
 {
-  template <typename AllocationPolicy, nsUInt32 TrackingFlags>
-  class nsAllocatorImpl : public nsAllocatorBase
+  template <typename T>
+  struct NewInstance
   {
-  public:
-    nsAllocatorImpl(nsStringView sName, nsAllocatorBase* pParent);
-    ~nsAllocatorImpl();
+    NS_ALWAYS_INLINE NewInstance(T* pInstance, nsAllocator* pAllocator)
+    {
+      m_pInstance = pInstance;
+      m_pAllocator = pAllocator;
+    }
 
-    // nsAllocatorBase implementation
-    virtual void* Allocate(size_t uiSize, size_t uiAlign, nsMemoryUtils::DestructorFunction destructorFunc = nullptr) override;
-    virtual void Deallocate(void* pPtr) override;
-    virtual size_t AllocatedSize(const void* pPtr) override;
-    virtual nsAllocatorId GetId() const override;
-    virtual Stats GetStats() const override;
+    template <typename U>
+    NS_ALWAYS_INLINE NewInstance(NewInstance<U>&& other)
+    {
+      m_pInstance = other.m_pInstance;
+      m_pAllocator = other.m_pAllocator;
 
-    nsAllocatorBase* GetParent() const;
+      other.m_pInstance = nullptr;
+      other.m_pAllocator = nullptr;
+    }
 
-  protected:
-    AllocationPolicy m_allocator;
+    NS_ALWAYS_INLINE NewInstance(std::nullptr_t) {}
 
-    nsAllocatorId m_Id;
-    nsThreadID m_ThreadID;
+    template <typename U>
+    NS_ALWAYS_INLINE NewInstance<U> Cast()
+    {
+      return NewInstance<U>(static_cast<U*>(m_pInstance), m_pAllocator);
+    }
+
+    NS_ALWAYS_INLINE operator T*() { return m_pInstance; }
+
+    NS_ALWAYS_INLINE T* operator->() { return m_pInstance; }
+
+    T* m_pInstance = nullptr;
+    nsAllocator* m_pAllocator = nullptr;
   };
 
-  template <typename AllocationPolicy, nsUInt32 TrackingFlags, bool HasReallocate>
-  class nsAllocatorMixinReallocate : public nsAllocatorImpl<AllocationPolicy, TrackingFlags>
+  template <typename T>
+  NS_ALWAYS_INLINE bool operator<(const NewInstance<T>& lhs, T* rhs)
   {
-  public:
-    nsAllocatorMixinReallocate(nsStringView sName, nsAllocatorBase* pParent);
-  };
-
-  template <typename AllocationPolicy, nsUInt32 TrackingFlags>
-  class nsAllocatorMixinReallocate<AllocationPolicy, TrackingFlags, true> : public nsAllocatorImpl<AllocationPolicy, TrackingFlags>
-  {
-  public:
-    nsAllocatorMixinReallocate(nsStringView sName, nsAllocatorBase* pParent);
-    virtual void* Reallocate(void* pPtr, size_t uiCurrentSize, size_t uiNewSize, size_t uiAlign) override;
-  };
-}; // namespace nsInternal
-
-template <typename A, nsUInt32 TrackingFlags>
-NS_FORCE_INLINE nsInternal::nsAllocatorImpl<A, TrackingFlags>::nsAllocatorImpl(nsStringView sName, nsAllocatorBase* pParent /* = nullptr */)
-  : m_allocator(pParent)
-  , m_ThreadID(nsThreadUtils::GetCurrentThreadID())
-{
-  if ((TrackingFlags & nsMemoryTrackingFlags::RegisterAllocator) != 0)
-  {
-    NS_CHECK_AT_COMPILETIME_MSG((TrackingFlags & ~nsMemoryTrackingFlags::All) == 0, "Invalid tracking flags");
-    const nsUInt32 uiTrackingFlags = TrackingFlags;
-    nsBitflags<nsMemoryTrackingFlags> flags = *reinterpret_cast<const nsBitflags<nsMemoryTrackingFlags>*>(&uiTrackingFlags);
-    this->m_Id = nsMemoryTracker::RegisterAllocator(sName, flags, pParent != nullptr ? pParent->GetId() : nsAllocatorId());
-  }
-}
-
-template <typename A, nsUInt32 TrackingFlags>
-nsInternal::nsAllocatorImpl<A, TrackingFlags>::~nsAllocatorImpl()
-{
-  // NS_ASSERT_RELEASE(m_ThreadID == nsThreadUtils::GetCurrentThreadID(), "Allocator is deleted from another thread");
-
-  if ((TrackingFlags & nsMemoryTrackingFlags::RegisterAllocator) != 0)
-  {
-    nsMemoryTracker::DeregisterAllocator(this->m_Id);
-  }
-}
-
-template <typename A, nsUInt32 TrackingFlags>
-void* nsInternal::nsAllocatorImpl<A, TrackingFlags>::Allocate(size_t uiSize, size_t uiAlign, nsMemoryUtils::DestructorFunction destructorFunc)
-{
-  // zero size allocations always return nullptr without tracking (since deallocate nullptr is ignored)
-  if (uiSize == 0)
-    return nullptr;
-
-  NS_ASSERT_DEBUG(nsMath::IsPowerOf2((nsUInt32)uiAlign), "Alignment must be power of two");
-
-  nsTime fAllocationTime = nsTime::Now();
-
-  void* ptr = m_allocator.Allocate(uiSize, uiAlign);
-  NS_ASSERT_DEV(ptr != nullptr, "Could not allocate {0} bytes. Out of memory?", uiSize);
-
-  if ((TrackingFlags & nsMemoryTrackingFlags::EnableAllocationTracking) != 0)
-  {
-    nsBitflags<nsMemoryTrackingFlags> flags;
-    flags.SetValue(TrackingFlags);
-
-    nsMemoryTracker::AddAllocation(this->m_Id, flags, ptr, uiSize, uiAlign, nsTime::Now() - fAllocationTime);
+    return lhs.m_pInstance < rhs;
   }
 
-  return ptr;
-}
-
-template <typename A, nsUInt32 TrackingFlags>
-void nsInternal::nsAllocatorImpl<A, TrackingFlags>::Deallocate(void* pPtr)
-{
-  if ((TrackingFlags & nsMemoryTrackingFlags::EnableAllocationTracking) != 0)
+  template <typename T>
+  NS_ALWAYS_INLINE bool operator<(T* lhs, const NewInstance<T>& rhs)
   {
-    nsMemoryTracker::RemoveAllocation(this->m_Id, pPtr);
+    return lhs < rhs.m_pInstance;
   }
 
-  m_allocator.Deallocate(pPtr);
-}
-
-template <typename A, nsUInt32 TrackingFlags>
-size_t nsInternal::nsAllocatorImpl<A, TrackingFlags>::AllocatedSize(const void* pPtr)
-{
-  if ((TrackingFlags & nsMemoryTrackingFlags::EnableAllocationTracking) != 0)
+  template <typename T>
+  NS_FORCE_INLINE void Delete(nsAllocator* pAllocator, T* pPtr)
   {
-    return nsMemoryTracker::GetAllocationInfo(this->m_Id, pPtr).m_uiSize;
+    if (pPtr != nullptr)
+    {
+      nsMemoryUtils::Destruct(pPtr, 1);
+      pAllocator->Deallocate(pPtr);
+    }
   }
 
-  return 0;
-}
-
-template <typename A, nsUInt32 TrackingFlags>
-nsAllocatorId nsInternal::nsAllocatorImpl<A, TrackingFlags>::GetId() const
-{
-  return this->m_Id;
-}
-
-template <typename A, nsUInt32 TrackingFlags>
-nsAllocatorBase::Stats nsInternal::nsAllocatorImpl<A, TrackingFlags>::GetStats() const
-{
-  if ((TrackingFlags & nsMemoryTrackingFlags::RegisterAllocator) != 0)
+  template <typename T>
+  NS_FORCE_INLINE T* CreateRawBuffer(nsAllocator* pAllocator, size_t uiCount)
   {
-    return nsMemoryTracker::GetAllocatorStats(this->m_Id);
+    nsUInt64 safeAllocationSize = nsMath::SafeMultiply64(uiCount, sizeof(T));
+    return static_cast<T*>(pAllocator->Allocate(static_cast<size_t>(safeAllocationSize), NS_ALIGNMENT_OF(T))); // Down-cast to size_t for 32-bit
   }
 
-  return Stats();
-}
-
-template <typename A, nsUInt32 TrackingFlags>
-NS_ALWAYS_INLINE nsAllocatorBase* nsInternal::nsAllocatorImpl<A, TrackingFlags>::GetParent() const
-{
-  return m_allocator.GetParent();
-}
-
-template <typename A, nsUInt32 TrackingFlags, bool HasReallocate>
-nsInternal::nsAllocatorMixinReallocate<A, TrackingFlags, HasReallocate>::nsAllocatorMixinReallocate(nsStringView sName, nsAllocatorBase* pParent)
-  : nsAllocatorImpl<A, TrackingFlags>(sName, pParent)
-{
-}
-
-template <typename A, nsUInt32 TrackingFlags>
-nsInternal::nsAllocatorMixinReallocate<A, TrackingFlags, true>::nsAllocatorMixinReallocate(nsStringView sName, nsAllocatorBase* pParent)
-  : nsAllocatorImpl<A, TrackingFlags>(sName, pParent)
-{
-}
-
-template <typename A, nsUInt32 TrackingFlags>
-void* nsInternal::nsAllocatorMixinReallocate<A, TrackingFlags, true>::Reallocate(void* pPtr, size_t uiCurrentSize, size_t uiNewSize, size_t uiAlign)
-{
-  if ((TrackingFlags & nsMemoryTrackingFlags::EnableAllocationTracking) != 0)
+  NS_FORCE_INLINE void DeleteRawBuffer(nsAllocator* pAllocator, void* pPtr)
   {
-    nsMemoryTracker::RemoveAllocation(this->m_Id, pPtr);
+    if (pPtr != nullptr)
+    {
+      pAllocator->Deallocate(pPtr);
+    }
   }
 
-  nsTime fAllocationTime = nsTime::Now();
-
-  void* pNewMem = this->m_allocator.Reallocate(pPtr, uiCurrentSize, uiNewSize, uiAlign);
-
-  if ((TrackingFlags & nsMemoryTrackingFlags::EnableAllocationTracking) != 0)
+  template <typename T>
+  inline nsArrayPtr<T> CreateArray(nsAllocator* pAllocator, nsUInt32 uiCount)
   {
-    nsBitflags<nsMemoryTrackingFlags> flags;
-    flags.SetValue(TrackingFlags);
+    T* buffer = CreateRawBuffer<T>(pAllocator, uiCount);
+    nsMemoryUtils::Construct<SkipTrivialTypes>(buffer, uiCount);
 
-    nsMemoryTracker::AddAllocation(this->m_Id, flags, pNewMem, uiNewSize, uiAlign, nsTime::Now() - fAllocationTime);
+    return nsArrayPtr<T>(buffer, uiCount);
   }
-  return pNewMem;
-}
+
+  template <typename T>
+  inline void DeleteArray(nsAllocator* pAllocator, nsArrayPtr<T> arrayPtr)
+  {
+    T* buffer = arrayPtr.GetPtr();
+    if (buffer != nullptr)
+    {
+      nsMemoryUtils::Destruct(buffer, arrayPtr.GetCount());
+      pAllocator->Deallocate(buffer);
+    }
+  }
+
+  template <typename T>
+  NS_FORCE_INLINE T* ExtendRawBuffer(T* pPtr, nsAllocator* pAllocator, size_t uiCurrentCount, size_t uiNewCount, nsTypeIsPod)
+  {
+    return (T*)pAllocator->Reallocate(pPtr, uiCurrentCount * sizeof(T), uiNewCount * sizeof(T), NS_ALIGNMENT_OF(T));
+  }
+
+  template <typename T>
+  NS_FORCE_INLINE T* ExtendRawBuffer(T* pPtr, nsAllocator* pAllocator, size_t uiCurrentCount, size_t uiNewCount, nsTypeIsMemRelocatable)
+  {
+    return (T*)pAllocator->Reallocate(pPtr, uiCurrentCount * sizeof(T), uiNewCount * sizeof(T), NS_ALIGNMENT_OF(T));
+  }
+
+  template <typename T>
+  NS_FORCE_INLINE T* ExtendRawBuffer(T* pPtr, nsAllocator* pAllocator, size_t uiCurrentCount, size_t uiNewCount, nsTypeIsClass)
+  {
+    NS_CHECK_AT_COMPILETIME_MSG(!std::is_trivial<T>::value,
+      "POD type is treated as class. Use NS_DECLARE_POD_TYPE(YourClass) or NS_DEFINE_AS_POD_TYPE(ExternalClass) to mark it as POD.");
+
+    T* pNewMem = CreateRawBuffer<T>(pAllocator, uiNewCount);
+    nsMemoryUtils::RelocateConstruct(pNewMem, pPtr, uiCurrentCount);
+    DeleteRawBuffer(pAllocator, pPtr);
+    return pNewMem;
+  }
+
+  template <typename T>
+  NS_FORCE_INLINE T* ExtendRawBuffer(T* pPtr, nsAllocator* pAllocator, size_t uiCurrentCount, size_t uiNewCount)
+  {
+    NS_ASSERT_DEV(uiCurrentCount < uiNewCount, "Shrinking of a buffer is not implemented yet");
+    NS_ASSERT_DEV(!(uiCurrentCount == uiNewCount), "Same size passed in twice.");
+    if (pPtr == nullptr)
+    {
+      NS_ASSERT_DEV(uiCurrentCount == 0, "current count must be 0 if ptr is nullptr");
+
+      return CreateRawBuffer<T>(pAllocator, uiNewCount);
+    }
+    return ExtendRawBuffer(pPtr, pAllocator, uiCurrentCount, uiNewCount, nsGetTypeClass<T>());
+  }
+} // namespace nsInternal

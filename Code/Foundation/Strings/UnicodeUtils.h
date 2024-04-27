@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Basics.h>
@@ -47,19 +42,19 @@ public:
   ///
   /// The string may point to an invalid position (in between a character sequence).
   /// It may not point to a zero terminator already.
-  static void MoveToNextUtf8(const char*& ref_szUtf8, nsUInt32 uiNumCharacters = 1); // [tested]
+  static nsResult MoveToNextUtf8(const char*& ref_szUtf8, nsUInt32 uiNumCharacters = 1); // [tested]
 
   /// \brief Moves the given string pointer ahead to the next Utf8 character sequence.
   ///
   /// The string may point to an invalid position (in between a character sequence).
   /// It may not point to a zero terminator already.
-  static void MoveToNextUtf8(const char*& ref_szUtf8, const char* szUtf8End, nsUInt32 uiNumCharacters = 1); // [tested]
+  static nsResult MoveToNextUtf8(const char*& ref_szUtf8, const char* szUtf8End, nsUInt32 uiNumCharacters = 1); // [tested]
 
   /// \brief Moves the given string pointer backwards to the previous Utf8 character sequence.
   ///
   /// The string may point to an invalid position (in between a character sequence), or even the \0 terminator,
   /// as long as there is a valid string before it (and the user knows when to stop).
-  static void MoveToPriorUtf8(const char*& ref_szUtf8, nsUInt32 uiNumCharacters = 1); // [tested]
+  static nsResult MoveToPriorUtf8(const char*& ref_szUtf8, const char* szUtf8Start, nsUInt32 uiNumCharacters = 1); // [tested]
 
   /// \brief Returns false if the given string does not contain a completely valid Utf8 string.
   static bool IsValidUtf8(const char* szString, const char* szStringEnd = GetMaxStringEnd<char>());

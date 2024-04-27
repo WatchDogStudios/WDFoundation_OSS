@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/Threading/Thread.h>
@@ -306,16 +301,16 @@ NS_CREATE_SIMPLE_TEST(Threading, Atomics)
     NS_TEST_BOOL(g_iSetVariable64 > 0);
 
     NS_TEST_BOOL(g_iTestAndSetVariable64 > 0);
-    NS_TEST_INT(g_iTestAndSetCounter64, 1); // only one thread should have set the variable
+    NS_TEST_INT(g_iTestAndSetCounter64, 1);      // only one thread should have set the variable
 
     NS_TEST_BOOL(g_pTestAndSetPointer != nullptr);
     NS_TEST_INT(g_iTestAndSetPointerCounter, 1); // only one thread should have set the variable
 
     NS_TEST_BOOL(g_iCompareAndSwapVariable32 > 0);
-    NS_TEST_INT(g_iCompareAndSwapCounter32, 1); // only one thread should have set the variable
+    NS_TEST_INT(g_iCompareAndSwapCounter32, 1);  // only one thread should have set the variable
 
     NS_TEST_BOOL(g_iCompareAndSwapVariable64 > 0);
-    NS_TEST_INT(g_iCompareAndSwapCounter64, 1); // only one thread should have set the variable
+    NS_TEST_INT(g_iCompareAndSwapCounter64, 1);  // only one thread should have set the variable
 
     g_iDecVariable = 0;
     NS_TEST_INT(g_iDecVariable.Decrement(), -1);

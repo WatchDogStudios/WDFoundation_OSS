@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Configuration/Startup.h>
@@ -40,6 +35,25 @@ namespace nsDataDirectory
   void FolderReader::InternalClose()
   {
     m_File.Close();
+  }
+
+  nsUInt64 FolderReader::Skip(nsUInt64 uiBytes)
+  {
+    if (uiBytes == 0)
+    {
+      return 0;
+    }
+
+    const nsUInt64 fileSize = m_File.GetFileSize();
+    const nsUInt64 origFilePosition = m_File.GetFilePosition();
+    NS_ASSERT_DEBUG(origFilePosition <= fileSize, "");
+
+    const nsUInt64 newFilePosition = nsMath::Min(fileSize, origFilePosition + uiBytes);
+    m_File.SetFilePosition(newFilePosition, nsFileSeekMode::FromStart);
+    NS_ASSERT_DEBUG(newFilePosition == m_File.GetFilePosition(), "");
+
+    NS_ASSERT_DEBUG(newFilePosition >= origFilePosition, "");
+    return newFilePosition - origFilePosition;
   }
 
   nsUInt64 FolderReader::Read(void* pBuffer, nsUInt64 uiBytes)
@@ -215,7 +229,11 @@ namespace nsDataDirectory
     if (!nsPathUtils::IsAbsolutePath(sPath))
       return NS_FAILURE;
 
+#if NS_ENABLED(NS_SUPPORTS_FILE_STATS)
     return nsOSFile::GetFileStats(sPath, out_Stats);
+#else
+    return NS_FAILURE;
+#endif
   }
 
   nsResult FolderType::InternalInitializeDataDirectory(nsStringView sDirectory)

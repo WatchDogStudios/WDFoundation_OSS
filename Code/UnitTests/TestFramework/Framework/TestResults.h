@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <TestFramework/Framework/Declarations.h>
@@ -11,7 +6,7 @@
 #include <string>
 #include <vector>
 
-struct nsTestOutput
+struct NS_TEST_DLL nsTestOutput
 {
   /// \brief Defines the type of output message for nsTestOutputMessage.
   enum Enum
@@ -38,7 +33,7 @@ struct nsTestOutput
 };
 
 /// \brief A message of type nsTestOutput::Enum, stored in nsResult.
-struct nsTestErrorMessage
+struct NS_TEST_DLL nsTestErrorMessage
 {
   nsTestErrorMessage() = default;
 
@@ -51,7 +46,7 @@ struct nsTestErrorMessage
 };
 
 /// \brief A message of type nsTestOutput::Enum, stored in nsResult.
-struct nsTestOutputMessage
+struct NS_TEST_DLL nsTestOutputMessage
 {
   nsTestOutputMessage() = default;
 
@@ -60,7 +55,7 @@ struct nsTestOutputMessage
   nsInt32 m_iErrorIndex = -1;
 };
 
-struct nsTestResultQuery
+struct NS_TEST_DLL nsTestResultQuery
 {
   /// \brief Defines what information should be accumulated over the sub-tests in nsTestEntry::GetSubTestCount.
   enum Enum
@@ -73,7 +68,7 @@ struct nsTestResultQuery
 };
 
 /// \brief Stores the results of a test run. Used by both nsTestEntry and nsSubTestEntry.
-struct nsTestResultData
+struct NS_TEST_DLL nsTestResultData
 {
   nsTestResultData() = default;
 
@@ -91,7 +86,7 @@ struct nsTestResultData
   std::string m_sCustomStatus;  ///< If this is not empty, the UI will display this instead of "Pending"
 };
 
-struct nsTestConfiguration
+struct NS_TEST_DLL nsTestConfiguration
 {
   nsTestConfiguration();
 
@@ -107,7 +102,7 @@ struct nsTestConfiguration
   std::string m_sHostName;
 };
 
-class nsTestFrameworkResult
+class NS_TEST_DLL nsTestFrameworkResult
 {
 public:
   nsTestFrameworkResult() = default;

@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Containers/DynamicArray.h>
@@ -151,7 +146,7 @@ namespace nsConversionUtils
       if ((iCurRes < iMin / 10) || (iCurRes == iMin / 10 && iLastDigit > 8)) // going to underflow
         return NS_FAILURE;
 
-      iCurRes = iCurRes * 10 + iLastDigit * iSign; // shift all previously read digits to the left and add the last digit
+      iCurRes = iCurRes * 10 + iLastDigit * iSign;                           // shift all previously read digits to the left and add the last digit
 
       sText.ChopAwayFirstCharacterAscii();
     }
@@ -559,123 +554,123 @@ namespace nsConversionUtils
 
   const nsStringBuilder& ToString(nsInt8 value, nsStringBuilder& out_sResult)
   {
-    out_sResult.Format("{0}", (nsInt32)value);
+    out_sResult.SetFormat("{0}", (nsInt32)value);
     return out_sResult;
   }
 
   const nsStringBuilder& ToString(nsUInt8 value, nsStringBuilder& out_sResult)
   {
-    out_sResult.Format("{0}", (nsUInt32)value);
+    out_sResult.SetFormat("{0}", (nsUInt32)value);
     return out_sResult;
   }
 
   const nsStringBuilder& ToString(nsInt16 value, nsStringBuilder& out_sResult)
   {
-    out_sResult.Format("{0}", (nsInt32)value);
+    out_sResult.SetFormat("{0}", (nsInt32)value);
     return out_sResult;
   }
 
   const nsStringBuilder& ToString(nsUInt16 value, nsStringBuilder& out_sResult)
   {
-    out_sResult.Format("{0}", (nsUInt32)value);
+    out_sResult.SetFormat("{0}", (nsUInt32)value);
     return out_sResult;
   }
 
   const nsStringBuilder& ToString(nsInt32 value, nsStringBuilder& out_sResult)
   {
-    out_sResult.Format("{0}", value);
+    out_sResult.SetFormat("{0}", value);
     return out_sResult;
   }
 
   const nsStringBuilder& ToString(nsUInt32 value, nsStringBuilder& out_sResult)
   {
-    out_sResult.Format("{0}", value);
+    out_sResult.SetFormat("{0}", value);
     return out_sResult;
   }
 
   const nsStringBuilder& ToString(nsInt64 value, nsStringBuilder& out_sResult)
   {
-    out_sResult.Format("{0}", value);
+    out_sResult.SetFormat("{0}", value);
     return out_sResult;
   }
 
   const nsStringBuilder& ToString(nsUInt64 value, nsStringBuilder& out_sResult)
   {
-    out_sResult.Format("{0}", value);
+    out_sResult.SetFormat("{0}", value);
     return out_sResult;
   }
 
   const nsStringBuilder& ToString(float value, nsStringBuilder& out_sResult)
   {
-    out_sResult.Format("{0}", value);
+    out_sResult.SetFormat("{0}", value);
     return out_sResult;
   }
 
   const nsStringBuilder& ToString(double value, nsStringBuilder& out_sResult)
   {
-    out_sResult.Format("{0}", value);
+    out_sResult.SetFormat("{0}", value);
     return out_sResult;
   }
 
   const nsStringBuilder& ToString(const nsColor& value, nsStringBuilder& out_sResult)
   {
-    out_sResult.Format("{ r={0}, g={1}, b={2}, a={3} }", value.r, value.g, value.b, value.a);
+    out_sResult.SetFormat("{ r={0}, g={1}, b={2}, a={3} }", value.r, value.g, value.b, value.a);
     return out_sResult;
   }
 
   const nsStringBuilder& ToString(const nsColorGammaUB& value, nsStringBuilder& out_sResult)
   {
-    out_sResult.Format("{ r={0}, g={1}, b={2}, a={3} }", value.r, value.g, value.b, value.a);
+    out_sResult.SetFormat("{ r={0}, g={1}, b={2}, a={3} }", value.r, value.g, value.b, value.a);
     return out_sResult;
   }
 
   const nsStringBuilder& ToString(const nsVec2& value, nsStringBuilder& out_sResult)
   {
-    out_sResult.Format("{ x={0}, y={1} }", value.x, value.y);
+    out_sResult.SetFormat("{ x={0}, y={1} }", value.x, value.y);
     return out_sResult;
   }
 
   const nsStringBuilder& ToString(const nsVec3& value, nsStringBuilder& out_sResult)
   {
-    out_sResult.Format("{ x={0}, y={1}, z={2} }", value.x, value.y, value.z);
+    out_sResult.SetFormat("{ x={0}, y={1}, z={2} }", value.x, value.y, value.z);
     return out_sResult;
   }
 
   const nsStringBuilder& ToString(const nsVec4& value, nsStringBuilder& out_sResult)
   {
-    out_sResult.Format("{ x={0}, y={1}, z={2}, w={3} }", value.x, value.y, value.z, value.w);
+    out_sResult.SetFormat("{ x={0}, y={1}, z={2}, w={3} }", value.x, value.y, value.z, value.w);
     return out_sResult;
   }
 
   const nsStringBuilder& ToString(const nsVec2I32& value, nsStringBuilder& out_sResult)
   {
-    out_sResult.Format("{ x={0}, y={1} }", value.x, value.y);
+    out_sResult.SetFormat("{ x={0}, y={1} }", value.x, value.y);
     return out_sResult;
   }
 
   const nsStringBuilder& ToString(const nsVec3I32& value, nsStringBuilder& out_sResult)
   {
-    out_sResult.Format("{ x={0}, y={1}, z={2} }", value.x, value.y, value.z);
+    out_sResult.SetFormat("{ x={0}, y={1}, z={2} }", value.x, value.y, value.z);
     return out_sResult;
   }
 
   const nsStringBuilder& ToString(const nsVec4I32& value, nsStringBuilder& out_sResult)
   {
-    out_sResult.Format("{ x={0}, y={1}, z={2}, w={3} }", value.x, value.y, value.z, value.w);
+    out_sResult.SetFormat("{ x={0}, y={1}, z={2}, w={3} }", value.x, value.y, value.z, value.w);
     return out_sResult;
   }
 
   const nsStringBuilder& ToString(const nsQuat& value, nsStringBuilder& out_sResult)
   {
-    out_sResult.Format("{ x={0}, y={1}, z={2}, w={3} }", value.x, value.y, value.z, value.w);
+    out_sResult.SetFormat("{ x={0}, y={1}, z={2}, w={3} }", value.x, value.y, value.z, value.w);
     return out_sResult;
   }
 
   const nsStringBuilder& ToString(const nsMat3& value, nsStringBuilder& out_sResult)
   {
-    out_sResult.Printf("{ c1r1=%f, c2r1=%f, c3r1=%f, "
-                       "c1r2=%f, c2r2=%f, c3r2=%f, "
-                       "c1r3=%f, c2r3=%f, c3r3=%f }",
+    out_sResult.SetPrintf("{ c1r1=%f, c2r1=%f, c3r1=%f, "
+                          "c1r2=%f, c2r2=%f, c3r2=%f, "
+                          "c1r3=%f, c2r3=%f, c3r3=%f }",
       value.Element(0, 0), value.Element(1, 0), value.Element(2, 0), value.Element(0, 1), value.Element(1, 1), value.Element(2, 1),
       value.Element(0, 2), value.Element(1, 2), value.Element(2, 2));
     return out_sResult;
@@ -683,10 +678,10 @@ namespace nsConversionUtils
 
   const nsStringBuilder& ToString(const nsMat4& value, nsStringBuilder& out_sResult)
   {
-    out_sResult.Printf("{ c1r1=%f, c2r1=%f, c3r1=%f, c4r1=%f, "
-                       "c1r2=%f, c2r2=%f, c3r2=%f, c4r2=%f, "
-                       "c1r3=%f, c2r3=%f, c3r3=%f, c4r3=%f, "
-                       "c1r4=%f, c2r4=%f, c3r4=%f, c4r4=%f }",
+    out_sResult.SetPrintf("{ c1r1=%f, c2r1=%f, c3r1=%f, c4r1=%f, "
+                          "c1r2=%f, c2r2=%f, c3r2=%f, c4r2=%f, "
+                          "c1r3=%f, c2r3=%f, c3r3=%f, c4r3=%f, "
+                          "c1r4=%f, c2r4=%f, c3r4=%f, c4r4=%f }",
       value.Element(0, 0), value.Element(1, 0), value.Element(2, 0), value.Element(3, 0), value.Element(0, 1), value.Element(1, 1),
       value.Element(2, 1), value.Element(3, 1), value.Element(0, 2), value.Element(1, 2), value.Element(2, 2), value.Element(3, 2),
       value.Element(0, 3), value.Element(1, 3), value.Element(2, 3), value.Element(3, 3));
@@ -696,20 +691,20 @@ namespace nsConversionUtils
   const nsStringBuilder& ToString(const nsTransform& value, nsStringBuilder& out_sResult)
   {
     nsStringBuilder tmp1, tmp2, tmp3;
-    out_sResult.Format("{ position={0}, rotation={1}, scale={2} }", ToString(value.m_vPosition, tmp1), ToString(value.m_qRotation, tmp2),
+    out_sResult.SetFormat("{ position={0}, rotation={1}, scale={2} }", ToString(value.m_vPosition, tmp1), ToString(value.m_qRotation, tmp2),
       ToString(value.m_vScale, tmp3));
     return out_sResult;
   }
 
   const nsStringBuilder& ToString(const nsAngle& value, nsStringBuilder& out_sResult)
   {
-    out_sResult.Format("{0}", value);
+    out_sResult.SetFormat("{0}", value);
     return out_sResult;
   }
 
   const nsStringBuilder& ToString(const nsTime& value, nsStringBuilder& out_sResult)
   {
-    out_sResult.Format("{0}", value);
+    out_sResult.SetFormat("{0}", value);
     return out_sResult;
   }
 
@@ -721,7 +716,7 @@ namespace nsConversionUtils
 
   const nsStringBuilder& ToString(const nsTempHashedString& value, nsStringBuilder& out_sResult)
   {
-    out_sResult.Format("0x{}", nsArgU(value.GetHash(), 16, true, 16));
+    out_sResult.SetFormat("0x{}", nsArgU(value.GetHash(), 16, true, 16));
     return out_sResult;
   }
 
@@ -766,7 +761,7 @@ namespace nsConversionUtils
 
     const GUID* pGuid = reinterpret_cast<const GUID*>(&value);
 
-    out_sResult.Printf("{ %08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x }", pGuid->Data1, pGuid->Data2, pGuid->Data3, pGuid->Data4[0],
+    out_sResult.SetPrintf("{ %08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x }", pGuid->Data1, pGuid->Data2, pGuid->Data3, pGuid->Data4[0],
       pGuid->Data4[1], pGuid->Data4[2], pGuid->Data4[3], pGuid->Data4[4], pGuid->Data4[5], pGuid->Data4[6], pGuid->Data4[7]);
 
     return out_sResult;
@@ -883,7 +878,8 @@ namespace nsConversionUtils
 
     const nsUInt32 uiLen = sColorName.GetElementCount();
 
-    auto twoCharsToByte = [](const char* szColorChars, nsUInt8& out_uiByte) -> nsResult {
+    auto twoCharsToByte = [](const char* szColorChars, nsUInt8& out_uiByte) -> nsResult
+    {
       nsInt8 firstChar = HexCharacterToIntValue(szColorChars[0]);
       nsInt8 secondChar = HexCharacterToIntValue(szColorChars[1]);
       if (firstChar < 0 || secondChar < 0)
@@ -1240,11 +1236,11 @@ namespace nsConversionUtils
 
     if (cg.a == 255)
     {
-      s.Format("#{0}{1}{2}", nsArgU(cg.r, 2, true, 16, true), nsArgU(cg.g, 2, true, 16, true), nsArgU(cg.b, 2, true, 16, true));
+      s.SetFormat("#{0}{1}{2}", nsArgU(cg.r, 2, true, 16, true), nsArgU(cg.g, 2, true, 16, true), nsArgU(cg.b, 2, true, 16, true));
     }
     else
     {
-      s.Format("#{0}{1}{2}{3}", nsArgU(cg.r, 2, true, 16, true), nsArgU(cg.g, 2, true, 16, true), nsArgU(cg.b, 2, true, 16, true),
+      s.SetFormat("#{0}{1}{2}{3}", nsArgU(cg.r, 2, true, 16, true), nsArgU(cg.g, 2, true, 16, true), nsArgU(cg.b, 2, true, 16, true),
         nsArgU(cg.a, 2, true, 16, true));
     }
 
@@ -1254,6 +1250,3 @@ namespace nsConversionUtils
 #undef Check
 
 } // namespace nsConversionUtils
-
-
-NS_STATICLINK_FILE(Foundation, Foundation_Utilities_Implementation_ConversionUtils);

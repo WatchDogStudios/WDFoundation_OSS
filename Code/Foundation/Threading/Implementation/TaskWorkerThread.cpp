@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Threading/Implementation/TaskSystemState.h>
@@ -14,7 +9,7 @@ thread_local nsTaskWorkerInfo tl_TaskWorkerInfo;
 static const char* GenerateThreadName(nsWorkerThreadType::Enum threadType, nsUInt32 uiThreadNumber)
 {
   static nsStringBuilder sTemp;
-  sTemp.Format("{} {}", nsWorkerThreadType::GetThreadTypeName(threadType), uiThreadNumber);
+  sTemp.SetFormat("{} {}", nsWorkerThreadType::GetThreadTypeName(threadType), uiThreadNumber);
   return sTemp.GetData();
 }
 
@@ -151,6 +146,3 @@ double nsTaskWorkerThread::GetThreadUtilization(nsUInt32* pNumTasksExecuted /*= 
 
   return m_fLastThreadUtilization;
 }
-
-
-NS_STATICLINK_FILE(Foundation, Foundation_Threading_Implementation_TaskWorkerThread);

@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/Containers/HybridArray.h>
@@ -48,7 +43,7 @@ NS_CREATE_SIMPLE_TEST(Memory, MemoryUtils)
     nsUInt8 uiRawData[s_uiSize * 5] = {0};
     nsConstructTest* pTest = (nsConstructTest*)(uiRawData);
 
-    nsMemoryUtils::Construct<nsConstructTest>(pTest + 1, 2);
+    nsMemoryUtils::Construct<SkipTrivialTypes, nsConstructTest>(pTest + 1, 2);
 
     NS_TEST_INT(pTest[0].m_iData, 0);
     NS_TEST_INT(pTest[1].m_iData, 42);
@@ -59,7 +54,7 @@ NS_CREATE_SIMPLE_TEST(Memory, MemoryUtils)
 
   NS_TEST_BLOCK(nsTestBlock::Enabled, "MakeConstructorFunction")
   {
-    nsMemoryUtils::ConstructorFunction func = nsMemoryUtils::MakeConstructorFunction<nsConstructTest>();
+    nsMemoryUtils::ConstructorFunction func = nsMemoryUtils::MakeConstructorFunction<SkipTrivialTypes, nsConstructTest>();
     NS_TEST_BOOL(func != nullptr);
 
     nsUInt8 uiRawData[s_uiSize] = {0};
@@ -69,10 +64,10 @@ NS_CREATE_SIMPLE_TEST(Memory, MemoryUtils)
 
     NS_TEST_INT(pTest->m_iData, 42);
 
-    func = nsMemoryUtils::MakeConstructorFunction<PODTest>();
+    func = nsMemoryUtils::MakeConstructorFunction<SkipTrivialTypes, PODTest>();
     NS_TEST_BOOL(func != nullptr);
 
-    func = nsMemoryUtils::MakeConstructorFunction<nsInt32>();
+    func = nsMemoryUtils::MakeConstructorFunction<SkipTrivialTypes, nsInt32>();
     NS_TEST_BOOL(func == nullptr);
   }
 
@@ -80,22 +75,10 @@ NS_CREATE_SIMPLE_TEST(Memory, MemoryUtils)
   {
     nsUInt32 uiRawData[5]; // not initialized here
 
-    nsMemoryUtils::DefaultConstruct(uiRawData + 1, 2);
+    nsMemoryUtils::Construct<ConstructAll>(uiRawData + 1, 2);
 
     NS_TEST_INT(uiRawData[1], 0);
     NS_TEST_INT(uiRawData[2], 0);
-  }
-
-  NS_TEST_BLOCK(nsTestBlock::Enabled, "MakeDefaultConstructorFunction")
-  {
-    nsMemoryUtils::ConstructorFunction func = nsMemoryUtils::MakeDefaultConstructorFunction<nsInt32>();
-    NS_TEST_BOOL(func != nullptr);
-
-    nsInt32 iTest = 2;
-
-    (*func)(&iTest);
-
-    NS_TEST_INT(iTest, 0);
   }
 
   NS_TEST_BLOCK(nsTestBlock::Enabled, "Construct Copy(Array)")
@@ -160,7 +143,7 @@ NS_CREATE_SIMPLE_TEST(Memory, MemoryUtils)
     nsUInt8 uiRawData[s_uiSize * 5] = {0};
     nsConstructTest* pTest = (nsConstructTest*)(uiRawData);
 
-    nsMemoryUtils::Construct<nsConstructTest>(pTest + 1, 2);
+    nsMemoryUtils::Construct<SkipTrivialTypes, nsConstructTest>(pTest + 1, 2);
 
     NS_TEST_INT(pTest[0].m_iData, 0);
     NS_TEST_INT(pTest[1].m_iData, 42);
@@ -174,10 +157,10 @@ NS_CREATE_SIMPLE_TEST(Memory, MemoryUtils)
 
     if (nsConstructTest::s_dtorList.GetCount() == 4)
     {
-      NS_TEST_BOOL(nsConstructTest::s_dtorList[0] == &pTest[3]);
-      NS_TEST_BOOL(nsConstructTest::s_dtorList[1] == &pTest[2]);
-      NS_TEST_BOOL(nsConstructTest::s_dtorList[2] == &pTest[1]);
-      NS_TEST_BOOL(nsConstructTest::s_dtorList[3] == &pTest[0]);
+      NS_TEST_BOOL(nsConstructTest::s_dtorList[0] == &pTest[0]);
+      NS_TEST_BOOL(nsConstructTest::s_dtorList[1] == &pTest[1]);
+      NS_TEST_BOOL(nsConstructTest::s_dtorList[2] == &pTest[2]);
+      NS_TEST_BOOL(nsConstructTest::s_dtorList[3] == &pTest[3]);
       NS_TEST_INT(pTest[4].m_iData, 0);
     }
   }
@@ -190,7 +173,7 @@ NS_CREATE_SIMPLE_TEST(Memory, MemoryUtils)
     nsUInt8 uiRawData[s_uiSize] = {0};
     nsConstructTest* pTest = (nsConstructTest*)(uiRawData);
 
-    nsMemoryUtils::Construct(pTest, 1);
+    nsMemoryUtils::Construct<SkipTrivialTypes>(pTest, 1);
     NS_TEST_INT(pTest->m_iData, 42);
 
     nsConstructTest::s_dtorList.Clear();
@@ -494,7 +477,7 @@ NS_CREATE_SIMPLE_TEST(Memory, MemoryUtils)
       NS_TEST_INT(iCallPodConstructor, 0);
       NS_TEST_INT(iCallPodDestructor, 0);
 
-      nsMemoryUtils::Construct<POD>((POD*)mem, 1);
+      nsMemoryUtils::Construct<SkipTrivialTypes, POD>((POD*)mem, 1);
 
       NS_TEST_INT(iCallPodConstructor, 1);
       NS_TEST_INT(iCallPodDestructor, 0);
@@ -522,7 +505,7 @@ NS_CREATE_SIMPLE_TEST(Memory, MemoryUtils)
       // make sure nsMemoryUtils::Construct and nsMemoryUtils::Destruct don't touch built-in types
 
       nsInt32 a = 42;
-      nsMemoryUtils::Construct<nsInt32>(&a, 1);
+      nsMemoryUtils::Construct<SkipTrivialTypes, nsInt32>(&a, 1);
       NS_TEST_INT(a, 42);
       nsMemoryUtils::Destruct<nsInt32>(&a, 1);
       NS_TEST_INT(a, 42);

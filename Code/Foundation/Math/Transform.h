@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Math/Mat3.h>
@@ -98,17 +93,16 @@ public:
   void Invert(); // [tested]
 
   /// \brief Returns the inverse of this transform.
-  const nsTransformTemplate GetInverse() const; // [tested]
+  const nsTransformTemplate GetInverse() const;                                               // [tested]
 
   [[nodiscard]] nsVec3Template<Type> TransformPosition(const nsVec3Template<Type>& v) const;  // [tested]
   [[nodiscard]] nsVec3Template<Type> TransformDirection(const nsVec3Template<Type>& v) const; // [tested]
 
-  void operator+=(const nsVec3Template<Type>& v); // [tested]
-  void operator-=(const nsVec3Template<Type>& v); // [tested]
+  void operator+=(const nsVec3Template<Type>& v);                                             // [tested]
+  void operator-=(const nsVec3Template<Type>& v);                                             // [tested]
 
   // *** Conversion operations ***
 public:
-
   /// \brief Returns the transformation as a matrix.
   const nsMat4Template<Type> GetAsMat4() const; // [tested]
 };
@@ -140,9 +134,9 @@ template <typename Type>
 const nsTransformTemplate<Type> operator*(const nsTransformTemplate<Type>& t1, const nsTransformTemplate<Type>& t2); // [tested]
 
 template <typename Type>
-bool operator==(const nsTransformTemplate<Type>& t1, const nsTransformTemplate<Type>& t2); // [tested]
+bool operator==(const nsTransformTemplate<Type>& t1, const nsTransformTemplate<Type>& t2);                           // [tested]
 
 template <typename Type>
-bool operator!=(const nsTransformTemplate<Type>& t1, const nsTransformTemplate<Type>& t2); // [tested]
+bool operator!=(const nsTransformTemplate<Type>& t1, const nsTransformTemplate<Type>& t2);                           // [tested]
 
 #include <Foundation/Math/Implementation/Transform_inl.h>

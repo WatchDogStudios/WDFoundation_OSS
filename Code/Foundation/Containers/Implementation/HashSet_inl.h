@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 
 /// \brief Value used by containers for indices to indicate an invalid index.
 #ifndef nsInvalidIndex
@@ -51,12 +46,6 @@ NS_ALWAYS_INLINE bool nsHashSetBase<K, H>::ConstIterator::operator==(const typen
 }
 
 template <typename K, typename H>
-NS_ALWAYS_INLINE bool nsHashSetBase<K, H>::ConstIterator::operator!=(const typename nsHashSetBase<K, H>::ConstIterator& rhs) const
-{
-  return !(*this == rhs);
-}
-
-template <typename K, typename H>
 NS_FORCE_INLINE const K& nsHashSetBase<K, H>::ConstIterator::Key() const
 {
   return m_pHashSet->m_pEntries[m_uiCurrentIndex];
@@ -72,10 +61,14 @@ void nsHashSetBase<K, H>::ConstIterator::Next()
     return;
   }
 
-  do
+  for (++m_uiCurrentIndex; m_uiCurrentIndex < m_pHashSet->m_uiCapacity; ++m_uiCurrentIndex)
   {
-    ++m_uiCurrentIndex;
-  } while (!m_pHashSet->IsValidEntry(m_uiCurrentIndex));
+    if (m_pHashSet->IsValidEntry(m_uiCurrentIndex))
+    {
+      return;
+    }
+  }
+  SetToEnd();
 }
 
 template <typename K, typename H>
@@ -88,7 +81,7 @@ NS_ALWAYS_INLINE void nsHashSetBase<K, H>::ConstIterator::operator++()
 // ***** nsHashSetBase *****
 
 template <typename K, typename H>
-nsHashSetBase<K, H>::nsHashSetBase(nsAllocatorBase* pAllocator)
+nsHashSetBase<K, H>::nsHashSetBase(nsAllocator* pAllocator)
 {
   m_pEntries = nullptr;
   m_pEntryFlags = nullptr;
@@ -98,7 +91,7 @@ nsHashSetBase<K, H>::nsHashSetBase(nsAllocatorBase* pAllocator)
 }
 
 template <typename K, typename H>
-nsHashSetBase<K, H>::nsHashSetBase(const nsHashSetBase<K, H>& other, nsAllocatorBase* pAllocator)
+nsHashSetBase<K, H>::nsHashSetBase(const nsHashSetBase<K, H>& other, nsAllocator* pAllocator)
 {
   m_pEntries = nullptr;
   m_pEntryFlags = nullptr;
@@ -110,7 +103,7 @@ nsHashSetBase<K, H>::nsHashSetBase(const nsHashSetBase<K, H>& other, nsAllocator
 }
 
 template <typename K, typename H>
-nsHashSetBase<K, H>::nsHashSetBase(nsHashSetBase<K, H>&& other, nsAllocatorBase* pAllocator)
+nsHashSetBase<K, H>::nsHashSetBase(nsHashSetBase<K, H>&& other, nsAllocator* pAllocator)
 {
   m_pEntries = nullptr;
   m_pEntryFlags = nullptr;
@@ -210,16 +203,10 @@ bool nsHashSetBase<K, H>::operator==(const nsHashSetBase<K, H>& rhs) const
 }
 
 template <typename K, typename H>
-NS_ALWAYS_INLINE bool nsHashSetBase<K, H>::operator!=(const nsHashSetBase<K, H>& rhs) const
-{
-  return !(*this == rhs);
-}
-
-template <typename K, typename H>
 void nsHashSetBase<K, H>::Reserve(nsUInt32 uiCapacity)
 {
   const nsUInt64 uiCap64 = static_cast<nsUInt64>(uiCapacity);
-  nsUInt64 uiNewCapacity64 = uiCap64 + (uiCap64 * 2 / 3); // ensure a maximum load of 60%
+  nsUInt64 uiNewCapacity64 = uiCap64 + (uiCap64 * 2 / 3);                  // ensure a maximum load of 60%
 
   uiNewCapacity64 = nsMath::Min<nsUInt64>(uiNewCapacity64, 0x80000000llu); // the largest power-of-two in 32 bit
 
@@ -387,6 +374,23 @@ NS_FORCE_INLINE bool nsHashSetBase<K, H>::Contains(const CompatibleKeyType& key)
 }
 
 template <typename K, typename H>
+template <typename CompatibleKeyType>
+NS_FORCE_INLINE typename nsHashSetBase<K, H>::ConstIterator nsHashSetBase<K, H>::Find(const CompatibleKeyType& key) const
+{
+  nsUInt32 uiIndex = FindEntry(key);
+  if (uiIndex == nsInvalidIndex)
+  {
+    return GetEndIterator();
+  }
+
+  ConstIterator it(*this);
+  it.m_uiCurrentIndex = uiIndex;
+  it.m_uiCurrentCount = 0; // we do not know the 'count' (which is used as an optimization), so we just use 0
+
+  return it;
+}
+
+template <typename K, typename H>
 bool nsHashSetBase<K, H>::ContainsSet(const nsHashSetBase<K, H>& operand) const
 {
   for (const K& key : operand)
@@ -446,7 +450,7 @@ NS_FORCE_INLINE typename nsHashSetBase<K, H>::ConstIterator nsHashSetBase<K, H>:
 }
 
 template <typename K, typename H>
-NS_ALWAYS_INLINE nsAllocatorBase* nsHashSetBase<K, H>::GetAllocator() const
+NS_ALWAYS_INLINE nsAllocator* nsHashSetBase<K, H>::GetAllocator() const
 {
   return m_pAllocator;
 }
@@ -566,6 +570,7 @@ NS_FORCE_INLINE bool nsHashSetBase<K, H>::IsFreeEntry(nsUInt32 uiEntryIndex) con
 template <typename K, typename H>
 NS_FORCE_INLINE bool nsHashSetBase<K, H>::IsValidEntry(nsUInt32 uiEntryIndex) const
 {
+  NS_ASSERT_DEBUG(uiEntryIndex < m_uiCapacity, "Out of bounds access");
   return GetFlags(m_pEntryFlags, uiEntryIndex) == VALID_ENTRY;
 }
 
@@ -601,7 +606,7 @@ nsHashSet<K, H, A>::nsHashSet()
 }
 
 template <typename K, typename H, typename A>
-nsHashSet<K, H, A>::nsHashSet(nsAllocatorBase* pAllocator)
+nsHashSet<K, H, A>::nsHashSet(nsAllocator* pAllocator)
   : nsHashSetBase<K, H>(pAllocator)
 {
 }

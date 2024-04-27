@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 NS_ALWAYS_INLINE nsInt32 nsStringUtils::CompareChars(nsUInt32 uiCharacter1, nsUInt32 uiCharacter2)
@@ -100,8 +95,7 @@ inline nsUInt32 nsStringUtils::GetCharacterCount(const char* szUtf8, const char*
   return uiCharacters;
 }
 
-inline void nsStringUtils::GetCharacterAndElementCount(
-  const char* szUtf8, nsUInt32& ref_uiCharacterCount, nsUInt32& ref_uiElementCount, const char* pStringEnd)
+inline void nsStringUtils::GetCharacterAndElementCount(const char* szUtf8, nsUInt32& ref_uiCharacterCount, nsUInt32& ref_uiElementCount, const char* pStringEnd)
 {
   ref_uiCharacterCount = 0;
   ref_uiElementCount = 0;

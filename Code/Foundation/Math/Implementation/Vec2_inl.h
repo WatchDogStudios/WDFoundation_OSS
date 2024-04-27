@@ -1,14 +1,9 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 template <typename Type>
 NS_ALWAYS_INLINE nsVec2Template<Type>::nsVec2Template()
 {
-#if NS_ENABLED(NS_COMPILE_FOR_DEBUG)
+#if NS_ENABLED(NS_MATH_CHECK_FOR_NAN)
   // Initialize all data to NaN in debug mode to find problems with uninitialized data easier.
   const Type TypeNaN = nsMath::NaN<Type>();
   x = TypeNaN;
@@ -51,13 +46,13 @@ NS_ALWAYS_INLINE void nsVec2Template<Type>::SetZero()
 }
 
 template <typename Type>
-NS_ALWAYS_INLINE Type nsVec2Template<Type>::GetLength() const
+NS_IMPLEMENT_IF_FLOAT_TYPE NS_ALWAYS_INLINE Type nsVec2Template<Type>::GetLength() const
 {
   return (nsMath::Sqrt(GetLengthSquared()));
 }
 
 template <typename Type>
-nsResult nsVec2Template<Type>::SetLength(Type fNewLength, Type fEpsilon /* = nsMath::DefaultEpsilon<Type>() */)
+NS_IMPLEMENT_IF_FLOAT_TYPE nsResult nsVec2Template<Type>::SetLength(Type fNewLength, Type fEpsilon /* = nsMath::DefaultEpsilon<Type>() */)
 {
   if (NormalizeIfNotZero(nsVec2Template<Type>::MakeZero(), fEpsilon) == NS_FAILURE)
     return NS_FAILURE;
@@ -73,7 +68,7 @@ NS_ALWAYS_INLINE Type nsVec2Template<Type>::GetLengthSquared() const
 }
 
 template <typename Type>
-NS_FORCE_INLINE Type nsVec2Template<Type>::GetLengthAndNormalize()
+NS_IMPLEMENT_IF_FLOAT_TYPE NS_FORCE_INLINE Type nsVec2Template<Type>::GetLengthAndNormalize()
 {
   const Type fLength = GetLength();
   *this /= fLength;
@@ -81,7 +76,7 @@ NS_FORCE_INLINE Type nsVec2Template<Type>::GetLengthAndNormalize()
 }
 
 template <typename Type>
-NS_FORCE_INLINE const nsVec2Template<Type> nsVec2Template<Type>::GetNormalized() const
+NS_IMPLEMENT_IF_FLOAT_TYPE NS_FORCE_INLINE const nsVec2Template<Type> nsVec2Template<Type>::GetNormalized() const
 {
   const Type fLen = GetLength();
 
@@ -90,13 +85,13 @@ NS_FORCE_INLINE const nsVec2Template<Type> nsVec2Template<Type>::GetNormalized()
 }
 
 template <typename Type>
-NS_ALWAYS_INLINE void nsVec2Template<Type>::Normalize()
+NS_IMPLEMENT_IF_FLOAT_TYPE NS_ALWAYS_INLINE void nsVec2Template<Type>::Normalize()
 {
   *this /= GetLength();
 }
 
 template <typename Type>
-inline nsResult nsVec2Template<Type>::NormalizeIfNotZero(const nsVec2Template<Type>& vFallback, Type fEpsilon)
+NS_IMPLEMENT_IF_FLOAT_TYPE inline nsResult nsVec2Template<Type>::NormalizeIfNotZero(const nsVec2Template<Type>& vFallback, Type fEpsilon)
 {
   NS_NAN_ASSERT(&vFallback);
 
@@ -116,7 +111,7 @@ inline nsResult nsVec2Template<Type>::NormalizeIfNotZero(const nsVec2Template<Ty
   length is between a lower and upper limit.
 */
 template <typename Type>
-inline bool nsVec2Template<Type>::IsNormalized(Type fEpsilon /* = nsMath::HugeEpsilon<Type>() */) const
+NS_IMPLEMENT_IF_FLOAT_TYPE inline bool nsVec2Template<Type>::IsNormalized(Type fEpsilon /* = nsMath::HugeEpsilon<Type>() */) const
 {
   const Type t = GetLengthSquared();
   return nsMath::IsEqual(t, (Type)(1), fEpsilon);
@@ -196,16 +191,23 @@ NS_FORCE_INLINE void nsVec2Template<Type>::operator*=(Type f)
 template <typename Type>
 NS_FORCE_INLINE void nsVec2Template<Type>::operator/=(Type f)
 {
-  const Type f_inv = nsMath::Invert(f);
-
-  x *= f_inv;
-  y *= f_inv;
+  if constexpr (std::is_floating_point_v<Type>)
+  {
+    const Type f_inv = nsMath::Invert(f);
+    x *= f_inv;
+    y *= f_inv;
+  }
+  else
+  {
+    x /= f;
+    y /= f;
+  }
 
   NS_NAN_ASSERT(this);
 }
 
 template <typename Type>
-inline void nsVec2Template<Type>::MakeOrthogonalTo(const nsVec2Template<Type>& vNormal)
+NS_IMPLEMENT_IF_FLOAT_TYPE inline void nsVec2Template<Type>::MakeOrthogonalTo(const nsVec2Template<Type>& vNormal)
 {
   NS_ASSERT_DEBUG(vNormal.IsNormalized(), "The normal must be normalized.");
 
@@ -223,7 +225,7 @@ NS_FORCE_INLINE const nsVec2Template<Type> nsVec2Template<Type>::GetOrthogonalVe
 }
 
 template <typename Type>
-inline const nsVec2Template<Type> nsVec2Template<Type>::GetReflectedVector(const nsVec2Template<Type>& vNormal) const
+NS_IMPLEMENT_IF_FLOAT_TYPE inline const nsVec2Template<Type> nsVec2Template<Type>::GetReflectedVector(const nsVec2Template<Type>& vNormal) const
 {
   NS_ASSERT_DEBUG(vNormal.IsNormalized(), "vNormal must be normalized.");
 
@@ -341,9 +343,16 @@ NS_FORCE_INLINE const nsVec2Template<Type> operator/(const nsVec2Template<Type>&
 {
   NS_NAN_ASSERT(&v);
 
-  // multiplication is much faster than division
-  const Type f_inv = nsMath::Invert(f);
-  return nsVec2Template<Type>(v.x * f_inv, v.y * f_inv);
+  if constexpr (std::is_floating_point_v<Type>)
+  {
+    // multiplication is much faster than division
+    const Type f_inv = nsMath::Invert(f);
+    return nsVec2Template<Type>(v.x * f_inv, v.y * f_inv);
+  }
+  else
+  {
+    return nsVec2Template<Type>(v.x / f, v.y / f);
+  }
 }
 
 template <typename Type>

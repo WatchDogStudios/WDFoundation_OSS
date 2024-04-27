@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Logging/Log.h>
@@ -70,22 +65,6 @@ namespace
 
 #undef CALL_FUNCTOR
 
-  nsVariantType::Enum GetDispatchType(const nsAbstractProperty* pProp)
-  {
-    if (pProp->GetFlags().IsSet(nsPropertyFlags::Pointer))
-    {
-      return nsVariantType::TypedPointer;
-    }
-    else if (pProp->GetFlags().IsSet(nsPropertyFlags::StandardType))
-    {
-      return pProp->GetSpecificType()->GetVariantType();
-    }
-    else
-    {
-      return nsVariantType::TypedObject;
-    }
-  }
-
   struct GetTypeFromVariantTypeFunc
   {
     template <typename T>
@@ -96,16 +75,6 @@ namespace
     const nsRTTI* m_pType;
   };
 
-  template <>
-  NS_ALWAYS_INLINE void GetTypeFromVariantTypeFunc::operator()<nsVariantArray>()
-  {
-    m_pType = nullptr;
-  }
-  template <>
-  NS_ALWAYS_INLINE void GetTypeFromVariantTypeFunc::operator()<nsVariantDictionary>()
-  {
-    m_pType = nullptr;
-  }
   template <>
   NS_ALWAYS_INLINE void GetTypeFromVariantTypeFunc::operator()<nsTypedPointer>()
   {
@@ -866,14 +835,16 @@ const nsAbstractMemberProperty* nsReflectionUtils::GetMemberProperty(const nsRTT
 void nsReflectionUtils::GatherTypesDerivedFromClass(const nsRTTI* pBaseRtti, nsSet<const nsRTTI*>& out_types)
 {
   nsRTTI::ForEachDerivedType(pBaseRtti,
-    [&](const nsRTTI* pRtti) {
+    [&](const nsRTTI* pRtti)
+    {
       out_types.Insert(pRtti);
     });
 }
 
 void nsReflectionUtils::GatherDependentTypes(const nsRTTI* pRtti, nsSet<const nsRTTI*>& inout_typesAsSet, nsDynamicArray<const nsRTTI*>* out_pTypesAsStack /*= nullptr*/)
 {
-  auto AddType = [&](const nsRTTI* pNewRtti) {
+  auto AddType = [&](const nsRTTI* pNewRtti)
+  {
     if (pNewRtti != pRtti && pNewRtti->GetTypeFlags().IsSet(nsTypeFlags::StandardType) == false && inout_typesAsSet.Contains(pNewRtti) == false)
     {
       inout_typesAsSet.Insert(pNewRtti);
@@ -1062,7 +1033,7 @@ bool nsReflectionUtils::StringToEnumeration(const nsRTTI* pEnumerationRtti, cons
   }
   else
   {
-    NS_ASSERT_DEV(false, "The RTTI class '{0}' is not an enum or bitflags class", pEnumerationRtti->GetTypeName());
+    NS_REPORT_FAILURE("The RTTI class '{0}' is not an enum or bitflags class", pEnumerationRtti->GetTypeName());
     return false;
   }
 }
@@ -1077,7 +1048,7 @@ nsInt64 nsReflectionUtils::DefaultEnumerationValue(const nsRTTI* pEnumerationRtt
   }
   else
   {
-    NS_ASSERT_DEV(false, "The RTTI class '{0}' is not an enum or bitflags class", pEnumerationRtti->GetTypeName());
+    NS_REPORT_FAILURE("The RTTI class '{0}' is not an enum or bitflags class", pEnumerationRtti->GetTypeName());
     return 0;
   }
 }
@@ -1119,7 +1090,7 @@ nsInt64 nsReflectionUtils::MakeEnumerationValid(const nsRTTI* pEnumerationRtti, 
   }
   else
   {
-    NS_ASSERT_DEV(false, "The RTTI class '{0}' is not an enum or bitflags class", pEnumerationRtti->GetTypeName());
+    NS_REPORT_FAILURE("The RTTI class '{0}' is not an enum or bitflags class", pEnumerationRtti->GetTypeName());
     return 0;
   }
 }
@@ -1527,7 +1498,6 @@ nsVariant nsReflectionUtils::GetDefaultVariantFromType(nsVariant::Type::Enum typ
       NS_REPORT_FAILURE("Invalid case statement");
       return nsVariant();
   }
-  return nsVariant();
 }
 
 nsVariant nsReflectionUtils::GetDefaultValue(const nsAbstractProperty* pProperty, nsVariant index)
@@ -1661,7 +1631,6 @@ nsVariant nsReflectionUtils::GetDefaultVariantFromType(const nsRTTI* pRtti)
     default:
       return GetDefaultVariantFromType(type);
   }
-  return nsVariant();
 }
 
 void nsReflectionUtils::SetAllMemberPropertiesToDefault(const nsRTTI* pRtti, void* pObject)
@@ -1753,5 +1722,3 @@ nsResult nsReflectionUtils::ClampValue(nsVariant& value, const nsClampValueAttri
   ClampVariantFunc func;
   return nsVariant::DispatchTo(func, type, value, pAttrib);
 }
-
-NS_STATICLINK_FILE(Foundation, Foundation_Reflection_Implementation_ReflectionUtils);

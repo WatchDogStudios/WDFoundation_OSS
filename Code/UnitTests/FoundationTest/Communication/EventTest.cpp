@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/Communication/Event.h>
@@ -153,20 +148,22 @@ NS_CREATE_SIMPLE_TEST(Communication, Event)
 
     nsEventSubscriptionID subscriptions[4] = {};
 
-    subscriptions[0] = e.AddEventHandler(TestEvent::Handler([&](int i) { callMap |= NS_BIT(0); }));
+    subscriptions[0] = e.AddEventHandler(TestEvent::Handler([&](int i)
+      { callMap |= NS_BIT(0); }));
 
-    subscriptions[1] = e.AddEventHandler(TestEvent::Handler([&](int i) {
+    subscriptions[1] = e.AddEventHandler(TestEvent::Handler([&](int i)
+      {
       callMap |= NS_BIT(1);
-      e.RemoveEventHandler(subscriptions[1]);
-    }));
+      e.RemoveEventHandler(subscriptions[1]); }));
 
-    subscriptions[2] = e.AddEventHandler(TestEvent::Handler([&](int i) {
+    subscriptions[2] = e.AddEventHandler(TestEvent::Handler([&](int i)
+      {
       callMap |= NS_BIT(2);
       e.RemoveEventHandler(subscriptions[2]);
-      e.RemoveEventHandler(subscriptions[3]);
-    }));
+      e.RemoveEventHandler(subscriptions[3]); }));
 
-    subscriptions[3] = e.AddEventHandler(TestEvent::Handler([&](int i) { callMap |= NS_BIT(3); }));
+    subscriptions[3] = e.AddEventHandler(TestEvent::Handler([&](int i)
+      { callMap |= NS_BIT(3); }));
 
     e.Broadcast(0);
 

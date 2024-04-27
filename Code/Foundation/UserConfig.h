@@ -1,13 +1,8 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 /// \file
 
-/// Global settings for how to to compile wdstdcorelib.
+/// Global settings for how to to compile NS.
 /// Modify these settings as you needed in your project.
 
 
@@ -30,12 +25,8 @@
 #  define NS_USE_PROFILING NS_OFF
 
 // Tracking of memory allocations.
-#  undef NS_USE_ALLOCATION_TRACKING
-#  define NS_USE_ALLOCATION_TRACKING NS_OFF
-
-// Stack traces for memory allocations.
-#  undef NS_USE_ALLOCATION_STACK_TRACING
-#  define NS_USE_ALLOCATION_STACK_TRACING NS_OFF
+#  undef NS_ALLOC_TRACKING_DEFAULT
+#  define NS_ALLOC_TRACKING_DEFAULT nsAllocatorTrackingMode::Nothing
 
 #else
 
@@ -48,16 +39,19 @@
 #  define NS_USE_PROFILING NS_ON
 
 // Tracking of memory allocations.
-#  undef NS_USE_ALLOCATION_TRACKING
-#  define NS_USE_ALLOCATION_TRACKING NS_ON
-
-// Stack traces for memory allocations.
-#  undef NS_USE_ALLOCATION_STACK_TRACING
-#  define NS_USE_ALLOCATION_STACK_TRACING NS_ON
+#  undef NS_ALLOC_TRACKING_DEFAULT
+#  define NS_ALLOC_TRACKING_DEFAULT nsAllocatorTrackingMode::AllocationStatsAndStacktraces
 
 #endif
-/// Whether to enable the console optimizations to increase performance on console platforms, and improve interation times when working with development kits. (DISABLED ON OPEN-SOURCE RELEASE)
-#define NS_ENABLECONSOLE_OPTIMIZATIONS NS_OFF
+
+#if defined(BUILDSYSTEM_BUILDTYPE_Debug)
+#  undef NS_MATH_CHECK_FOR_NAN
+#  define NS_MATH_CHECK_FOR_NAN NS_ON
+#  undef NS_USE_STRING_VALIDATION
+#  define NS_USE_STRING_VALIDATION NS_ON
+#endif
+
+
 /// Whether game objects compute and store their velocity since the last frame (increases object size)
 #define NS_GAMEOBJECT_VELOCITY NS_ON
 

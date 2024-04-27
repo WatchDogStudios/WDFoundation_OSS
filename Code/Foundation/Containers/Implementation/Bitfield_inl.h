@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 template <class Container>
@@ -24,8 +19,7 @@ NS_ALWAYS_INLINE nsUInt32 nsBitfield<Container>::GetCount() const
 }
 
 template <class Container>
-template <typename> // Second template needed so that the compiler only instantiates it when called. Needed to prevent errors with containers that do
-                    // not support this.
+template <typename> // Second template needed so that the compiler only instantiates it when called. Needed to prevent errors with containers that do not support this.
 void nsBitfield<Container>::SetCountUninitialized(nsUInt32 uiBitCount)
 {
   const nsUInt32 uiInts = (uiBitCount + 31) >> 5;
@@ -304,6 +298,112 @@ void nsBitfield<Container>::ClearBitRange(nsUInt32 uiFirstBit, nsUInt32 uiNumBit
     ClearBit(i);
 }
 
+template <class Container>
+void nsBitfield<Container>::Swap(nsBitfield<Container>& other)
+{
+  nsMath::Swap(m_uiCount, other.m_uiCount);
+  m_Container.Swap(other.m_Container);
+}
+
+template <class Container>
+NS_ALWAYS_INLINE typename nsBitfield<Container>::ConstIterator nsBitfield<Container>::GetIterator() const
+{
+  return ConstIterator(*this);
+};
+
+template <class Container>
+NS_ALWAYS_INLINE typename nsBitfield<Container>::ConstIterator nsBitfield<Container>::GetEndIterator() const
+{
+  return ConstIterator();
+};
+
+//////////////////////////////////////////////////////////////////////////
+// nsBitfield<Container>::ConstIterator
+
+template <class Container>
+nsBitfield<Container>::ConstIterator::ConstIterator(const nsBitfield<Container>& bitfield)
+{
+  m_pBitfield = &bitfield;
+  FindNextChunk(0);
+}
+
+template <class Container>
+NS_ALWAYS_INLINE bool nsBitfield<Container>::ConstIterator::IsValid() const
+{
+  return m_pBitfield != nullptr;
+}
+
+template <class Container>
+NS_ALWAYS_INLINE nsUInt32 nsBitfield<Container>::ConstIterator::Value() const
+{
+  return *m_Iterator + (m_uiChunk << 5);
+}
+
+template <class Container>
+NS_ALWAYS_INLINE void nsBitfield<Container>::ConstIterator::Next()
+{
+  ++m_Iterator;
+  if (!m_Iterator.IsValid())
+  {
+    FindNextChunk(m_uiChunk + 1);
+  }
+}
+
+template <class Container>
+NS_ALWAYS_INLINE bool nsBitfield<Container>::ConstIterator::operator==(const ConstIterator& other) const
+{
+  return m_pBitfield == other.m_pBitfield && m_Iterator == other.m_Iterator && m_uiChunk == other.m_uiChunk;
+}
+
+template <class Container>
+NS_ALWAYS_INLINE bool nsBitfield<Container>::ConstIterator::operator!=(const ConstIterator& other) const
+{
+  return m_pBitfield != other.m_pBitfield || m_Iterator != other.m_Iterator || m_uiChunk != other.m_uiChunk;
+}
+
+template <class Container>
+NS_ALWAYS_INLINE nsUInt32 nsBitfield<Container>::ConstIterator::operator*() const
+{
+  return Value();
+}
+
+template <class Container>
+NS_ALWAYS_INLINE void nsBitfield<Container>::ConstIterator::operator++()
+{
+  Next();
+}
+
+template <class Container>
+void nsBitfield<Container>::ConstIterator::FindNextChunk(nsUInt32 uiStartChunk)
+{
+  if (uiStartChunk < m_pBitfield->m_Container.GetCount())
+  {
+    const nsUInt32 uiLastChunk = m_pBitfield->m_Container.GetCount() - 1;
+    for (nsUInt32 i = uiStartChunk; i < uiLastChunk; ++i)
+    {
+      if (m_pBitfield->m_Container[i] != 0)
+      {
+        m_uiChunk = i;
+        m_Iterator = sub_iterator(m_pBitfield->m_Container[i]);
+        return;
+      }
+    }
+
+    const nsUInt32 uiMask = 0xFFFFFFFF >> (32 - (m_pBitfield->m_uiCount - (uiLastChunk << 5)));
+    if ((m_pBitfield->m_Container[uiLastChunk] & uiMask) != 0)
+    {
+      m_uiChunk = uiLastChunk;
+      m_Iterator = sub_iterator(m_pBitfield->m_Container[uiLastChunk] & uiMask);
+      return;
+    }
+  }
+
+  // End iterator.
+  m_pBitfield = nullptr;
+  m_uiChunk = 0;
+  m_Iterator = sub_iterator();
+}
+
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
@@ -437,4 +537,10 @@ template <typename T>
 NS_ALWAYS_INLINE T nsStaticBitfield<T>::GetValue() const
 {
   return m_Storage;
+}
+
+template <typename T>
+NS_ALWAYS_INLINE void nsStaticBitfield<T>::Swap(nsStaticBitfield<T>& other)
+{
+  nsMath::Swap(m_Storage, other.m_Storage);
 }

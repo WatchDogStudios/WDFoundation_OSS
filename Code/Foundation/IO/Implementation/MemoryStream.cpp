@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/IO/MemoryStream.h>
@@ -39,7 +34,7 @@ nsUInt64 nsMemoryStreamReader::ReadBytes(void* pReadBuffer, nsUInt64 uiBytesToRe
 
       nsMemoryUtils::Copy(static_cast<nsUInt8*>(pReadBuffer), data.GetPtr(), static_cast<size_t>(toRead)); // Down-cast to size_t for 32-bit.
 
-      pReadBuffer = nsMemoryUtils::AddByteOffset(pReadBuffer, static_cast<size_t>(toRead)); // Down-cast to size_t for 32-bit.
+      pReadBuffer = nsMemoryUtils::AddByteOffset(pReadBuffer, static_cast<size_t>(toRead));                // Down-cast to size_t for 32-bit.
 
       m_uiReadPosition += toRead;
       uiBytesLeft -= toRead;
@@ -125,7 +120,7 @@ nsResult nsMemoryStreamWriter::WriteBytes(const void* pWriteBuffer, nsUInt64 uiB
 
       nsMemoryUtils::Copy(data.GetPtr(), static_cast<const nsUInt8*>(pWriteBuffer), static_cast<size_t>(toWrite)); // Down-cast to size_t for 32-bit.
 
-      pWriteBuffer = nsMemoryUtils::AddByteOffset(pWriteBuffer, static_cast<size_t>(toWrite)); // Down-cast to size_t for 32-bit.
+      pWriteBuffer = nsMemoryUtils::AddByteOffset(pWriteBuffer, static_cast<size_t>(toWrite));                     // Down-cast to size_t for 32-bit.
 
       m_uiWritePosition += toWrite;
       uiBytesLeft -= toWrite;
@@ -295,7 +290,7 @@ void nsRawMemoryStreamWriter::SetDebugSourceInformation(nsStringView sDebugSourc
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 
-nsDefaultMemoryStreamStorage::nsDefaultMemoryStreamStorage(nsUInt32 uiInitialCapacity, nsAllocatorBase* pAllocator)
+nsDefaultMemoryStreamStorage::nsDefaultMemoryStreamStorage(nsUInt32 uiInitialCapacity, nsAllocator* pAllocator)
   : m_Chunks(pAllocator)
 {
   Reserve(uiInitialCapacity);
@@ -455,6 +450,3 @@ void nsDefaultMemoryStreamStorage::AddChunk(nsUInt32 uiMinimumSize)
   chunk.m_uiStartOffset = prevChunk.m_uiStartOffset + prevChunk.m_Bytes.GetCount();
   m_uiCapacity += chunk.m_Bytes.GetCount();
 }
-
-
-NS_STATICLINK_FILE(Foundation, Foundation_IO_Implementation_MemoryStream);

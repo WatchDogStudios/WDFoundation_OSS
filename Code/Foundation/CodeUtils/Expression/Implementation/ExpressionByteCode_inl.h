@@ -1,17 +1,17 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 
-NS_ALWAYS_INLINE const nsExpressionByteCode::StorageType* nsExpressionByteCode::GetByteCode() const
+NS_ALWAYS_INLINE const nsExpressionByteCode::StorageType* nsExpressionByteCode::GetByteCodeStart() const
 {
-  return m_ByteCode.GetData();
+  return m_pByteCode;
 }
 
 NS_ALWAYS_INLINE const nsExpressionByteCode::StorageType* nsExpressionByteCode::GetByteCodeEnd() const
 {
-  return m_ByteCode.GetData() + m_ByteCode.GetCount();
+  return m_pByteCode + m_uiByteCodeCount;
+}
+
+NS_ALWAYS_INLINE nsArrayPtr<const nsExpressionByteCode::StorageType> nsExpressionByteCode::GetByteCode() const
+{
+  return nsMakeArrayPtr(m_pByteCode, m_uiByteCodeCount);
 }
 
 NS_ALWAYS_INLINE nsUInt32 nsExpressionByteCode::GetNumInstructions() const
@@ -26,17 +26,17 @@ NS_ALWAYS_INLINE nsUInt32 nsExpressionByteCode::GetNumTempRegisters() const
 
 NS_ALWAYS_INLINE nsArrayPtr<const nsExpression::StreamDesc> nsExpressionByteCode::GetInputs() const
 {
-  return m_Inputs;
+  return nsMakeArrayPtr(m_pInputs, m_uiNumInputs);
 }
 
 NS_ALWAYS_INLINE nsArrayPtr<const nsExpression::StreamDesc> nsExpressionByteCode::GetOutputs() const
 {
-  return m_Outputs;
+  return nsMakeArrayPtr(m_pOutputs, m_uiNumOutputs);
 }
 
 NS_ALWAYS_INLINE nsArrayPtr<const nsExpression::FunctionDesc> nsExpressionByteCode::GetFunctions() const
 {
-  return m_Functions;
+  return nsMakeArrayPtr(m_pFunctions, m_uiNumFunctions);
 }
 
 // static

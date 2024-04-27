@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/Logging/Log.h>
@@ -527,6 +522,14 @@ NS_CREATE_SIMPLE_TEST(Math, General)
     NS_TEST_FLOAT(nsMath::Lerp(-5.0f, 5.0f, 1.0f), 5.0f, 0.000001);
   }
 
+  NS_TEST_BLOCK(nsTestBlock::Enabled, "Unlerp")
+  {
+    NS_TEST_FLOAT(nsMath::Unlerp(-5.0f, 5.0f, 0.0f), 0.5f, 0.000001);
+    NS_TEST_FLOAT(nsMath::Unlerp(0.0f, 5.0f, 2.5f), 0.5f, 0.000001);
+    NS_TEST_FLOAT(nsMath::Unlerp(-5.0f, 5.0f, -5.0f), 0.0f, 0.000001);
+    NS_TEST_FLOAT(nsMath::Unlerp(-5.0f, 5.0f, 5.0f), 1.0f, 0.000001);
+  }
+
   NS_TEST_BLOCK(nsTestBlock::Enabled, "Step")
   {
     NS_TEST_FLOAT(nsMath::Step(0.5f, 0.4f), 1.0f, 0.00001f);
@@ -555,6 +558,12 @@ NS_CREATE_SIMPLE_TEST(Math, General)
       NS_TEST_FLOAT(nsMath::SmoothStep(0.0f * iScale, 0.1f * iScale, 0.1f * iScale), iScale > 0 ? 0.0f : 1.0f, 0.000001);
       NS_TEST_FLOAT(nsMath::SmoothStep(0.2f * iScale, 0.1f * iScale, 0.1f * iScale), iScale < 0 ? 0.0f : 1.0f, 0.000001);
     }
+
+    NS_TEST_FLOAT(nsMath::SmoothStep(0.2f, 0.0f, 1.0f), 0.104f, 0.00001f);
+    NS_TEST_FLOAT(nsMath::SmoothStep(0.4f, 0.2f, 0.8f), 0.259259f, 0.00001f);
+
+    NS_TEST_FLOAT(nsMath::SmootherStep(0.2f, 0.0f, 1.0f), 0.05792f, 0.00001f);
+    NS_TEST_FLOAT(nsMath::SmootherStep(0.4f, 0.2f, 0.8f), 0.209876f, 0.00001f);
   }
 
   NS_TEST_BLOCK(nsTestBlock::Enabled, "IsPowerOf")
@@ -585,26 +594,26 @@ NS_CREATE_SIMPLE_TEST(Math, General)
 
   NS_TEST_BLOCK(nsTestBlock::Enabled, "PowerOf2_Floor")
   {
-    NS_TEST_INT(nsMath::PowerOfTwo_Floor(64), 64);
-    NS_TEST_INT(nsMath::PowerOfTwo_Floor(33), 32);
-    NS_TEST_INT(nsMath::PowerOfTwo_Floor(4), 4);
-    NS_TEST_INT(nsMath::PowerOfTwo_Floor(5), 4);
-    NS_TEST_INT(nsMath::PowerOfTwo_Floor(1), 1);
+    NS_TEST_INT(nsMath::PowerOfTwo_Floor(64u), 64);
+    NS_TEST_INT(nsMath::PowerOfTwo_Floor(33u), 32);
+    NS_TEST_INT(nsMath::PowerOfTwo_Floor(4u), 4);
+    NS_TEST_INT(nsMath::PowerOfTwo_Floor(5u), 4);
+    NS_TEST_INT(nsMath::PowerOfTwo_Floor(1u), 1);
     NS_TEST_INT(nsMath::PowerOfTwo_Floor(0x80000000), 0x80000000);
     NS_TEST_INT(nsMath::PowerOfTwo_Floor(0x80000001), 0x80000000);
     // strange case...
-    NS_TEST_INT(nsMath::PowerOfTwo_Floor(0), 1);
+    NS_TEST_INT(nsMath::PowerOfTwo_Floor(0u), 1);
   }
 
   NS_TEST_BLOCK(nsTestBlock::Enabled, "PowerOf2_Ceil")
   {
-    NS_TEST_INT(nsMath::PowerOfTwo_Ceil(64), 64);
-    NS_TEST_INT(nsMath::PowerOfTwo_Ceil(33), 64);
-    NS_TEST_INT(nsMath::PowerOfTwo_Ceil(4), 4);
-    NS_TEST_INT(nsMath::PowerOfTwo_Ceil(5), 8);
-    NS_TEST_INT(nsMath::PowerOfTwo_Ceil(1), 1);
-    NS_TEST_INT(nsMath::PowerOfTwo_Ceil(0), 1);
-    NS_TEST_INT(nsMath::PowerOfTwo_Ceil(0x7FFFFFFF), 0x80000000);
+    NS_TEST_INT(nsMath::PowerOfTwo_Ceil(64u), 64);
+    NS_TEST_INT(nsMath::PowerOfTwo_Ceil(33u), 64);
+    NS_TEST_INT(nsMath::PowerOfTwo_Ceil(4u), 4);
+    NS_TEST_INT(nsMath::PowerOfTwo_Ceil(5u), 8);
+    NS_TEST_INT(nsMath::PowerOfTwo_Ceil(1u), 1);
+    NS_TEST_INT(nsMath::PowerOfTwo_Ceil(0u), 1);
+    NS_TEST_INT(nsMath::PowerOfTwo_Ceil(0x7FFFFFFFu), 0x80000000);
     NS_TEST_INT(nsMath::PowerOfTwo_Ceil(0x80000000), 0x80000000);
     // anything above 0x80000000 is undefined behavior due to how left-shift works
   }
@@ -734,7 +743,7 @@ NS_CREATE_SIMPLE_TEST(Math, General)
     NS_TEST_FLOAT(nsMath::ColorSignedShortToFloat(32767), 1.0f, 0.000001f);
   }
 
-  NS_TEST_BLOCK(nsTestBlock::Enabled, "EvaluateBnsierCurve")
+  NS_TEST_BLOCK(nsTestBlock::Enabled, "EvaluateBeziserCurve")
   {
     // Determined through the scientific method of manually comparing the result of the function with an online Bnsier curve generator:
     // https://www.desmos.com/calculator/cahqdxeshd
@@ -744,7 +753,7 @@ NS_CREATE_SIMPLE_TEST(Math, General)
     const float step = 1.0f / (NS_ARRAY_SIZE(res) - 1);
     for (int i = 0; i < NS_ARRAY_SIZE(res); ++i)
     {
-      const nsVec2 r = nsMath::EvaluateBnsierCurve<nsVec2>(step * i, nsVec2(1, 5), nsVec2(0, 3), nsVec2(6, 3), nsVec2(3, 1));
+      const nsVec2 r = nsMath::EvaluateBeziserCurve<nsVec2>(step * i, nsVec2(1, 5), nsVec2(0, 3), nsVec2(6, 3), nsVec2(3, 1));
       NS_TEST_VEC2(r, res[i], 0.002f);
     }
   }

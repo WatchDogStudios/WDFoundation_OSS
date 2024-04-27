@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/CodeUtils/Expression/ExpressionAST.h>
@@ -41,20 +36,34 @@ void nsExpressionVM::UnregisterFunction(const nsExpressionFunction& func)
 }
 
 nsResult nsExpressionVM::Execute(const nsExpressionByteCode& byteCode, nsArrayPtr<const nsProcessingStream> inputs,
-  nsArrayPtr<nsProcessingStream> outputs, nsUInt32 uiNumInstances, const nsExpression::GlobalData& globalData)
+  nsArrayPtr<nsProcessingStream> outputs, nsUInt32 uiNumInstances, const nsExpression::GlobalData& globalData, nsBitflags<Flags> flags)
 {
-  NS_SUCCEED_OR_RETURN(ScalarizeStreams(inputs, m_ScalarizedInputs));
-  NS_SUCCEED_OR_RETURN(ScalarizeStreams(outputs, m_ScalarizedOutputs));
+  if (flags.IsSet(Flags::ScalarizeStreams))
+  {
+    NS_SUCCEED_OR_RETURN(ScalarizeStreams(inputs, m_ScalarizedInputs));
+    NS_SUCCEED_OR_RETURN(ScalarizeStreams(outputs, m_ScalarizedOutputs));
 
-  NS_SUCCEED_OR_RETURN(MapStreams(byteCode.GetInputs(), m_ScalarizedInputs, "Input", uiNumInstances, m_MappedInputs));
-  NS_SUCCEED_OR_RETURN(MapStreams(byteCode.GetOutputs(), m_ScalarizedOutputs, "Output", uiNumInstances, m_MappedOutputs));
+    inputs = m_ScalarizedInputs;
+    outputs = m_ScalarizedOutputs;
+  }
+#if NS_ENABLED(NS_COMPILE_FOR_DEVELOPMENT)
+  else
+  {
+    AreStreamsScalarized(inputs).AssertSuccess("Input streams are not scalarized");
+    AreStreamsScalarized(outputs).AssertSuccess("Output streams are not scalarized");
+  }
+#endif
+
+  NS_SUCCEED_OR_RETURN(MapStreams(byteCode.GetInputs(), inputs, "Input", uiNumInstances, flags, m_MappedInputs));
+  NS_SUCCEED_OR_RETURN(MapStreams(byteCode.GetOutputs(), outputs, "Output", uiNumInstances, flags, m_MappedOutputs));
+
   NS_SUCCEED_OR_RETURN(MapFunctions(byteCode.GetFunctions(), globalData));
 
   const nsUInt32 uiTotalNumRegisters = byteCode.GetNumTempRegisters() * ((uiNumInstances + 3) / 4);
   m_Registers.SetCountUninitialized(uiTotalNumRegisters);
 
   // Execute bytecode
-  const nsExpressionByteCode::StorageType* pByteCode = byteCode.GetByteCode();
+  const nsExpressionByteCode::StorageType* pByteCode = byteCode.GetByteCodeStart();
   const nsExpressionByteCode::StorageType* pByteCodeEnd = byteCode.GetByteCodeEnd();
 
   ExecutionContext context;
@@ -125,47 +134,90 @@ nsResult nsExpressionVM::ScalarizeStreams(nsArrayPtr<const nsProcessingStream> s
   return NS_SUCCESS;
 }
 
-nsResult nsExpressionVM::MapStreams(nsArrayPtr<const nsExpression::StreamDesc> streamDescs, nsArrayPtr<nsProcessingStream> streams, nsStringView sStreamType, nsUInt32 uiNumInstances, nsDynamicArray<nsProcessingStream*>& out_MappedStreams)
+nsResult nsExpressionVM::AreStreamsScalarized(nsArrayPtr<const nsProcessingStream> streams)
+{
+  for (auto& stream : streams)
+  {
+    const nsUInt32 uiNumElements = nsExpressionAST::DataType::GetElementCount(nsExpressionAST::DataType::FromStreamType(stream.GetDataType()));
+    if (uiNumElements > 1)
+    {
+      return NS_FAILURE;
+    }
+  }
+
+  return NS_SUCCESS;
+}
+
+
+nsResult nsExpressionVM::ValidateStream(const nsProcessingStream& stream, const nsExpression::StreamDesc& streamDesc, nsStringView sStreamType, nsUInt32 uiNumInstances)
+{
+  // verify stream data type
+  if (stream.GetDataType() != streamDesc.m_DataType)
+  {
+    nsLog::Error("{} stream '{}' expects data of type '{}' or a compatible type. Given type '{}' is not compatible.", sStreamType, streamDesc.m_sName, nsProcessingStream::GetDataTypeName(streamDesc.m_DataType), nsProcessingStream::GetDataTypeName(stream.GetDataType()));
+    return NS_FAILURE;
+  }
+
+  // verify stream size
+  nsUInt32 uiElementSize = stream.GetElementSize();
+  nsUInt32 uiExpectedSize = stream.GetElementStride() * (uiNumInstances - 1) + uiElementSize;
+
+  if (stream.GetDataSize() < uiExpectedSize)
+  {
+    nsLog::Error("{} stream '{}' data size must be {} bytes or more. Only {} bytes given", sStreamType, streamDesc.m_sName, uiExpectedSize, stream.GetDataSize());
+    return NS_FAILURE;
+  }
+
+  return NS_SUCCESS;
+}
+
+template <typename T>
+nsResult nsExpressionVM::MapStreams(nsArrayPtr<const nsExpression::StreamDesc> streamDescs, nsArrayPtr<T> streams, nsStringView sStreamType, nsUInt32 uiNumInstances, nsBitflags<Flags> flags, nsDynamicArray<T*>& out_MappedStreams)
 {
   out_MappedStreams.Clear();
   out_MappedStreams.Reserve(streamDescs.GetCount());
 
-  for (auto& streamDesc : streamDescs)
+  if (flags.IsSet(Flags::MapStreamsByName))
   {
-    bool bFound = false;
+    for (auto& streamDesc : streamDescs)
+    {
+      bool bFound = false;
+
+      for (nsUInt32 i = 0; i < streams.GetCount(); ++i)
+      {
+        auto& stream = streams[i];
+        if (stream.GetName() == streamDesc.m_sName)
+        {
+          NS_SUCCEED_OR_RETURN(ValidateStream(stream, streamDesc, sStreamType, uiNumInstances));
+
+          out_MappedStreams.PushBack(&stream);
+          bFound = true;
+          break;
+        }
+      }
+
+      if (!bFound)
+      {
+        nsLog::Error("Bytecode expects an {} stream '{}'", sStreamType, streamDesc.m_sName);
+        return NS_FAILURE;
+      }
+    }
+  }
+  else
+  {
+    if (streams.GetCount() != streamDescs.GetCount())
+      return NS_FAILURE;
 
     for (nsUInt32 i = 0; i < streams.GetCount(); ++i)
     {
-      auto& stream = streams[i];
-      if (stream.GetName() == streamDesc.m_sName)
-      {
-        // verify stream data type
-        if (stream.GetDataType() != streamDesc.m_DataType)
-        {
-          nsLog::Error("{} stream '{}' expects data of type '{}' or a compatible type. Given type '{}' is not compatible.", sStreamType, streamDesc.m_sName, nsProcessingStream::GetDataTypeName(streamDesc.m_DataType), nsProcessingStream::GetDataTypeName(stream.GetDataType()));
-          return NS_FAILURE;
-        }
+      auto& stream = streams.GetPtr()[i];
 
-        // verify stream size
-        nsUInt32 uiElementSize = stream.GetElementSize();
-        nsUInt32 uiExpectedSize = stream.GetElementStride() * (uiNumInstances - 1) + uiElementSize;
+#if NS_ENABLED(NS_COMPILE_FOR_DEVELOPMENT)
+      auto& streamDesc = streamDescs.GetPtr()[i];
+      NS_SUCCEED_OR_RETURN(ValidateStream(stream, streamDesc, sStreamType, uiNumInstances));
+#endif
 
-        if (stream.GetDataSize() < uiExpectedSize)
-        {
-          nsLog::Error("{} stream '{}' data size must be {} bytes or more. Only {} bytes given", sStreamType, streamDesc.m_sName, uiExpectedSize, stream.GetDataSize());
-          return NS_FAILURE;
-        }
-
-        out_MappedStreams.PushBack(&stream);
-        bFound = true;
-        break;
-      }
-    }
-
-    if (!bFound)
-    {
-      nsLog::Error("Bytecode expects an {} stream '{}'", sStreamType, streamDesc.m_sName);
-      return NS_FAILURE;
+      out_MappedStreams.PushBack(&stream);
     }
   }
 
@@ -209,6 +261,3 @@ nsResult nsExpressionVM::MapFunctions(nsArrayPtr<const nsExpression::FunctionDes
 
   return NS_SUCCESS;
 }
-
-
-NS_STATICLINK_FILE(Foundation, Foundation_CodeUtils_Expression_Implementation_ExpressionVM);

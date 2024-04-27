@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/IO/FileSystem/FileSystem.h>
@@ -85,7 +80,7 @@ void nsTaskSystem::WriteStateSnapshotToDGML(nsDGMLGraph& ref_graph)
     if (!tg.m_bInUse)
       continue;
 
-    title.Format("Group {}", g);
+    title.SetFormat("Group {}", g);
 
     const nsDGMLGraph::NodeId taskGroupId = ref_graph.AddGroup(title, nsDGMLGraph::GroupType::Expanded, &taskGroupND);
     groupNodeIds[&tg] = taskGroupId;
@@ -104,10 +99,10 @@ void nsTaskSystem::WriteStateSnapshotToDGML(nsDGMLGraph& ref_graph)
       ref_graph.AddNodeProperty(taskNodeId, scheduledId, task.m_bTaskIsScheduled ? "true" : "false");
       ref_graph.AddNodeProperty(taskNodeId, finishedId, task.IsTaskFinished() ? "true" : "false");
 
-      tmp.Format("{}", task.GetMultiplicity());
+      tmp.SetFormat("{}", task.GetMultiplicity());
       ref_graph.AddNodeProperty(taskNodeId, multiplicityId, tmp);
 
-      tmp.Format("{}", task.m_iRemainingRuns);
+      tmp.SetFormat("{}", task.m_iRemainingRuns);
       ref_graph.AddNodeProperty(taskNodeId, remainingRunsId, tmp);
     }
   }
@@ -164,6 +159,3 @@ void nsTaskSystem::WriteStateSnapshotToFile(const char* szPath /*= nullptr*/)
   nsFileSystem::ResolvePath(sPath, &absPath, nullptr).IgnoreResult();
   nsLog::Info("Task graph snapshot saved to '{}'", absPath);
 }
-
-
-NS_STATICLINK_FILE(Foundation, Foundation_Threading_Implementation_TaskSystemUtils);

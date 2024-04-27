@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Basics.h>
@@ -128,7 +123,9 @@ struct NS_FOUNDATION_DLL nsEndianHelper
 
 #if NS_ENABLED(NS_PLATFORM_LITTLE_ENDIAN)
 
-  static NS_ALWAYS_INLINE void LittleEndianToNative(nsUInt16* /*pWords*/, nsUInt32 /*uiCount*/) {}
+  static NS_ALWAYS_INLINE void LittleEndianToNative(nsUInt16* /*pWords*/, nsUInt32 /*uiCount*/)
+  {
+  }
 
   static NS_ALWAYS_INLINE void NativeToLittleEndian(nsUInt16* /*pWords*/, nsUInt32 /*uiCount*/) {}
 
@@ -154,7 +151,10 @@ struct NS_FOUNDATION_DLL nsEndianHelper
 
 #elif NS_ENABLED(NS_PLATFORM_BIG_ENDIAN)
 
-  static NS_ALWAYS_INLINE void LittleEndianToNative(nsUInt16* pWords, nsUInt32 uiCount) { SwitchWords(pWords, uiCount); }
+  static NS_ALWAYS_INLINE void LittleEndianToNative(nsUInt16* pWords, nsUInt32 uiCount)
+  {
+    SwitchWords(pWords, uiCount);
+  }
 
   static NS_ALWAYS_INLINE void NativeToLittleEndian(nsUInt16* pWords, nsUInt32 uiCount) { SwitchWords(pWords, uiCount); }
 

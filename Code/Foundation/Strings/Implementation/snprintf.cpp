@@ -1,11 +1,7 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Strings/StringUtils.h>
+#include <stdarg.h>
 
 // This is an implementation of the sprintf function, with an additional buffer size
 // On some systems this is implemented under the name 'snprintf'
@@ -29,7 +25,7 @@
 //  Small values (bytes / shorts) don't get any larger by this, I don't see anything that could be done
 //  differently knowing these values are supposed to be bytes or shorts.
 
-//#define USE_STRICT_SPECIFICATION
+// #define USE_STRICT_SPECIFICATION
 
 struct sprintfFlags
 {
@@ -41,7 +37,7 @@ struct sprintfFlags
     BlankSign = NS_BIT(2),     // (space)
     Hash = NS_BIT(3),          // #
     PadZeros = NS_BIT(4),      // 0
-    ForcnseroSign = NS_BIT(5), // [internal] Prints a '+' even for zero
+    ForceZeroSign = NS_BIT(5), // [internal] Prints a '+' even for zero
   };
 };
 
@@ -342,7 +338,7 @@ static void OutputIntSign(char* szOutputBuffer, unsigned int uiBufferSize, unsig
   }
   else if (uiFlags & sprintfFlags::BlankSign)
     OutputChar(szOutputBuffer, uiBufferSize, ref_uiWritePos, ' ');
-  else if (uiFlags & sprintfFlags::ForcnseroSign)
+  else if (uiFlags & sprintfFlags::ForceZeroSign)
     OutputChar(szOutputBuffer, uiBufferSize, ref_uiWritePos, '+');
 
   if (uiFlags & sprintfFlags::Hash)
@@ -578,7 +574,7 @@ static bool IsNaN(double value)
 }
 
 static bool FormatUFloat(
-  char* szOutputBuffer, unsigned int uiBufferSize, unsigned int& ref_uiWritePos, double& ref_fValue0, int iPrecision, unsigned int uiFlags, bool bRemovnseroes)
+  char* szOutputBuffer, unsigned int uiBufferSize, unsigned int& ref_uiWritePos, double& ref_fValue0, int iPrecision, unsigned int uiFlags, bool bRemoveZeroes)
 {
   if (IsNaN(ref_fValue0))
   {
@@ -612,7 +608,7 @@ static bool FormatUFloat(
 
   // When no precision is given a maximum of 6 fractional digits is written
   // However, all trailing zeros will be removed again, to shorten the number as much as possible
-  const bool bRemoveTrailingZeros = bRemovnseroes || (iPrecision < 0);
+  const bool bRemoveTrailingZeros = bRemoveZeroes || (iPrecision < 0);
 
   if (iPrecision < 0)
     iPrecision = 6;
@@ -727,7 +723,7 @@ static bool WouldRoundToTen(double value, int iPrecision)
 
 
 static void FormatUFloatScientific(char* szOutputBuffer, unsigned int uiBufferSize, unsigned int& ref_uiWritePos, double& ref_fValue0, int iPrecision,
-  unsigned int uiFlags, bool bUpperCase, bool bRemovnseroes)
+  unsigned int uiFlags, bool bUpperCase, bool bRemoveZeroes)
 {
   if (IsNaN(ref_fValue0))
   {
@@ -767,10 +763,10 @@ static void FormatUFloatScientific(char* szOutputBuffer, unsigned int uiBufferSi
     exp++;
   }
 
-  FormatUFloat(szOutputBuffer, uiBufferSize, ref_uiWritePos, dSci, iPrecision, uiFlags, bRemovnseroes);
+  FormatUFloat(szOutputBuffer, uiBufferSize, ref_uiWritePos, dSci, iPrecision, uiFlags, bRemoveZeroes);
 
   OutputChar(szOutputBuffer, uiBufferSize, ref_uiWritePos, bUpperCase ? 'E' : 'e');
-  OutputInt(szOutputBuffer, uiBufferSize, ref_uiWritePos, exp, 0, 3, sprintfFlags::ForcnseroSign, 10);
+  OutputInt(szOutputBuffer, uiBufferSize, ref_uiWritePos, exp, 0, 3, sprintfFlags::ForceZeroSign, 10);
 }
 
 static bool IsAllZero(char* szBuffer)
@@ -789,16 +785,16 @@ static bool IsAllZero(char* szBuffer)
 }
 
 static void OutputFloat(char* szOutputBuffer, unsigned int uiBufferSize, unsigned int& ref_uiWritePos, double value, int iWidth, int iPrecision,
-  unsigned int uiFlags, bool bUpperCase, bool bScientific, bool bRemovnseroes)
+  unsigned int uiFlags, bool bUpperCase, bool bScientific, bool bRemoveZeroes)
 {
   char szBuffer[128];
   unsigned int iNumDigits = 0;
 
   // Input values that are outside the int64 range cannot be output in non-scientific form
   if (bScientific || value >= 9223372036854775807.0 || value <= -9223372036854775808.0)
-    FormatUFloatScientific(szBuffer, 128, iNumDigits, value, iPrecision, uiFlags, bUpperCase, bRemovnseroes);
+    FormatUFloatScientific(szBuffer, 128, iNumDigits, value, iPrecision, uiFlags, bUpperCase, bRemoveZeroes);
   else
-    FormatUFloat(szBuffer, 128, iNumDigits, value, iPrecision, uiFlags, bRemovnseroes);
+    FormatUFloat(szBuffer, 128, iNumDigits, value, iPrecision, uiFlags, bRemoveZeroes);
 
   szBuffer[iNumDigits] = '\0';
 
@@ -1093,6 +1089,3 @@ void nsStringUtils::OutputFormattedFloat(char* szOutputBuffer, nsUInt32 uiBuffer
   OutputFloat(szOutputBuffer, uiBufferSize, ref_uiWritePos, value, uiWidth, nsMath::Max<int>(-1, iPrecision), bPadZeros ? sprintfFlags::PadZeros : 0,
     false, bScientific, bRemoveTrailingZeroes);
 }
-
-
-NS_STATICLINK_FILE(Foundation, Foundation_Strings_Implementation_snprintf);

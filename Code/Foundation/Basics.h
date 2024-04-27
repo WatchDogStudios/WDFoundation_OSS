@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Basics/PreprocessorUtils.h>
@@ -37,12 +32,6 @@
 #  include <Foundation/Basics/Platform/OSX/Platform_OSX.h>
 #elif NS_ENABLED(NS_PLATFORM_LINUX) || NS_ENABLED(NS_PLATFORM_ANDROID)
 #  include <Foundation/Basics/Platform/Linux/Platform_Linux.h>
-#elif NS_ENABLED(NS_PLATFORM_PLAYSTATION_5) && NS_ENABLED(NS_PLATFORM_CONSOLE)
-
-#elif NS_ENABLED(NS_PLATFORM_XBOXSERIESCONSOLE) && NS_ENABLED(NS_PLATFORM_CONSOLE)
-
-#elif NS_ENABLED(NS_PLATFORM_NINTENDO) && NS_ENABLED(NS_PLATFORM_CONSOLE)
-
 #else
 #  error "Undefined platform!"
 #endif
@@ -76,7 +65,7 @@
 
 #include <Foundation/Types/TypeTraits.h>
 
-#include <Foundation/Memory/AllocatorBase.h>
+#include <Foundation/Memory/Allocator.h>
 
 #include <Foundation/Configuration/StaticSubSystem.h>
 #include <Foundation/Strings/FormatString.h>
@@ -84,20 +73,20 @@
 class NS_FOUNDATION_DLL nsFoundation
 {
 public:
-  static nsAllocatorBase* s_pDefaultAllocator;
-  static nsAllocatorBase* s_pAlignedAllocator;
+  static nsAllocator* s_pDefaultAllocator;
+  static nsAllocator* s_pAlignedAllocator;
 
   /// \brief The default allocator can be used for any kind of allocation if no alignment is required
-  NS_ALWAYS_INLINE static nsAllocatorBase* GetDefaultAllocator()
+  NS_ALWAYS_INLINE static nsAllocator* GetDefaultAllocator()
   {
     if (s_bIsInitialized)
       return s_pDefaultAllocator;
     else // the default allocator is not yet set so we return the static allocator instead.
-      return GetStaticAllocator();
+      return GetStaticsAllocator();
   }
 
   /// \brief The aligned allocator should be used for all allocations which need alignment
-  NS_ALWAYS_INLINE static nsAllocatorBase* GetAlignedAllocator()
+  NS_ALWAYS_INLINE static nsAllocator* GetAlignedAllocator()
   {
     NS_ASSERT_RELEASE(s_pAlignedAllocator != nullptr, "nsFoundation must have been initialized before this function can be called. This "
                                                       "error can occur when you have a global variable or a static member variable that "
@@ -106,14 +95,13 @@ public:
     return s_pAlignedAllocator;
   }
 
+  /// \brief Returns the allocator that is used by global data and static members before the default allocator is created.
+  static nsAllocator* GetStaticsAllocator();
+
 private:
   friend class nsStartup;
-  friend struct nsStaticAllocatorWrapper;
+  friend struct nsStaticsAllocatorWrapper;
 
   static void Initialize();
-
-  /// \brief Returns the allocator that is used by global data and static members before the default allocator is created.
-  static nsAllocatorBase* GetStaticAllocator();
-
   static bool s_bIsInitialized;
 };

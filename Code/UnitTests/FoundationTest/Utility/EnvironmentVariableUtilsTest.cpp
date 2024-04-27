@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/System/EnvironmentVariableUtils.h>
@@ -40,7 +35,7 @@ NS_CREATE_SIMPLE_TEST(Utility, EnvironmentVariableUtils)
   NS_TEST_BLOCK(nsTestBlock::Enabled, "IsVariableSet/SetValue")
   {
     nsStringBuilder szVarName;
-    szVarName.Format("NS_THIS_SHOULDNT_EXIST_NOW_OR_THIS_TEST_WILL_FAIL_{0}", uiVersionForVariableSetting++);
+    szVarName.SetFormat("NS_THIS_SHOULDNT_EXIST_NOW_OR_THIS_TEST_WILL_FAIL_{0}", uiVersionForVariableSetting++);
 
     NS_TEST_BOOL(!nsEnvironmentVariableUtils::IsVariableSet(szVarName));
 
@@ -62,7 +57,7 @@ NS_CREATE_SIMPLE_TEST(Utility, EnvironmentVariableUtils)
       "SOME REALLY LONG VALUE, LETS TEST SOME LIMITS WE MIGHT HIT - 012456789 ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz";
 
     nsStringBuilder szVarName;
-    szVarName.Format("NS_LONG_VARIABLE_TEST_{0}", uiVersionForVariableSetting++);
+    szVarName.SetFormat("NS_LONG_VARIABLE_TEST_{0}", uiVersionForVariableSetting++);
 
     NS_TEST_BOOL(!nsEnvironmentVariableUtils::IsVariableSet(szVarName));
 

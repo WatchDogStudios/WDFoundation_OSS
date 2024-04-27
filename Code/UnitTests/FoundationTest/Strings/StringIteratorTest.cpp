@@ -1,9 +1,4 @@
-﻿/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
-#include <FoundationTest/FoundationTestPCH.h>
+﻿#include <FoundationTest/FoundationTestPCH.h>
 
 // NOTE: always save as Unicode UTF-8 with signature
 
@@ -50,7 +45,7 @@ void TestConstruction(const STRING& value, const char* szStart, const char* szEn
   NS_TEST_BOOL(itBeginR.IsValid());
   NS_TEST_BOOL(itBeginR == itBeginR);
   const char* szEndPrior = szEnd;
-  nsUnicodeUtils::MoveToPriorUtf8(szEndPrior);
+  nsUnicodeUtils::MoveToPriorUtf8(szEndPrior, szStart).AssertSuccess();
   NS_TEST_BOOL(itBeginR.GetData() == szEndPrior);
   NS_TEST_BOOL(itBeginR.GetCharacter() == nsUnicodeUtils::ConvertUtf8ToUtf32("F"));
   NS_TEST_BOOL(*itBeginR == nsUnicodeUtils::ConvertUtf8ToUtf32("F"));

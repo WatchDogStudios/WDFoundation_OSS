@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationInternal.h>
 NS_FOUNDATION_INTERNAL_HEADER
 
@@ -316,8 +311,8 @@ nsResult nsProcess::Launch(const nsProcessOptions& opt, nsBitflags<nsProcessLaun
 
   // in theory this can be used to force the process's main window to be in the background,
   // but except for SW_HIDE and SW_SHOWMINNOACTIVE this doesn't work, and those are not useful
-  //si.wShowWindow = SW_SHOWNOACTIVATE;
-  //si.dwFlags |= STARTF_USESHOWWINDOW;
+  // si.wShowWindow = SW_SHOWNOACTIVATE;
+  // si.dwFlags |= STARTF_USESHOWWINDOW;
 
   PROCESS_INFORMATION pi;
   nsMemoryUtils::ZeroFill(&pi, 1);
@@ -345,12 +340,12 @@ nsResult nsProcess::Launch(const nsProcessOptions& opt, nsBitflags<nsProcessLaun
         nullptr,                                  // lpThreadAttributes
         uiNumHandlesToInherit > 0 ? TRUE : FALSE, // bInheritHandles
         dwCreationFlags,
-        nullptr, // lpEnvironment
+        nullptr,                                  // lpEnvironment
         opt.m_sWorkingDirectory.IsEmpty() ? nullptr : nsStringWChar(opt.m_sWorkingDirectory).GetData(),
-        &si,                   // lpStartupInfo
-        &pi,                   // lpProcessInformation
-        uiNumHandlesToInherit, // cHandlesToInherit
-        HandlesToInherit       // rgHandlesToInherit
+        &si,                                      // lpStartupInfo
+        &pi,                                      // lpProcessInformation
+        uiNumHandlesToInherit,                    // cHandlesToInherit
+        HandlesToInherit                          // rgHandlesToInherit
         ))
   {
     m_pImpl->m_pipeStdOut.Close();
@@ -387,10 +382,13 @@ nsResult nsProcess::ResumeSuspended()
   if (m_pImpl->m_ProcessHandle == nullptr || m_pImpl->m_MainThreadHandle == nullptr)
     return NS_FAILURE;
 
-  ResumeThread(m_pImpl->m_MainThreadHandle);
+  const DWORD prevSuspendCount = ResumeThread(m_pImpl->m_MainThreadHandle);
+  if (prevSuspendCount != 1)
+    nsLog::Warning("nsProcess::ResumeSuspended: Unexpected ResumeThread result ({})", nsUInt64(prevSuspendCount));
 
   // invalidate the thread handle, so that we cannot resume the process twice
-  CloseHandle(m_pImpl->m_MainThreadHandle);
+  if (!CloseHandle(m_pImpl->m_MainThreadHandle))
+    nsLog::Warning("nsProcess::ResumeSuspended: Failed to close handle");
   m_pImpl->m_MainThreadHandle = nullptr;
 
   return NS_SUCCESS;

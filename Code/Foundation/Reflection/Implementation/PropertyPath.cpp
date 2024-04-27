@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Reflection/PropertyPath.h>
@@ -154,7 +149,8 @@ nsResult nsPropertyPath::WriteProperty(
 {
   NS_ASSERT_DEBUG(!m_PathSteps.IsEmpty(), "Call InitializeFromPath before WriteToObject");
   return ResolvePath(pRootObject, &type, m_PathSteps.GetArrayPtr().GetSubArray(0, m_PathSteps.GetCount() - 1), true,
-    [this, &func](void* pLeafObject, const nsRTTI& leafType) {
+    [this, &func](void* pLeafObject, const nsRTTI& leafType)
+    {
       auto& lastStep = m_PathSteps[m_PathSteps.GetCount() - 1];
       func(pLeafObject, leafType, lastStep.m_pProperty, lastStep.m_Index);
     });
@@ -165,7 +161,8 @@ nsResult nsPropertyPath::ReadProperty(
 {
   NS_ASSERT_DEBUG(m_bIsValid, "Call InitializeFromPath before WriteToObject");
   return ResolvePath(pRootObject, &type, m_PathSteps.GetArrayPtr().GetSubArray(0, m_PathSteps.GetCount() - 1), false,
-    [this, &func](void* pLeafObject, const nsRTTI& leafType) {
+    [this, &func](void* pLeafObject, const nsRTTI& leafType)
+    {
       auto& lastStep = m_PathSteps[m_PathSteps.GetCount() - 1];
       func(pLeafObject, leafType, lastStep.m_pProperty, lastStep.m_Index);
     });
@@ -177,7 +174,8 @@ void nsPropertyPath::SetValue(void* pRootObject, const nsRTTI& type, const nsVar
   //                    value.CanConvertTo(m_PathSteps[m_PathSteps.GetCount() - 1].m_pProperty->GetSpecificType()->GetVariantType()),
   //                "The given value does not match the type at the given path.");
 
-  WriteProperty(pRootObject, type, [&value](void* pLeaf, const nsRTTI& type, const nsAbstractProperty* pProp, const nsVariant& index) {
+  WriteProperty(pRootObject, type, [&value](void* pLeaf, const nsRTTI& type, const nsAbstractProperty* pProp, const nsVariant& index)
+    {
     switch (pProp->GetCategory())
     {
       case nsPropertyCategory::Member:
@@ -192,8 +190,8 @@ void nsPropertyPath::SetValue(void* pRootObject, const nsRTTI& type, const nsVar
       default:
         NS_ASSERT_NOT_IMPLEMENTED;
         break;
-    }
-  }).IgnoreResult();
+    } })
+    .IgnoreResult();
 }
 
 void nsPropertyPath::GetValue(void* pRootObject, const nsRTTI& type, nsVariant& out_value) const
@@ -203,7 +201,8 @@ void nsPropertyPath::GetValue(void* pRootObject, const nsRTTI& type, nsVariant& 
   //                "The property path of value {} cannot be stored in an nsVariant.", m_PathSteps[m_PathSteps.GetCount() -
   //                1].m_pProperty->GetSpecificType()->GetTypeName());
 
-  ReadProperty(pRootObject, type, [&out_value](void* pLeaf, const nsRTTI& type, const nsAbstractProperty* pProp, const nsVariant& index) {
+  ReadProperty(pRootObject, type, [&out_value](void* pLeaf, const nsRTTI& type, const nsAbstractProperty* pProp, const nsVariant& index)
+    {
     switch (pProp->GetCategory())
     {
       case nsPropertyCategory::Member:
@@ -218,8 +217,8 @@ void nsPropertyPath::GetValue(void* pRootObject, const nsRTTI& type, nsVariant& 
       default:
         NS_ASSERT_NOT_IMPLEMENTED;
         break;
-    }
-  }).IgnoreResult();
+    } })
+    .IgnoreResult();
 }
 
 nsResult nsPropertyPath::ResolvePath(void* pCurrentObject, const nsRTTI* pType, const nsArrayPtr<const ResolvedStep> path, bool bWriteToObject,

@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Logging/ConsoleWriter.h>
@@ -42,8 +37,9 @@ void nsLogWriter::Console::LogMessageHandler(const nsLoggingEventData& eventData
   if (eventData.m_EventType == nsLogMsgType::BeginGroup)
     printf("\n");
 
-  for (nsUInt32 i = 0; i < eventData.m_uiIndentation; ++i)
-    printf(" ");
+  nsHybridArray<char, 11> indentation;
+  indentation.SetCount(eventData.m_uiIndentation + 1, ' ');
+  indentation[eventData.m_uiIndentation] = 0;
 
   nsStringBuilder sTemp1, sTemp2;
 
@@ -55,58 +51,58 @@ void nsLogWriter::Console::LogMessageHandler(const nsLoggingEventData& eventData
 
     case nsLogMsgType::BeginGroup:
       SetConsoleColor(0x02);
-      printf("+++++ %s (%s) +++++\n", eventData.m_sText.GetData(sTemp1), eventData.m_sTag.GetData(sTemp2));
+      printf("%s+++++ %s (%s) +++++\n", indentation.GetData(), eventData.m_sText.GetData(sTemp1), eventData.m_sTag.GetData(sTemp2));
       break;
 
     case nsLogMsgType::EndGroup:
       SetConsoleColor(0x02);
 #if NS_ENABLED(NS_COMPILE_FOR_DEVELOPMENT)
-      printf("----- %s (%.6f sec)-----\n\n", eventData.m_sText.GetData(sTemp1), eventData.m_fSeconds);
+      printf("%s----- %s (%.6f sec)-----\n\n", indentation.GetData(), eventData.m_sText.GetData(sTemp1), eventData.m_fSeconds);
 #else
-      printf("----- %s (%s)-----\n\n", eventData.m_sText.GetData(sTemp1), "timing info not available");
+      printf("%s----- %s (%s)-----\n\n", indentation.GetData(), eventData.m_sText.GetData(sTemp1), "timing info not available");
 #endif
       break;
 
     case nsLogMsgType::ErrorMsg:
       SetConsoleColor(0x0C);
-      printf("%sError: %s\n", sTimestamp.GetData(), eventData.m_sText.GetData(sTemp1));
+      printf("%s%sError: %s\n", indentation.GetData(), sTimestamp.GetData(), eventData.m_sText.GetData(sTemp1));
       fflush(stdout);
       break;
 
     case nsLogMsgType::SeriousWarningMsg:
       SetConsoleColor(0x0C);
-      printf("%sSeriously: %s\n", sTimestamp.GetData(), eventData.m_sText.GetData(sTemp1));
+      printf("%s%sSeriously: %s\n", indentation.GetData(), sTimestamp.GetData(), eventData.m_sText.GetData(sTemp1));
       break;
 
     case nsLogMsgType::WarningMsg:
       SetConsoleColor(0x0E);
-      printf("%sWarning: %s\n", sTimestamp.GetData(), eventData.m_sText.GetData(sTemp1));
+      printf("%s%sWarning: %s\n", indentation.GetData(), sTimestamp.GetData(), eventData.m_sText.GetData(sTemp1));
       break;
 
     case nsLogMsgType::SuccessMsg:
       SetConsoleColor(0x0A);
-      printf("%s%s\n", sTimestamp.GetData(), eventData.m_sText.GetData(sTemp1));
+      printf("%s%s%s\n", indentation.GetData(), sTimestamp.GetData(), eventData.m_sText.GetData(sTemp1));
       fflush(stdout);
       break;
 
     case nsLogMsgType::InfoMsg:
       SetConsoleColor(0x07);
-      printf("%s%s\n", sTimestamp.GetData(), eventData.m_sText.GetData(sTemp1));
+      printf("%s%s%s\n", indentation.GetData(), sTimestamp.GetData(), eventData.m_sText.GetData(sTemp1));
       break;
 
     case nsLogMsgType::DevMsg:
       SetConsoleColor(0x08);
-      printf("%s%s\n", sTimestamp.GetData(), eventData.m_sText.GetData(sTemp1));
+      printf("%s%s%s\n", indentation.GetData(), sTimestamp.GetData(), eventData.m_sText.GetData(sTemp1));
       break;
 
     case nsLogMsgType::DebugMsg:
       SetConsoleColor(0x09);
-      printf("%s%s\n", sTimestamp.GetData(), eventData.m_sText.GetData(sTemp1));
+      printf("%s%s%s\n", indentation.GetData(), sTimestamp.GetData(), eventData.m_sText.GetData(sTemp1));
       break;
 
     default:
       SetConsoleColor(0x0D);
-      printf("%s%s\n", sTimestamp.GetData(), eventData.m_sText.GetData(sTemp1));
+      printf("%s%s%s\n", indentation.GetData(), sTimestamp.GetData(), eventData.m_sText.GetData(sTemp1));
 
       nsLog::Warning("Unknown Message Type {0}", eventData.m_EventType);
       break;
@@ -122,6 +118,3 @@ void nsLogWriter::Console::SetTimestampMode(nsLog::TimestampMode mode)
 #if NS_ENABLED(NS_PLATFORM_ANDROID)
 #  undef printf
 #endif
-
-
-NS_STATICLINK_FILE(Foundation, Foundation_Logging_Implementation_ConsoleWriter);

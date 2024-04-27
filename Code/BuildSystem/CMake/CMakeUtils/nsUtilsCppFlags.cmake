@@ -21,6 +21,26 @@ function(ns_set_build_flags_msvc TARGET_NAME)
 	ns_pull_config_vars()
 
 	# target_compile_options(${TARGET_NAME} PRIVATE "$<$<CONFIG:DEBUG>:${MY_DEBUG_OPTIONS}>")
+	if(NS_SUPPORT_LIVEPP)
+		# These compiler settings must be enabled in the configuration properties of each project which uses Live++:
+
+		# C/C++ -> General -> Debug Information Format must be set to either C7 compatible (/Z7) or Program Database (/Zi)
+
+		# C/C++ -> Code Generation -> Enable Minimal Rebuild must be set to No (/Gm-)
+
+		# x86/Win32 projects additionally require the following compiler settings:
+
+		# C/C++ -> Code Generation -> Create Hotpatchable Image must be set to Yes (/hotpatch)
+		
+
+		target_compile_options(${TARGET_NAME} PRIVATE
+			"/Z7"
+			"/Gm-"
+			"/hotpatch"
+			"/Gy"
+			"/Gw"
+		)
+	endif()
 
 	# enable multi-threaded compilation
 	target_compile_options(${TARGET_NAME} PRIVATE "/MP")
@@ -52,6 +72,9 @@ function(ns_set_build_flags_msvc TARGET_NAME)
 
 	# force the compiler to interpret code as utf8.
 	target_compile_options(${TARGET_NAME} PRIVATE "/utf-8")
+
+	# set the __cplusplus preprocessor macro to something useful
+	target_compile_options(${TARGET_NAME} PRIVATE "/Zc:__cplusplus")
 
 	# set high warning level
 	# target_compile_options(${TARGET_NAME} PRIVATE "/W4") # too much work to fix all warnings in ns
@@ -100,7 +123,10 @@ function(ns_set_build_flags_msvc TARGET_NAME)
 
 	# Do not enable comdat folding in debug. Required to make incremental linking work.
 	set(LINKER_FLAGS_DEBUG "${LINKER_FLAGS_DEBUG} /OPT:NOICF")
-
+	if(NS_SUPPORT_LIVEPP)
+		set(LINKER_FLAGS_DEBUG "${LINKER_FLAGS_DEBUG} /FUNCTIONPADMIN")
+		set(LINKER_FLAGS_DEBUG "${LINKER_FLAGS_DEBUG} /DEBUG:FULL")
+	endif()
 	set(LINKER_FLAGS_RELEASE "")
 
 	set(LINKER_FLAGS_RELEASE "${LINKER_FLAGS_RELEASE} /INCREMENTAL:NO")
@@ -152,72 +178,26 @@ function(ns_set_build_flags_msvc TARGET_NAME)
 
 	# 'nodiscard': attribute is ignored in this syntactic position
 	target_compile_options(${TARGET_NAME} PRIVATE /wd5240)
-    
-
 endfunction()
 
 # #####################################
 # ## ns_set_build_flags_clang(<target>)
 # #####################################
 function(ns_set_build_flags_clang TARGET_NAME)
-	# Cmake complains that this is not defined on OSX make build.
-	# if(NS_COMPILE_ENGINE_AS_DLL)
-	# set (CMAKE_CPP_CREATE_DYNAMIC_LIBRARY ON)
-	# else ()
-	# set (CMAKE_CPP_CREATE_STATIC_LIBRARY ON)
-	# endif ()
-	if(NS_CMAKE_PLATFORM_OSX)
-		target_compile_options(${TARGET_NAME} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-stdlib=libc++>)
-
-		target_link_options(${TARGET_NAME} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-stdlib=libc++>)
-	endif()
-
 	if(NS_CMAKE_ARCHITECTURE_X86)
 		target_compile_options(${TARGET_NAME} PRIVATE "-msse4.1")
 	endif()
-
-	if(NS_CMAKE_PLATFORM_LINUX)
-		target_compile_options(${TARGET_NAME} PRIVATE -fPIC)
-
-		# Look for the super fast ld compatible linker called "mold". If present we want to use it.
-		find_program(MOLD_PATH "mold")
-
-		# We want to use the llvm linker lld by default
-		# Unless the user has specified a different linker
-		get_target_property(TARGET_TYPE ${TARGET_NAME} TYPE)
-
-		if("${TARGET_TYPE}" STREQUAL "SHARED_LIBRARY")
-			if(NOT("${CMAKE_EXE_LINKER_FLAGS}" MATCHES "fuse-ld="))
-				if(MOLD_PATH)
-					target_link_options(${TARGET_NAME} PRIVATE "-fuse-ld=${MOLD_PATH}")
-				else()
-					target_link_options(${TARGET_NAME} PRIVATE "-fuse-ld=lld")
-				endif()
-			endif()
-
-			# Reporting missing symbols at linktime
-			target_link_options(${TARGET_NAME} PRIVATE "-Wl,-z,defs")
-		elseif("${TARGET_TYPE}" STREQUAL "EXECUTABLE")
-			if(NOT("${CMAKE_SHARED_LINKER_FLAGS}" MATCHES "fuse-ld="))
-				if(MOLD_PATH)
-					target_link_options(${TARGET_NAME} PRIVATE "-fuse-ld=${MOLD_PATH}")
-				else()
-					target_link_options(${TARGET_NAME} PRIVATE "-fuse-ld=lld")
-				endif()
-			endif()
-
-			# Reporting missing symbols at linktime
-			target_link_options(${TARGET_NAME} PRIVATE "-Wl,-z,defs")
-		endif()
+	if(NS_SUPPORT_LIVEPP)
+		target_compile_options(${TARGET_NAME} PRIVATE 
+		"-g"
+		"-gcodeview"
+		"-fms-hotpatch"
+		"-ffunction-sections"
+		"-Xclang-mno-constructor-aliases"
+		)
 	endif()
-
 	# Disable warning: multi-character character constant
 	target_compile_options(${TARGET_NAME} PRIVATE -Wno-multichar)
-
-	if(NS_CMAKE_PLATFORM_WINDOWS)
-		# Disable the warning that clang doesn't support pragma optimize.
-		target_compile_options(${TARGET_NAME} PRIVATE -Wno-ignored-pragma-optimize -Wno-pragma-pack)
-	endif()
 
 	if(NOT(CMAKE_CURRENT_SOURCE_DIR MATCHES "Code/ThirdParty"))
 		target_compile_options(${TARGET_NAME} PRIVATE -Werror=inconsistent-missing-override -Werror=switch -Werror=uninitialized -Werror=unused-result -Werror=return-type)
@@ -236,6 +216,11 @@ function(ns_set_build_flags_clang TARGET_NAME)
 		target_compile_options(${TARGET_NAME} PRIVATE "--system-header-prefix=\"${NS_ROOT}/Code/ThirdParty\"")
 	else()
 		target_compile_options(${TARGET_NAME} PRIVATE "--system-header-prefix=\"${CMAKE_SOURCE_DIR}/Code/ThirdParty\"")
+	endif()
+
+	if(COMMAND ns_platformhook_set_build_flags_clang)
+		# call platform-specific hook
+		ns_platformhook_set_build_flags_clang()
 	endif()
 endfunction()
 
@@ -331,12 +316,16 @@ endfunction()
 # ## ns_enable_strict_warnings(<target>)
 # #####################################
 function(ns_enable_strict_warnings TARGET_NAME)
-	if(MSVC)
+	if(NS_CMAKE_COMPILER_MSVC)
 		# In case there is W3 already, remove it so it doesn't spam warnings when using Ninja builds.
 		get_target_property(TARGET_COMPILE_OPTS ${PROJECT_NAME} COMPILE_OPTIONS)
 		list(REMOVE_ITEM TARGET_COMPILE_OPTS /W3)
 		set_target_properties(${TARGET_NAME} PROPERTIES COMPILE_OPTIONS "${TARGET_COMPILE_OPTS}")
-		
+
 		target_compile_options(${PROJECT_NAME} PRIVATE /W4 /WX)
+	endif()
+
+	if(NS_CMAKE_COMPILER_CLANG)
+		target_compile_options(${PROJECT_NAME} PRIVATE -Werror -Wall -Wlogical-op-parentheses)
 	endif()
 endfunction()

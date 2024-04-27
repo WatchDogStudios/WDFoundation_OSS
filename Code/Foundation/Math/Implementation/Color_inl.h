@@ -1,13 +1,8 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 inline nsColor::nsColor()
 {
-#if NS_ENABLED(NS_COMPILE_FOR_DEBUG)
+#if NS_ENABLED(NS_MATH_CHECK_FOR_NAN)
   // Initialize all data to NaN in debug mode to find problems with uninitialized data easier.
   const float TypeNaN = nsMath::NaN<float>();
   r = TypeNaN;
@@ -48,6 +43,22 @@ inline void nsColor::SetRGBA(float fLinearRed, float fLinearGreen, float fLinear
   g = fLinearGreen;
   b = fLinearBlue;
   a = fLinearAlpha;
+}
+
+inline nsColor nsColor::MakeFromKelvin(nsUInt32 uiKelvin)
+{
+  nsColor finalColor;
+  float kelvin = nsMath::Clamp(uiKelvin, 1000u, 40000u) / 1000.0f;
+  float kelvin2 = kelvin * kelvin;
+
+  // Red
+  finalColor.r = kelvin < 6.570f ? 1.0f : nsMath::Clamp((1.35651f + 0.216422f * kelvin + 0.000633715f * kelvin2) / (-3.24223f + 0.918711f * kelvin), 0.0f, 1.0f);
+  // Green
+  finalColor.g = kelvin < 6.570f ? nsMath::Clamp((-399.809f + 414.271f * kelvin + 111.543f * kelvin2) / (2779.24f + 164.143f * kelvin + 84.7356f * kelvin2), 0.0f, 1.0f) : nsMath::Clamp((1370.38f + 734.616f * kelvin + 0.689955f * kelvin2) / (-4625.69f + 1699.87f * kelvin), 0.0f, 1.0f);
+  // Blue
+  finalColor.b = kelvin > 6.570f ? 1.0f : nsMath::Clamp((348.963f - 523.53f * kelvin + 183.62f * kelvin2) / (2848.82f - 214.52f * kelvin + 78.8614f * kelvin2), 0.0f, 1.0f);
+
+  return finalColor;
 }
 
 // http://en.wikipedia.org/wiki/Luminance_%28relative%29

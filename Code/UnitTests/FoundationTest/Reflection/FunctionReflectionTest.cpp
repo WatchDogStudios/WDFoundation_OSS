@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/Reflection/ReflectionUtils.h>
@@ -441,17 +436,33 @@ NS_CREATE_SIMPLE_TEST(Reflection, Functions)
     test.m_values.PushBack(nsVariant(nsString("String1")));
     test.m_values.PushBack(nsVariant(nsStringView("String2"), false));
 
-    nsVariant ret;
-    funccall.Execute(&test, test.m_values, ret);
-    NS_TEST_BOOL(ret.GetType() == nsVariantType::String);
-    NS_TEST_BOOL(ret == nsString("StringRet"));
+    {
+      // Exact types
+      nsVariant ret;
+      funccall.Execute(&test, test.m_values, ret);
+      NS_TEST_BOOL(ret.GetType() == nsVariantType::String);
+      NS_TEST_BOOL(ret == nsString("StringRet"));
+    }
 
-    test.m_bPtrAreNull = true;
-    test.m_values[0] = nsVariant();
-    ret = nsVariant();
-    funccall.Execute(&test, test.m_values, ret);
-    NS_TEST_BOOL(ret.GetType() == nsVariantType::String);
-    NS_TEST_BOOL(ret == nsString("StringRet"));
+    {
+      // Using nsString instead of nsStringView
+      test.m_values[2] = nsString("String2");
+      nsVariant ret;
+      funccall.Execute(&test, test.m_values, ret);
+      NS_TEST_BOOL(ret.GetType() == nsVariantType::String);
+      NS_TEST_BOOL(ret == nsString("StringRet"));
+      test.m_values[2] = nsVariant(nsStringView("String2"), false);
+    }
+
+    {
+      // Using nullptr instead of const char*
+      test.m_bPtrAreNull = true;
+      test.m_values[0] = nsVariant();
+      nsVariant ret;
+      funccall.Execute(&test, test.m_values, ret);
+      NS_TEST_BOOL(ret.GetType() == nsVariantType::String);
+      NS_TEST_BOOL(ret == nsString("StringRet"));
+    }
   }
 
   NS_TEST_BLOCK(nsTestBlock::Enabled, "Member Functions - Enum")

@@ -1,11 +1,6 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 
-#define NS_MSVC_WARNING_NUMBER 4702 // Unreachable code for some reason
-#include <Foundation/Basics/Compiler/MSVC/DisableWarning_MSVC.h>
+NS_WARNING_PUSH()
+NS_WARNING_DISABLE_MSVC(4702) // Unreachable code for some reason
 
 NS_ALWAYS_INLINE nsVariant::nsVariant()
 {
@@ -13,7 +8,11 @@ NS_ALWAYS_INLINE nsVariant::nsVariant()
   m_bIsShared = false;
 }
 
-#include <Foundation/Basics/Compiler/MSVC/RestoreWarning_MSVC.h>
+NS_WARNING_POP()
+
+NS_WARNING_PUSH()
+NS_WARNING_DISABLE_CLANG("-Wunused-local-typedef")
+NS_WARNING_DISABLE_GCC("-Wunused-local-typedefs")
 
 NS_ALWAYS_INLINE nsVariant::nsVariant(const nsVariant& other)
 {
@@ -216,11 +215,6 @@ NS_ALWAYS_INLINE void nsVariant::operator=(const T& value)
   *this = nsVariant(value);
 }
 
-NS_ALWAYS_INLINE bool nsVariant::operator!=(const nsVariant& other) const
-{
-  return !(*this == other);
-}
-
 template <typename T>
 NS_FORCE_INLINE bool nsVariant::operator==(const T& other) const
 {
@@ -257,16 +251,24 @@ NS_FORCE_INLINE bool nsVariant::operator==(const T& other) const
       return Cast<nsHashedString>() == other;
     }
   }
+  else if constexpr (std::is_same_v<T, nsStringView>)
+  {
+    if (m_uiType == Type::String)
+    {
+      return Cast<nsString>().GetView() == other;
+    }
+  }
+  else if constexpr (std::is_same_v<T, nsString>)
+  {
+    if (m_uiType == Type::StringView)
+    {
+      return Cast<nsStringView>() == other.GetView();
+    }
+  }
 
   using StorageType = typename TypeDeduction<T>::StorageType;
   NS_ASSERT_DEV(IsA<StorageType>(), "Stored type '{0}' does not match comparison type '{1}'", m_uiType, TypeDeduction<T>::value);
   return Cast<StorageType>() == other;
-}
-
-template <typename T>
-NS_ALWAYS_INLINE bool nsVariant::operator!=(const T& other) const
-{
-  return !(*this == other);
 }
 
 NS_ALWAYS_INLINE bool nsVariant::IsValid() const
@@ -538,6 +540,7 @@ T nsVariant::Cast() const
   const nsTypedPointer& ptr = *reinterpret_cast<const nsTypedPointer*>(&m_Data);
 
   const nsRTTI* pType = GetReflectedType();
+  NS_IGNORE_UNUSED(pType);
   using NonRefPtrT = typename nsTypeTraits<T>::NonConstReferencePointerType;
   if constexpr (!std::is_same<T, void*>::value && !std::is_same<T, const void*>::value)
   {
@@ -559,6 +562,7 @@ template <typename T, typename std::enable_if_t<nsVariantTypeDeduction<T>::class
 const T& nsVariant::Cast() const
 {
   const nsRTTI* pType = GetReflectedType();
+  NS_IGNORE_UNUSED(pType);
   using NonRefT = typename nsTypeTraits<T>::NonConstReferenceType;
   NS_ASSERT_DEV(IsDerivedFrom(pType, nsGetStaticRTTI<NonRefT>()), "Object of type '{0}' does not derive from '{}'", GetTypeName(pType), GetTypeName(nsGetStaticRTTI<NonRefT>()));
 
@@ -647,3 +651,5 @@ struct nsHashHelper<nsVariant>
     return a.GetType() == b.GetType() && a == b;
   }
 };
+
+NS_WARNING_POP()

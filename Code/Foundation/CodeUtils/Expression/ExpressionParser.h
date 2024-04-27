@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/CodeUtils/Expression/ExpressionAST.h>
@@ -13,6 +8,9 @@ class NS_FOUNDATION_DLL nsExpressionParser
 public:
   nsExpressionParser();
   ~nsExpressionParser();
+
+  static const nsHashTable<nsHashedString, nsEnum<nsExpressionAST::DataType>>& GetKnownTypes();
+  static const nsHashTable<nsHashedString, nsEnum<nsExpressionAST::NodeType>>& GetBuiltinFunctions();
 
   void RegisterFunction(const nsExpression::FunctionDesc& funcDesc);
   void UnregisterFunction(const nsExpression::FunctionDesc& funcDesc);
@@ -27,8 +25,8 @@ public:
 private:
   static constexpr int s_iLowestPrecedence = 20;
 
-  void RegisterKnownTypes();
-  void RegisterBuiltinFunctions();
+  static void RegisterKnownTypes();
+  static void RegisterBuiltinFunctions();
   void SetupInAndOutputs(nsArrayPtr<nsExpression::StreamDesc> inputs, nsArrayPtr<nsExpression::StreamDesc> outputs);
 
   nsResult ParseStatement();
@@ -63,10 +61,7 @@ private:
   nsUInt32 m_uiCurrentToken = 0;
   nsExpressionAST* m_pAST = nullptr;
 
-  nsHashTable<nsHashedString, nsEnum<nsExpressionAST::DataType>> m_KnownTypes;
-
   nsHashTable<nsHashedString, nsExpressionAST::Node*> m_KnownVariables;
-  nsHashTable<nsHashedString, nsEnum<nsExpressionAST::NodeType>> m_BuiltinFunctions;
   nsHashTable<nsHashedString, nsHybridArray<nsExpression::FunctionDesc, 1>> m_FunctionDescs;
 };
 

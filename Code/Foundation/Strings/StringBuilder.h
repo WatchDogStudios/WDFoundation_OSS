@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/ThirdParty/utf8/utf8.h>
@@ -40,7 +35,7 @@ class NS_FOUNDATION_DLL nsStringBuilder : public nsStringBase<nsStringBuilder>
 {
 public:
   /// \brief Initializes the string to be empty. No data is allocated, but the nsStringBuilder ALWAYS creates an array on the stack.
-  nsStringBuilder(nsAllocatorBase* pAllocator = nsFoundation::GetDefaultAllocator()); // [tested]
+  nsStringBuilder(nsAllocator* pAllocator = nsFoundation::GetDefaultAllocator()); // [tested]
 
   /// \brief Copies the given string into this one.
   nsStringBuilder(const nsStringBuilder& rhs); // [tested]
@@ -51,16 +46,14 @@ public:
   /// \brief Copies the given string into this one.
   template <nsUInt16 Size>
   nsStringBuilder(const nsHybridStringBase<Size>& rhs)
-    : m_uiCharacterCount(rhs.m_uiCharacterCount)
-    , m_Data(rhs.m_Data)
+    : m_Data(rhs.m_Data)
   {
   }
 
   /// \brief Copies the given string into this one.
   template <nsUInt16 Size, typename A>
   nsStringBuilder(const nsHybridString<Size, A>& rhs)
-    : m_uiCharacterCount(rhs.m_uiCharacterCount)
-    , m_Data(rhs.m_Data)
+    : m_Data(rhs.m_Data)
   {
   }
 
@@ -68,16 +61,14 @@ public:
   /// \brief Moves the given string into this one.
   template <nsUInt16 Size>
   nsStringBuilder(nsHybridStringBase<Size>&& rhs)
-    : m_uiCharacterCount(rhs.m_uiCharacterCount)
-    , m_Data(std::move(rhs.m_Data))
+    : m_Data(std::move(rhs.m_Data))
   {
   }
 
   /// \brief Moves the given string into this one.
   template <nsUInt16 Size, typename A>
   nsStringBuilder(nsHybridString<Size, A>&& rhs)
-    : m_uiCharacterCount(rhs.m_uiCharacterCount)
-    , m_Data(std::move(rhs.m_Data))
+    : m_Data(std::move(rhs.m_Data))
   {
   }
 
@@ -85,14 +76,14 @@ public:
   nsStringBuilder(nsStringView sData1, nsStringView sData2, nsStringView sData3 = {}, nsStringView sData4 = {},
     nsStringView sData5 = {}, nsStringView sData6 = {}); // [tested]
 
-  /// \brief Copies the given Utf8 string into this one.
-  /* implicit */ nsStringBuilder(const char* szUTF8, nsAllocatorBase* pAllocator = nsFoundation::GetDefaultAllocator()); // [tested]
+                                                         /// \brief Copies the given Utf8 string into this one.
+  /* implicit */ nsStringBuilder(const char* szUTF8, nsAllocator* pAllocator = nsFoundation::GetDefaultAllocator()); // [tested]
 
-  /// \brief Copies the given wchar_t string into this one.
-  /* implicit */ nsStringBuilder(const wchar_t* pWChar, nsAllocatorBase* pAllocator = nsFoundation::GetDefaultAllocator()); // [tested]
+                                                                                                                     /// \brief Copies the given wchar_t string into this one.
+  /* implicit */ nsStringBuilder(const wchar_t* pWChar, nsAllocator* pAllocator = nsFoundation::GetDefaultAllocator()); // [tested]
 
-  /// \brief Copies the given substring into this one. The nsStringView might actually be a substring of this very string.
-  /* implicit */ nsStringBuilder(nsStringView rhs, nsAllocatorBase* pAllocator = nsFoundation::GetDefaultAllocator()); // [tested]
+                                                                                                                        /// \brief Copies the given substring into this one. The nsStringView might actually be a substring of this very string.
+  /* implicit */ nsStringBuilder(nsStringView rhs, nsAllocator* pAllocator = nsFoundation::GetDefaultAllocator()); // [tested]
 
   /// \brief Copies the given string into this one.
   void operator=(const nsStringBuilder& rhs); // [tested]
@@ -113,7 +104,6 @@ public:
   template <nsUInt16 Size>
   void operator=(const nsHybridStringBase<Size>& rhs)
   {
-    m_uiCharacterCount = rhs.m_uiCharacterCount;
     m_Data = rhs.m_Data;
   }
 
@@ -121,7 +111,6 @@ public:
   template <nsUInt16 Size, typename A>
   void operator=(const nsHybridString<Size, A>& rhs)
   {
-    m_uiCharacterCount = rhs.m_uiCharacterCount;
     m_Data = rhs.m_Data;
   }
 
@@ -129,7 +118,6 @@ public:
   template <nsUInt16 Size>
   void operator=(nsHybridStringBase<Size>&& rhs)
   {
-    m_uiCharacterCount = rhs.m_uiCharacterCount;
     m_Data = std::move(rhs.m_Data);
   }
 
@@ -137,12 +125,11 @@ public:
   template <nsUInt16 Size, typename A>
   void operator=(nsHybridString<Size, A>&& rhs) noexcept
   {
-    m_uiCharacterCount = rhs.m_uiCharacterCount;
     m_Data = std::move(rhs.m_Data);
   }
 
   /// \brief Returns the allocator that is used by this object.
-  nsAllocatorBase* GetAllocator() const;
+  nsAllocator* GetAllocator() const;
 
   /// \brief Resets this string to be empty. Does not deallocate any previously allocated data, as it might be reused later again.
   void Clear(); // [tested]
@@ -155,10 +142,10 @@ public:
 
   /// \brief Returns the number of characters of which this string consists. Might be less than GetElementCount, if it contains Utf8
   /// multi-byte characters.
+  ///
+  /// \note This is a slow operation, as it has to run through the entire string to count the Unicode characters.
+  /// Only call this once and use the result as long as the string doesn't change. Don't call this in a loop.
   nsUInt32 GetCharacterCount() const; // [tested]
-
-  /// \brief Returns whether this string only contains ASCII characters, which means that GetElementCount() == GetCharacterCount()
-  bool IsPureASCII() const; // [tested]
 
   /// \brief Converts all characters to upper case. Might move the string data around, so all iterators to the data will be invalid
   /// afterwards.
@@ -180,6 +167,8 @@ public:
 
   /// \brief Sets the string by concatenating all given strings.
   void Set(nsStringView sData1, nsStringView sData2 = {}, nsStringView sData3 = {}, nsStringView sData4 = {}, nsStringView sData5 = {}, nsStringView sData6 = {});
+  /// \brief Sets the string by concatenating all given strings.
+  void SetPath(nsStringView sData1, nsStringView sData2 = {}, nsStringView sData3 = {}, nsStringView sData4 = {});
 
   /// \brief Copies the string starting at \a pStart up to \a pEnd (exclusive).
   void SetSubString_FromTo(const char* pStart, const char* pEnd);
@@ -211,19 +200,19 @@ public:
     nsStringView sData5 = {}, nsStringView sData6 = {}); // [tested]
 
   /// \brief Sets this string to the formatted string, uses printf-style formatting.
-  void Printf(const char* szUtf8Format, ...); // [tested]
+  void SetPrintf(const char* szUtf8Format, ...); // [tested]
 
   /// \brief Sets this string to the formatted string, uses printf-style formatting.
-  void PrintfArgs(const char* szUtf8Format, va_list szArgs); // [tested]
+  void SetPrintfArgs(const char* szUtf8Format, va_list szArgs); // [tested]
 
   /// \brief Replaces this with a formatted string. Uses '{}' formatting placeholders, see nsFormatString for details.
-  void Format(const nsFormatString& string);
+  void SetFormat(const nsFormatString& string);
 
   /// \brief Replaces this with a formatted string. Uses '{}' formatting placeholders, see nsFormatString for details.
   template <typename... ARGS>
-  void Format(const char* szFormat, ARGS&&... args)
+  void SetFormat(const char* szFormat, ARGS&&... args)
   {
-    Format(nsFormatStringImpl<ARGS...>(szFormat, std::forward<ARGS>(args)...));
+    SetFormat(nsFormatStringImpl<ARGS...>(szFormat, std::forward<ARGS>(args)...));
   }
 
   /// \brief Appends a formatted string. Uses '{}' formatting placeholders, see nsFormatString for details.
@@ -384,16 +373,42 @@ public:
   nsUInt64 GetHeapMemoryUsage() const { return m_Data.GetHeapMemoryUsage(); }
 
   /// \brief Removes all characters from the start and end that appear in the given strings.
-  void Trim(const char* szTrimChars); // [tested]
+  ///
+  /// The default string removes all standard whitespace characters.
+  void Trim(const char* szTrimChars = " \f\n\r\t\v"); // [tested]
 
   /// \brief Removes all characters from the start and/or end that appear in the given strings.
   void Trim(const char* szTrimCharsStart, const char* szTrimCharsEnd); // [tested]
+
+  /// \brief Removes all characters from the start that appear in the given strings.
+  ///
+  /// The default string removes all standard whitespace characters.
+  void TrimLeft(const char* szTrimChars = " \f\n\r\t\v");
+
+  /// \brief Removes all characters from the end that appear in the given strings.
+  ///
+  /// The default string removes all standard whitespace characters.
+  void TrimRight(const char* szTrimChars = " \f\n\r\t\v");
 
   /// \brief If the string starts with the given word (case insensitive), it is removed and the function returns true.
   bool TrimWordStart(nsStringView sWord); // [tested]
 
   /// \brief If the string ends with the given word (case insensitive), it is removed and the function returns true.
   bool TrimWordEnd(nsStringView sWord); // [tested]
+
+#if NS_ENABLED(NS_INTEROP_STL_STRINGS)
+  /// \brief Copies the given substring into this one. The nsStringView might actually be a substring of this very string.
+  /* implicit */ nsStringBuilder(const std::string_view& rhs, nsAllocator* pAllocator = nsFoundation::GetDefaultAllocator());
+
+  /// \brief Copies the given substring into this one. The nsStringView might actually be a substring of this very string.
+  /* implicit */ nsStringBuilder(const std::string& rhs, nsAllocator* pAllocator = nsFoundation::GetDefaultAllocator());
+
+  /// \brief Copies the given substring into this one. The nsStringView might actually be a substring of this very string.
+  void operator=(const std::string_view& rhs);
+
+  /// \brief Copies the given substring into this one. The nsStringView might actually be a substring of this very string.
+  void operator=(const std::string& rhs);
+#endif
 
 private:
   /// \brief Will remove all double path separators (slashes and backslashes) in a path, except if the path starts with two (back-)slashes,
@@ -409,7 +424,6 @@ private:
 
   friend nsStreamReader;
 
-  nsUInt32 m_uiCharacterCount;
   nsHybridArray<char, 128> m_Data;
 };
 

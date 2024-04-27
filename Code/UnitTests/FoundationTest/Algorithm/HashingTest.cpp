@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/Algorithm/HashHelperString.h>
@@ -206,7 +201,8 @@ NS_CREATE_SIMPLE_TEST(Algorithm, Hashing)
     const char* szTestHalf1 = "This is a test";
     const char* szTestHalf2 = " string. 1234";
 
-    auto test = [szTest, szTestHalf1, szTestHalf2](bool bFlush, nsUInt32* pHash) {
+    auto test = [szTest, szTestHalf1, szTestHalf2](bool bFlush, nsUInt32* pHash)
+    {
       nsHashStreamWriter32 writer1;
       writer1.WriteBytes(szTest, std::strlen(szTest)).IgnoreResult();
       if (bFlush)
@@ -264,7 +260,8 @@ NS_CREATE_SIMPLE_TEST(Algorithm, Hashing)
     const char* szTestHalf1 = "This is a test";
     const char* szTestHalf2 = " string. 1234";
 
-    auto test = [szTest, szTestHalf1, szTestHalf2](bool bFlush, nsUInt64* pHash) {
+    auto test = [szTest, szTestHalf1, szTestHalf2](bool bFlush, nsUInt64* pHash)
+    {
       nsHashStreamWriter64 writer1;
       writer1.WriteBytes(szTest, std::strlen(szTest)).IgnoreResult();
 

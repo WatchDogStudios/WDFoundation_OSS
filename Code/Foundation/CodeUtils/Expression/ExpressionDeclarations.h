@@ -1,13 +1,9 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Containers/HashTable.h>
 #include <Foundation/Containers/SmallArray.h>
 #include <Foundation/DataProcessing/Stream/ProcessingStream.h>
+#include <Foundation/Reflection/Reflection.h>
 #include <Foundation/SimdMath/SimdVec4f.h>
 #include <Foundation/SimdMath/SimdVec4i.h>
 #include <Foundation/Types/Variant.h>
@@ -116,4 +112,28 @@ struct NS_FOUNDATION_DLL nsDefaultExpressionFunctions
 {
   static nsExpressionFunction s_RandomFunc;
   static nsExpressionFunction s_PerlinNoiseFunc;
+};
+
+/// \brief Add this attribute a string property that should be interpreted as expression source.
+///
+/// The Inputs/Outputs property reference another array property on the same object that contains objects
+/// with a name and a type property that can be used for real time error checking of the expression source.
+class NS_FOUNDATION_DLL nsExpressionWidgetAttribute : public nsTypeWidgetAttribute
+{
+  NS_ADD_DYNAMIC_REFLECTION(nsExpressionWidgetAttribute, nsTypeWidgetAttribute);
+
+public:
+  nsExpressionWidgetAttribute() = default;
+  nsExpressionWidgetAttribute(const char* szInputsProperty, const char* szOutputProperty)
+    : m_sInputsProperty(szInputsProperty)
+    , m_sOutputsProperty(szOutputProperty)
+  {
+  }
+
+  const char* GetInputsProperty() const { return m_sInputsProperty; }
+  const char* GetOutputsProperty() const { return m_sOutputsProperty; }
+
+private:
+  nsUntrackedString m_sInputsProperty;
+  nsUntrackedString m_sOutputsProperty;
 };

@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/IO/DeduplicationReadContext.h>
@@ -90,7 +85,7 @@ namespace
     {
       NS_SUCCEED_OR_RETURN(nsDeduplicationReadContext::GetContext()->ReadArray(inout_stream, m_Transforms));
       NS_SUCCEED_OR_RETURN(nsDeduplicationReadContext::GetContext()->ReadArray(inout_stream, m_Positions,
-        nullptr)); // should not allocate anything
+        nullptr));                                                                                                       // should not allocate anything
       NS_SUCCEED_OR_RETURN(nsDeduplicationReadContext::GetContext()->ReadArray(inout_stream, m_Scales));
       NS_SUCCEED_OR_RETURN(nsDeduplicationReadContext::GetContext()->ReadMap(
         inout_stream, m_TransformMap, nsDeduplicationReadContext::ReadMapMode::DedupValue, nullptr, nullptr));           // should not allocate anything

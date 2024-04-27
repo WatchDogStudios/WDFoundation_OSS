@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Containers/Deque.h>
@@ -35,7 +30,7 @@ private:
     }
     explicit ListElement(const T& data);
 
-    T m_Data;
+    T m_Data = {};
   };
 
   /// \brief base-class for all iterators
@@ -51,9 +46,7 @@ private:
 
     /// \brief Equality comparison operator.
     bool operator==(typename nsListBase<T>::ConstIterator it2) const { return (m_pElement == it2.m_pElement); } // [tested]
-
-    /// \brief Inequality comparison operator.
-    bool operator!=(typename nsListBase<T>::ConstIterator it2) const { return (m_pElement != it2.m_pElement); } // [tested]
+    NS_ADD_DEFAULT_OPERATOR_NOTEQUAL(typename nsListBase<T>::ConstIterator);
 
     /// \brief Grants access to the node-data.
     const T& operator*() const { return (m_pElement->m_Data); } // [tested]
@@ -120,10 +113,10 @@ public:
 
 protected:
   /// \brief Initializes the list to be empty.
-  explicit nsListBase(nsAllocatorBase* pAllocator); // [tested]
+  explicit nsListBase(nsAllocator* pAllocator); // [tested]
 
   /// \brief Initializes the list with a copy from another list.
-  nsListBase(const nsListBase<T>& cc, nsAllocatorBase* pAllocator); // [tested]
+  nsListBase(const nsListBase<T>& cc, nsAllocator* pAllocator); // [tested]
 
   /// \brief Destroys the list and all its content.
   ~nsListBase(); // [tested]
@@ -156,8 +149,8 @@ public:
   /// \brief Returns the very last element in the list.
   T& PeekBack(); // [tested]
 
-  /// \brief Appends a default-constructed element to the list.
-  void PushBack(); // [tested]
+  /// \brief Appends a default-constructed element to the list and returns a reference to it.
+  T& PushBack(); // [tested]
 
   /// \brief Appends a copy of the given element to the list.
   void PushBack(const T& element); // [tested]
@@ -165,8 +158,8 @@ public:
   /// \brief Removes the very last element from the list.
   void PopBack(); // [tested]
 
-  /// \brief Appends a default-constructed element to the front of the list.
-  void PushFront(); // [tested]
+  /// \brief Appends a default-constructed element to the front of the list and returns a reference to it.
+  T& PushFront(); // [tested]
 
   /// \brief Appends a copy of the given element to the front of the list.
   void PushFront(const T& element); // [tested]
@@ -183,6 +176,9 @@ public:
   /// \brief Inserts the range defined by [first;last) after pos.
   void Insert(const Iterator& pos, ConstIterator first, const ConstIterator& last);
 
+  /// \brief Inserts a default constructed element before the position defined by the iterator.
+  Iterator Insert(const Iterator& pos);
+
   /// \brief Erases the element pointed to by the iterator.
   Iterator Remove(const Iterator& pos); // [tested]
 
@@ -192,29 +188,21 @@ public:
   /// \brief Returns an iterator to the first list-element.
   Iterator GetIterator(); // [tested]
 
-  /// \brief Returns an iterator to the last list-element. Can be used for reverse iteration.
-  Iterator GetLastIterator(); // [tested]
-
   /// \brief Returns an iterator pointing behind the last element. Necessary if one wants to insert elements at the end of a list.
   Iterator GetEndIterator(); // [tested]
 
   /// \brief Returns a const-iterator to the first list-element.
   ConstIterator GetIterator() const; // [tested]
 
-  /// \brief Returns a const-iterator to the last list-element. Can be used for reverse iteration.
-  ConstIterator GetLastIterator() const; // [tested]
-
   /// \brief Returns a const-iterator pointing behind the last element. Necessary if one wants to insert elements at the end of a list.
   ConstIterator GetEndIterator() const; // [tested]
 
   /// \brief Returns the allocator that is used by this instance.
-  nsAllocatorBase* GetAllocator() const { return m_Elements.GetAllocator(); }
+  nsAllocator* GetAllocator() const { return m_Elements.GetAllocator(); }
 
   /// \brief Comparison operator
   bool operator==(const nsListBase<T>& rhs) const; // [tested]
-
-  /// \brief Comparison operator
-  bool operator!=(const nsListBase<T>& rhs) const; // [tested]
+  NS_ADD_DEFAULT_OPERATOR_NOTEQUAL(const nsListBase<T>&);
 
   /// \brief Returns the amount of bytes that are currently allocated on the heap.
   nsUInt64 GetHeapMemoryUsage() const { return m_Elements.GetHeapMemoryUsage(); } // [tested]
@@ -232,8 +220,8 @@ private:
   /// \brief The number of active elements in the list.
   nsUInt32 m_uiCount;
 
-  /// \brief Acquires and initializes one node.
-  ListElement* AcquireNode(const T& data);
+  /// \brief Acquires and initializes one default constructed node.
+  ListElement* AcquireNode();
 
   /// \brief Destructs one node and puts it into the free-list.
   void ReleaseNode(ListElement* pNode);
@@ -251,7 +239,7 @@ class nsList : public nsListBase<T>
 {
 public:
   nsList();
-  explicit nsList(nsAllocatorBase* pAllocator);
+  explicit nsList(nsAllocator* pAllocator);
 
   nsList(const nsList<T, AllocatorWrapper>& other);
   nsList(const nsListBase<T>& other);

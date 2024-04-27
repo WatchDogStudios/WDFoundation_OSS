@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #if NS_ENABLED(NS_PLATFORM_WINDOWS)
@@ -101,11 +96,8 @@ void nsMemoryUtils::ReserveLower4GBAddressSpace()
   // Print diagnostics showing how many allocations we had to make in
   // order to reserve all of low memory, typically less than 200.
   char buffer[1000];
-  sprintf_s(buffer, "Reserved %1.3f MB (%u vallocs, %u heap allocs) of low-memory.\n", uiTotalReservation / (1024 * 1024.0), (nsUInt32)uiNumVAllocs,
+  nsStringUtils::snprintf(buffer, 1000, "Reserved %1.3f MB (%u vallocs, %u heap allocs) of low-memory.\n", uiTotalReservation / (1024 * 1024.0), (nsUInt32)uiNumVAllocs,
     (nsUInt32)uiNumHeapAllocs);
   OutputDebugStringA(buffer);
 #endif
 }
-
-
-NS_STATICLINK_FILE(Foundation, Foundation_Memory_Implementation_MemoryUtils);

@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Types/TypeTraits.h>
@@ -15,13 +10,25 @@ struct nsAtomicStorageType
 };
 
 template <>
-struct nsAtomicStorageType<0>
+struct nsAtomicStorageType<1>
 {
   using Type = nsInt32;
 };
 
 template <>
-struct nsAtomicStorageType<1>
+struct nsAtomicStorageType<2>
+{
+  using Type = nsInt32;
+};
+
+template <>
+struct nsAtomicStorageType<4>
+{
+  using Type = nsInt32;
+};
+
+template <>
+struct nsAtomicStorageType<8>
 {
   using Type = nsInt64;
 };
@@ -30,7 +37,7 @@ struct nsAtomicStorageType<1>
 template <typename T>
 class nsAtomicInteger
 {
-  using UnderlyingType = typename nsAtomicStorageType<sizeof(T) / 32>::Type;
+  using UnderlyingType = typename nsAtomicStorageType<sizeof(T)>::Type;
 
 public:
   NS_DECLARE_POD_TYPE();
@@ -60,17 +67,17 @@ public:
   T PostIncrement(); // [tested]
 
   /// \brief Decrements the internal value and returns the value immediately before the decrement
-  T PostDecrement(); // [tested]
+  T PostDecrement();  // [tested]
 
   void Add(T x);      // [tested]
   void Subtract(T x); // [tested]
 
-  void And(T x); // [tested]
-  void Or(T x);  // [tested]
-  void Xor(T x); // [tested]
+  void And(T x);      // [tested]
+  void Or(T x);       // [tested]
+  void Xor(T x);      // [tested]
 
-  void Min(T x); // [tested]
-  void Max(T x); // [tested]
+  void Min(T x);      // [tested]
+  void Max(T x);      // [tested]
 
   /// \brief Sets the internal value to x and returns the original internal value.
   T Set(T x); // [tested]
@@ -82,10 +89,10 @@ public:
   /// the modification.
   T CompareAndSwap(T expected, T x); // [tested]
 
-  operator T() const; // [tested]
+  operator T() const;                // [tested]
 
 private:
-  volatile UnderlyingType m_Value;
+  UnderlyingType m_Value;
 };
 
 /// \brief An atomic boolean variable. This is just a wrapper around an atomic int32 for convenience.
@@ -127,3 +134,5 @@ private:
 
 using nsAtomicInteger32 = nsAtomicInteger<nsInt32>; // [tested]
 using nsAtomicInteger64 = nsAtomicInteger<nsInt64>; // [tested]
+static_assert(sizeof(nsAtomicInteger32) == sizeof(nsInt32));
+static_assert(sizeof(nsAtomicInteger64) == sizeof(nsInt64));

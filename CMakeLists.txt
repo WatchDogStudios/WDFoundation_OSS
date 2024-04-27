@@ -25,7 +25,7 @@ endif()
 
 set_property(GLOBAL PROPERTY NS_SUBMODULE_MODE ${NS_SUBMODULE_MODE})
 
-# Set a global variable pointing to the root of the source tree
+# Set a global variable pointing to the root of the NS source tree
 set(NS_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 set_property(GLOBAL PROPERTY NS_ROOT ${NS_ROOT})
 
@@ -39,10 +39,12 @@ if(NOT NS_SUBMODULE_MODE)
 	set(NS_SOLUTION_NAME ${DETECTED_NAME} CACHE STRING "The name of the solution")
 	project(${NS_SOLUTION_NAME}
 		VERSION 1.0
-		DESCRIPTION "In-House Framework for WD Studios L.L.C."
-		HOMEPAGE_URL "https://wdstudios.tech"
+		DESCRIPTION "An open-source game engine"
+		HOMEPAGE_URL "https://nsengine.net"
 		LANGUAGES ${NS_LANGUAGES})
 endif()
+
+include("nsPlatform")
 
 ns_set_build_types()
 ns_check_build_type()
@@ -54,8 +56,6 @@ if(NS_CUSTOM_TOOLCHAIN_FILE)
 endif()
 
 ns_pull_all_vars()
-
-include("nsPlatformVars")
 
 set(NS_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Code")
 
@@ -88,7 +88,8 @@ ns_finalize_projects()
 endif()
 
 get_property(EXPORT_PROJECTS GLOBAL PROPERTY "EXPORT_PROJECTS")
-export(TARGETS ${EXPORT_PROJECTS} FILE "${NS_OUTPUT_DIRECTORY_DLL}/nsExport.cmake")
+ns_get_export_location(NS_EXPORT_LOCATION)
+export(TARGETS ${EXPORT_PROJECTS} FILE "${NS_EXPORT_LOCATION}")
 
 set(EXPORT_INFO "
 set(EXPINP_OUTPUT_DIRECTORY_DLL ${NS_OUTPUT_DIRECTORY_DLL})

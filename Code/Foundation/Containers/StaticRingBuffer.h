@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Containers/StaticArray.h>
@@ -30,9 +25,7 @@ public:
 
   /// \brief Compares two ring-buffers for equality.
   bool operator==(const nsStaticRingBuffer<T, Capacity>& rhs) const; // [tested]
-
-  /// \brief Compares two ring-buffers for inequality.
-  bool operator!=(const nsStaticRingBuffer<T, Capacity>& rhs) const; // [tested]
+  NS_ADD_DEFAULT_OPERATOR_NOTEQUAL(const nsStaticRingBuffer<T, Capacity>&);
 
   /// \brief Appends an element at the end of the ring-buffer. Asserts that CanAppend() is true.
   void PushBack(const T& element); // [tested]

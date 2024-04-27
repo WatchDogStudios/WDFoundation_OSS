@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Containers/DynamicArray.h>
@@ -33,10 +28,10 @@ public:
   };
 
   /// \brief Constructor.
-  explicit nsArrayMapBase(nsAllocatorBase* pAllocator); // [tested]
+  explicit nsArrayMapBase(nsAllocator* pAllocator); // [tested]
 
   /// \brief Copy-Constructor.
-  nsArrayMapBase(const nsArrayMapBase& rhs, nsAllocatorBase* pAllocator); // [tested]
+  nsArrayMapBase(const nsArrayMapBase& rhs, nsAllocator* pAllocator); // [tested]
 
   /// \brief Copy assignment operator.
   void operator=(const nsArrayMapBase& rhs); // [tested]
@@ -133,9 +128,7 @@ public:
 
   /// \brief Compares the two containers for equality.
   bool operator==(const nsArrayMapBase<KEY, VALUE>& rhs) const; // [tested]
-
-  /// \brief Compares the two containers for equality.
-  bool operator!=(const nsArrayMapBase<KEY, VALUE>& rhs) const; // [tested]
+  NS_ADD_DEFAULT_OPERATOR_NOTEQUAL(const nsArrayMapBase<KEY, VALUE>&);
 
   /// \brief Returns the amount of bytes that are currently allocated on the heap.
   nsUInt64 GetHeapMemoryUsage() const { return m_Data.GetHeapMemoryUsage(); } // [tested]
@@ -158,7 +151,7 @@ class nsArrayMap : public nsArrayMapBase<KEY, VALUE>
 
 public:
   nsArrayMap();
-  explicit nsArrayMap(nsAllocatorBase* pAllocator);
+  explicit nsArrayMap(nsAllocator* pAllocator);
 
   nsArrayMap(const nsArrayMap<KEY, VALUE, AllocatorWrapper>& rhs);
   nsArrayMap(const nsArrayMapBase<KEY, VALUE>& rhs);

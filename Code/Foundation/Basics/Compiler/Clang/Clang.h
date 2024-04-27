@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 
 #pragma once
 
@@ -53,5 +48,13 @@
 #    undef NS_COMPILE_FOR_DEBUG
 #    define NS_COMPILE_FOR_DEBUG NS_ON
 #  endif
+
+#  define NS_WARNING_PUSH() _Pragma("clang diagnostic push")
+#  define NS_WARNING_POP() _Pragma("clang diagnostic pop")
+#  define NS_WARNING_DISABLE_CLANG(_x) _Pragma(NS_STRINGIZE(clang diagnostic ignored _x))
+
+#else
+
+#  define NS_WARNING_DISABLE_CLANG(_x)
 
 #endif

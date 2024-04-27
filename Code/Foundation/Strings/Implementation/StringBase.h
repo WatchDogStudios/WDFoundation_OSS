@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Strings/StringView.h>
@@ -166,6 +161,31 @@ public:
   /// ":/MyRoot\folder" -> "MyRoot"
   /// Returns an empty string, if the path is not rooted.
   nsStringView GetRootedPathRootName() const; // [tested]
+
+#if NS_ENABLED(NS_INTEROP_STL_STRINGS)
+  /// \brief Returns a std::string_view to this string.
+  NS_ALWAYS_INLINE std::string_view GetAsStdView() const
+  {
+    return std::string_view(InternalGetData(), static_cast<size_t>(InternalGetElementCount()));
+  }
+  /// \brief Returns a std::string copy of this string.
+  NS_ALWAYS_INLINE std::string GetAsStdString() const
+  {
+    return std::string(GetAsStdView());
+  }
+
+  /// \brief Returns a std::string_view to this string.
+  NS_ALWAYS_INLINE operator std::string_view() const
+  {
+    return GetAsStdView();
+  }
+
+  /// \brief Returns a std::string copy of this string.
+  NS_ALWAYS_INLINE operator std::string() const
+  {
+    return std::string(GetAsStdView());
+  }
+#endif
 
 private:
   const char* InternalGetData() const;

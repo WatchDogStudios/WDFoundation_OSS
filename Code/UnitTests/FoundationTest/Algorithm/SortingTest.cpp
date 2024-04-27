@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/Containers/DynamicArray.h>
@@ -50,7 +45,8 @@ NS_CREATE_SIMPLE_TEST(Algorithm, Sorting)
   NS_TEST_BLOCK(nsTestBlock::Enabled, "QuickSort - Lambda")
   {
     nsDynamicArray<nsInt32> a2 = a1;
-    nsSorting::QuickSort(a2, [](const auto& a, const auto& b) { return a > b; });
+    nsSorting::QuickSort(a2, [](const auto& a, const auto& b)
+      { return a > b; });
 
     for (nsUInt32 i = 1; i < a2.GetCount(); ++i)
     {

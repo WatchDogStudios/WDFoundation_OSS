@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/SimdMath/SimdBSphere.h>
@@ -111,8 +106,8 @@ public:
   nsSimdFloat GetDistanceTo(const nsSimdVec4f& vPoint) const; // [tested]
 
 
-  bool operator==(const nsSimdBBox& rhs) const; // [tested]
-  bool operator!=(const nsSimdBBox& rhs) const; // [tested]
+  bool operator==(const nsSimdBBox& rhs) const;               // [tested]
+  bool operator!=(const nsSimdBBox& rhs) const;               // [tested]
 
 public:
   nsSimdVec4f m_Min;

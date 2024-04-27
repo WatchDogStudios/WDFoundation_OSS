@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/ThirdParty/utf8/utf8.h>
@@ -275,7 +270,7 @@ public:
   /// \brief [internal] Prefer to use snprintf.
   static void OutputFormattedFloat(char* szOutputBuffer, nsUInt32 uiBufferSize, nsUInt32& ref_uiWritePos, double value, nsUInt8 uiWidth, bool bPadZeros, nsInt8 iPrecision, bool bScientific, bool bRemoveTrailingZeroes = false);
 
-#if NS_ENABLED(NS_COMPILE_FOR_DEBUG)
+#if NS_ENABLED(NS_USE_STRING_VALIDATION)
   static void AddUsedStringLength(nsUInt32 uiLength);
   static void PrintStringLengthStatistics();
   static nsAtomicInteger32 g_MaxUsedStringLength;
@@ -284,7 +279,9 @@ public:
   NS_ALWAYS_INLINE static void AddUsedStringLength(nsUInt32)
   {
   }
-  NS_ALWAYS_INLINE static void PrintStringLengthStatistics() {}
+  NS_ALWAYS_INLINE static void PrintStringLengthStatistics()
+  {
+  }
 #endif
 };
 

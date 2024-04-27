@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/Math/Quat.h>
@@ -199,13 +194,13 @@ NS_CREATE_SIMPLE_TEST(Math, Quaternion)
     NS_TEST_BOOL(q.IsValid(0.001f));
   }
 
-  NS_TEST_BLOCK(nsTestBlock::Enabled, "operator-/Invert")
+  NS_TEST_BLOCK(nsTestBlock::Enabled, "GetInverse / Invert")
   {
     nsQuatT q, q1;
     q = nsQuat::MakeFromAxisAndAngle(nsVec3T(0, 0, 1), nsAngle::MakeFromDegree(90));
     q1 = nsQuat::MakeFromAxisAndAngle(nsVec3T(0, 0, 1), nsAngle::MakeFromDegree(-90));
 
-    nsQuatT q2 = -q;
+    nsQuatT q2 = q.GetInverse();
     NS_TEST_BOOL(q1.IsEqualRotation(q2, 0.0001f));
 
     nsQuatT q3 = q;

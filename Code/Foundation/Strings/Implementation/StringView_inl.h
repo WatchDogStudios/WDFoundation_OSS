@@ -1,22 +1,17 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 NS_ALWAYS_INLINE constexpr nsStringView::nsStringView() = default;
 
 NS_ALWAYS_INLINE nsStringView::nsStringView(char* pStart)
   : m_pStart(pStart)
-  , m_pEnd(pStart + nsStringUtils::GetStringElementCount(pStart))
+  , m_uiElementCount(nsStringUtils::GetStringElementCount(pStart))
 {
 }
 
 template <typename T>
 constexpr NS_ALWAYS_INLINE nsStringView::nsStringView(T pStart, typename std::enable_if<std::is_same<T, const char*>::value, int>::type*)
   : m_pStart(pStart)
-  , m_pEnd(pStart + nsStringUtils::GetStringElementCount(pStart))
+  , m_uiElementCount(nsStringUtils::GetStringElementCount(pStart))
 {
 }
 
@@ -24,7 +19,7 @@ template <typename T>
 NS_ALWAYS_INLINE nsStringView::nsStringView(const T&& str, typename std::enable_if<std::is_same<T, const char*>::value == false && std::is_convertible<T, const char*>::value, int>::type*)
 {
   m_pStart = str;
-  m_pEnd = m_pStart + nsStringUtils::GetStringElementCount(m_pStart);
+  m_uiElementCount = nsStringUtils::GetStringElementCount(m_pStart);
 }
 
 NS_ALWAYS_INLINE nsStringView::nsStringView(const char* pStart, const char* pEnd)
@@ -32,19 +27,19 @@ NS_ALWAYS_INLINE nsStringView::nsStringView(const char* pStart, const char* pEnd
   NS_ASSERT_DEV(pStart <= pEnd, "It should start BEFORE it ends.");
 
   m_pStart = pStart;
-  m_pEnd = pEnd;
+  m_uiElementCount = static_cast<nsUInt32>(pEnd - pStart);
 }
 
 constexpr NS_ALWAYS_INLINE nsStringView::nsStringView(const char* pStart, nsUInt32 uiLength)
   : m_pStart(pStart)
-  , m_pEnd(pStart + uiLength)
+  , m_uiElementCount(uiLength)
 {
 }
 
 template <size_t N>
 NS_ALWAYS_INLINE nsStringView::nsStringView(const char (&str)[N])
   : m_pStart(str)
-  , m_pEnd(str + N - 1)
+  , m_uiElementCount(N - 1)
 {
   static_assert(N > 0, "Not a string literal");
   NS_ASSERT_DEBUG(str[N - 1] == '\0', "Not a string literal. Manually cast to 'const char*' if you are trying to pass a const char fixed size array.");
@@ -54,7 +49,7 @@ template <size_t N>
 NS_ALWAYS_INLINE nsStringView::nsStringView(char (&str)[N])
 {
   m_pStart = str;
-  m_pEnd = m_pStart + nsStringUtils::GetStringElementCount(str, str + N);
+  m_uiElementCount = nsStringUtils::GetStringElementCount(str, str + N);
 }
 
 inline void nsStringView::operator++()
@@ -62,58 +57,65 @@ inline void nsStringView::operator++()
   if (!IsValid())
     return;
 
-  nsUnicodeUtils::MoveToNextUtf8(m_pStart, m_pEnd);
+  const char* pEnd = m_pStart + m_uiElementCount;
+  nsUnicodeUtils::MoveToNextUtf8(m_pStart, pEnd).IgnoreResult(); // if it fails, the string is just empty
+  m_uiElementCount = static_cast<nsUInt32>(pEnd - m_pStart);
 }
 
 inline void nsStringView::operator+=(nsUInt32 d)
 {
-  nsUnicodeUtils::MoveToNextUtf8(m_pStart, m_pEnd, d);
+  const char* pEnd = m_pStart + m_uiElementCount;
+  nsUnicodeUtils::MoveToNextUtf8(m_pStart, pEnd, d).IgnoreResult(); // if it fails, the string is just empty
+  m_uiElementCount = static_cast<nsUInt32>(pEnd - m_pStart);
 }
+
 NS_ALWAYS_INLINE bool nsStringView::IsValid() const
 {
-  return (m_pStart != nullptr) && (m_pStart < m_pEnd);
+  return (m_pStart != nullptr) && (m_uiElementCount > 0);
 }
 
 NS_ALWAYS_INLINE void nsStringView::SetStartPosition(const char* szCurPos)
 {
-  NS_ASSERT_DEV((szCurPos >= m_pStart) && (szCurPos <= m_pEnd), "New start position must still be inside the view's range.");
+  NS_ASSERT_DEV((szCurPos >= m_pStart) && (szCurPos <= m_pStart + m_uiElementCount), "New start position must still be inside the view's range.");
 
+  const char* pEnd = m_pStart + m_uiElementCount;
   m_pStart = szCurPos;
+  m_uiElementCount = static_cast<nsUInt32>(pEnd - m_pStart);
 }
 
 NS_ALWAYS_INLINE bool nsStringView::IsEmpty() const
 {
-  return m_pStart == m_pEnd || nsStringUtils::IsNullOrEmpty(m_pStart);
+  return m_uiElementCount == 0;
 }
 
 NS_ALWAYS_INLINE bool nsStringView::IsEqual(nsStringView sOther) const
 {
-  return nsStringUtils::IsEqual(m_pStart, sOther.GetStartPointer(), m_pEnd, sOther.GetEndPointer());
+  return nsStringUtils::IsEqual(m_pStart, sOther.GetStartPointer(), m_pStart + m_uiElementCount, sOther.GetEndPointer());
 }
 
 NS_ALWAYS_INLINE bool nsStringView::IsEqual_NoCase(nsStringView sOther) const
 {
-  return nsStringUtils::IsEqual_NoCase(m_pStart, sOther.GetStartPointer(), m_pEnd, sOther.GetEndPointer());
+  return nsStringUtils::IsEqual_NoCase(m_pStart, sOther.GetStartPointer(), m_pStart + m_uiElementCount, sOther.GetEndPointer());
 }
 
 NS_ALWAYS_INLINE bool nsStringView::StartsWith(nsStringView sStartsWith) const
 {
-  return nsStringUtils::StartsWith(m_pStart, sStartsWith.GetStartPointer(), m_pEnd, sStartsWith.GetEndPointer());
+  return nsStringUtils::StartsWith(m_pStart, sStartsWith.GetStartPointer(), m_pStart + m_uiElementCount, sStartsWith.GetEndPointer());
 }
 
 NS_ALWAYS_INLINE bool nsStringView::StartsWith_NoCase(nsStringView sStartsWith) const
 {
-  return nsStringUtils::StartsWith_NoCase(m_pStart, sStartsWith.GetStartPointer(), m_pEnd, sStartsWith.GetEndPointer());
+  return nsStringUtils::StartsWith_NoCase(m_pStart, sStartsWith.GetStartPointer(), m_pStart + m_uiElementCount, sStartsWith.GetEndPointer());
 }
 
 NS_ALWAYS_INLINE bool nsStringView::EndsWith(nsStringView sEndsWith) const
 {
-  return nsStringUtils::EndsWith(m_pStart, sEndsWith.GetStartPointer(), m_pEnd, sEndsWith.GetEndPointer());
+  return nsStringUtils::EndsWith(m_pStart, sEndsWith.GetStartPointer(), m_pStart + m_uiElementCount, sEndsWith.GetEndPointer());
 }
 
 NS_ALWAYS_INLINE bool nsStringView::EndsWith_NoCase(nsStringView sEndsWith) const
 {
-  return nsStringUtils::EndsWith_NoCase(m_pStart, sEndsWith.GetStartPointer(), m_pEnd, sEndsWith.GetEndPointer());
+  return nsStringUtils::EndsWith_NoCase(m_pStart, sEndsWith.GetStartPointer(), m_pStart + m_uiElementCount, sEndsWith.GetEndPointer());
 }
 
 NS_ALWAYS_INLINE void nsStringView::Trim(const char* szTrimChars)
@@ -125,7 +127,9 @@ NS_ALWAYS_INLINE void nsStringView::Trim(const char* szTrimCharsStart, const cha
 {
   if (IsValid())
   {
-    nsStringUtils::Trim(m_pStart, m_pEnd, szTrimCharsStart, szTrimCharsEnd);
+    const char* pEnd = m_pStart + m_uiElementCount;
+    nsStringUtils::Trim(m_pStart, pEnd, szTrimCharsStart, szTrimCharsEnd);
+    m_uiElementCount = static_cast<nsUInt32>(pEnd - m_pStart);
   }
 }
 
@@ -187,10 +191,23 @@ NS_ALWAYS_INLINE bool operator==(nsStringView lhs, nsStringView rhs)
   return lhs.IsEqual(rhs);
 }
 
+#if NS_DISABLED(NS_USE_CPP20_OPERATORS)
+
 NS_ALWAYS_INLINE bool operator!=(nsStringView lhs, nsStringView rhs)
 {
   return !lhs.IsEqual(rhs);
 }
+
+#endif
+
+#if NS_ENABLED(NS_USE_CPP20_OPERATORS)
+
+NS_ALWAYS_INLINE std::strong_ordering operator<=>(nsStringView lhs, nsStringView rhs)
+{
+  return lhs.Compare(rhs) <=> 0;
+}
+
+#else
 
 NS_ALWAYS_INLINE bool operator<(nsStringView lhs, nsStringView rhs)
 {
@@ -211,3 +228,5 @@ NS_ALWAYS_INLINE bool operator>=(nsStringView lhs, nsStringView rhs)
 {
   return lhs.Compare(rhs) >= 0;
 }
+
+#endif

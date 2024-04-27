@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/IO/JSONReader.h>
@@ -164,5 +159,3 @@ void nsJSONReader::OnParsingError(nsStringView sMessage, bool bFatal, nsUInt32 u
 {
   m_bParsingError = true;
 }
-
-NS_STATICLINK_FILE(Foundation, Foundation_IO_Implementation_JSONReader);

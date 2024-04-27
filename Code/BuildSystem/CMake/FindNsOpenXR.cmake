@@ -77,13 +77,29 @@ if(NSOPENXR_FOUND)
 		set_target_properties(nsOpenXR::Loader PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${NS_OPENXR_HEADERS_DIR}/include")
 	endif()
 
-	if(NS_CMAKE_PLATFORM_WINDOWS_DESKTOP AND NS_CMAKE_ARCHITECTURE_64BIT AND MSVC)
-		# As this is a windows only library, we are relying on the .targets file to handle to includes / imports.
-		add_library(nsOpenXR::Remoting SHARED IMPORTED)
-		set_target_properties(nsOpenXR::Remoting PROPERTIES IMPORTED_LOCATION ${NS_OPENXR_REMOTING_DIR}/build/native/Microsoft.Holographic.Remoting.OpenXr.targets)
+	ns_uwp_mark_import_as_content(nsOpenXR::Loader)
+
+	if(NS_CMAKE_PLATFORM_WINDOWS_DESKTOP AND NS_CMAKE_ARCHITECTURE_64BIT)
+
+		add_library(nsOpenXR::Remoting INTERFACE IMPORTED)
+
+		if(NS_CMAKE_PLATFORM_WINDOWS_UWP)
+			list(APPEND REMOTING_ASSETS "${NS_OPENXR_REMOTING_DIR}/build/native/bin/x64/uwp/RemotingXR.json")
+			list(APPEND REMOTING_ASSETS "${NS_OPENXR_REMOTING_DIR}/build/native/bin/x64/uwp/Microsoft.Holographic.AppRemoting.OpenXr.dll")
+		else()
+			list(APPEND REMOTING_ASSETS "${NS_OPENXR_REMOTING_DIR}/build/native/bin/x64/Desktop/RemotingXR.json")
+			list(APPEND REMOTING_ASSETS "${NS_OPENXR_REMOTING_DIR}/build/native/bin/x64/Desktop/Microsoft.Holographic.AppRemoting.OpenXr.dll")
+		endif()
+
+		set_target_properties(nsOpenXR::Remoting PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${NS_OPENXR_REMOTING_DIR}/build/native/include")
+		set_target_properties(nsOpenXR::Remoting PROPERTIES INTERFACE_SOURCES "${REMOTING_ASSETS}")
+
+		set_property(SOURCE ${REMOTING_ASSETS} PROPERTY VS_DEPLOYMENT_CONTENT 1)
+		set_property(SOURCE ${REMOTING_ASSETS} PROPERTY VS_DEPLOYMENT_LOCATION "")
+
 	endif()
 
-	ns_uwp_mark_import_as_content(nsOpenXR::Loader)
+	
 endif()
 
 unset(OPENXR_DYNAMIC)

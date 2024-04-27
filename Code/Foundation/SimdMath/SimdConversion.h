@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Math/BoundingBox.h>
@@ -95,10 +90,19 @@ namespace nsSimdConversion
     return nsBoundingSphere::MakeFromCenterAndRadius(centerAndRadius.GetAsVec3(), centerAndRadius.w);
   }
 
-  NS_ALWAYS_INLINE nsSimdBSphere ToBSphere(const nsBoundingSphere& s) { return nsSimdBSphere(ToVec3(s.m_vCenter), s.m_fRadius); }
+  NS_ALWAYS_INLINE nsSimdBSphere ToBSphere(const nsBoundingSphere& s)
+  {
+    return nsSimdBSphere(ToVec3(s.m_vCenter), s.m_fRadius);
+  }
 
-  NS_ALWAYS_INLINE nsSimdBBox ToBBox(const nsBoundingBox& b) { return nsSimdBBox(ToVec3(b.m_vMin), ToVec3(b.m_vMax)); }
+  NS_ALWAYS_INLINE nsSimdBBox ToBBox(const nsBoundingBox& b)
+  {
+    return nsSimdBBox(ToVec3(b.m_vMin), ToVec3(b.m_vMax));
+  }
 
-  NS_ALWAYS_INLINE nsBoundingBox ToBBox(const nsSimdBBox& b) { return nsBoundingBox::MakeFromMinMax(ToVec3(b.m_Min), ToVec3(b.m_Max)); }
+  NS_ALWAYS_INLINE nsBoundingBox ToBBox(const nsSimdBBox& b)
+  {
+    return nsBoundingBox::MakeFromMinMax(ToVec3(b.m_Min), ToVec3(b.m_Max));
+  }
 
 }; // namespace nsSimdConversion

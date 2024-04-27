@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/IO/Archive/Archive.h>
@@ -35,7 +30,7 @@ NS_CREATE_SIMPLE_TEST(IO, Archive)
   // write a couple of files for packaging
   const char* szFileList[] = {
     "File1.txt",
-    "FolderA/File2.jpg", // should get stored uncompressed
+    "FolderA/File2.jpg",         // should get stored uncompressed
     "FolderB/File3.txt",
     "FolderA/FolderC/File4.zip", // should get stored uncompressed
     "FolderA/FolderD/File5.txt",
@@ -73,8 +68,10 @@ NS_CREATE_SIMPLE_TEST(IO, Archive)
 
   nsStringBuilder pathToArchiveTool = nsCommandLineUtils::GetGlobalInstance()->GetParameter(0);
   pathToArchiveTool.PathParentDirectory();
-  pathToArchiveTool.AppendPath("ArchiveTool.exe");
-
+  pathToArchiveTool.AppendPath("nsArchiveTool");
+#  if NS_ENABLED(NS_PLATFORM_WINDOWS)
+  pathToArchiveTool.Append(".exe");
+#  endif
   NS_TEST_BLOCK(nsTestBlock::Enabled, "Create a Package")
   {
 

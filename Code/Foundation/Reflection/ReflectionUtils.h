@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Containers/Set.h>
@@ -31,10 +26,10 @@ public:
   ///
   /// vector's type needs to be in between nsVariant::Type::Vector2 and nsVariant::Type::Vector4U.
   static nsUInt32 GetComponentCount(nsVariantType::Enum type);
-  static void SetComponent(nsVariant& ref_vector, nsUInt32 uiComponent, double fValue); // [tested]
+  static void SetComponent(nsVariant& ref_vector, nsUInt32 uiComponent, double fValue);                             // [tested]
   static double GetComponent(const nsVariant& vector, nsUInt32 uiComponent);
 
-  static nsVariant GetMemberPropertyValue(const nsAbstractMemberProperty* pProp, const void* pObject);        // [tested] via ToolsFoundation
+  static nsVariant GetMemberPropertyValue(const nsAbstractMemberProperty* pProp, const void* pObject);              // [tested] via ToolsFoundation
   static void SetMemberPropertyValue(const nsAbstractMemberProperty* pProp, void* pObject, const nsVariant& value); // [tested] via ToolsFoundation
 
   static nsVariant GetArrayPropertyValue(const nsAbstractArrayProperty* pProp, const void* pObject, nsUInt32 uiIndex);

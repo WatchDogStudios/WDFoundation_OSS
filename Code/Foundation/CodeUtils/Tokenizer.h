@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Basics.h>
@@ -86,12 +81,15 @@ public:
   /// \brief Constructor.
   ///
   /// Takes an additional optional allocator. If no allocator is given the default allocator will be used.
-  nsTokenizer(nsAllocatorBase* pAllocator = nullptr);
+  nsTokenizer(nsAllocator* pAllocator = nullptr);
 
   ~nsTokenizer();
 
   /// \brief Clears any previous result and creates a new token stream for the given array.
-  void Tokenize(nsArrayPtr<const nsUInt8> data, nsLogInterface* pLog);
+  /// \param data The string data to be tokenized.
+  /// \param pLog A log interface that will receive any tokenization errors.
+  /// \param bCopyData If set, 'data' will be copied into a member variable and tokenization is run on the copy, allowing for the original data storage to be deallocated after this call. If false, tokenization will reference 'data' directly and thus, 'data' must outlive this instance.
+  void Tokenize(nsArrayPtr<const nsUInt8> data, nsLogInterface* pLog, bool bCopyData = true);
 
   /// \brief Gives read access to the token stream.
   const nsDeque<nsToken>& GetTokens() const { return m_Tokens; }
@@ -99,8 +97,11 @@ public:
   /// \brief Gives read and write access to the token stream.
   nsDeque<nsToken>& GetTokens() { return m_Tokens; }
 
+  /// \brief Returns an array with a copy of all tokens. Use this when using nsTokenParseUtils.
+  void GetAllTokens(nsDynamicArray<const nsToken*>& ref_tokens) const;
+
   /// \brief Returns an array of all tokens. New line tokens are ignored.
-  void GetAllLines(nsHybridArray<const nsToken*, 32>& ref_tokens) const;
+  void GetAllLines(nsDynamicArray<const nsToken*>& ref_tokens) const;
 
   /// \brief Returns an array of tokens that represent the next line in the file.
   ///
@@ -116,8 +117,8 @@ public:
 
   nsResult GetNextLine(nsUInt32& ref_uiFirstToken, nsHybridArray<nsToken*, 32>& ref_tokens);
 
-  /// \brief Returns the internal copy of the tokenized data
-  const nsDynamicArray<nsUInt8>& GetTokenizedData() const { return m_Data; }
+  /// \brief Returns the internal copy of the tokenized data. Will be empty if Tokenize was called with 'bCopyData' equals 'false'.
+  const nsArrayPtr<const nsUInt8> GetTokenizedData() const { return m_Data; }
 
   /// \brief Enables treating lines that start with # character as line comments
   ///

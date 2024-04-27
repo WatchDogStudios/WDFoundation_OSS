@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/CodeUtils/TokenParseUtils.h>
@@ -133,6 +128,42 @@ namespace nsTokenParseUtils
     return false;
   }
 
+  bool Accept(const TokenStream& tokens, nsUInt32& ref_uiCurToken, nsArrayPtr<const TokenMatch> matches, nsDynamicArray<nsUInt32>* pAccepted)
+  {
+    if (pAccepted)
+      pAccepted->Clear();
+
+    nsUInt32 uiCurToken = ref_uiCurToken;
+    bool bAccepted = true;
+    for (nsUInt32 i = 0; i < matches.GetCount() && bAccepted; ++i)
+    {
+      nsUInt32 uiAcceptedToken = uiCurToken;
+      const TokenMatch& match = matches[i];
+      if (match.m_Type == nsTokenType::Unknown)
+      {
+        bAccepted = Accept(tokens, uiCurToken, match.m_sToken, &uiAcceptedToken);
+      }
+      else
+      {
+        bAccepted = Accept(tokens, uiCurToken, match.m_Type, &uiAcceptedToken);
+      }
+
+      if (pAccepted && bAccepted)
+        pAccepted->PushBack(uiAcceptedToken);
+    }
+
+    if (bAccepted)
+    {
+      ref_uiCurToken = uiCurToken;
+    }
+    else
+    {
+      if (pAccepted)
+        pAccepted->Clear();
+    }
+    return bAccepted;
+  }
+
   void CombineRelevantTokensToString(const TokenStream& tokens, nsUInt32 uiCurToken, nsStringBuilder& ref_sResult)
   {
     ref_sResult.Clear();
@@ -148,7 +179,7 @@ namespace nsTokenParseUtils
     }
   }
 
-  void CreateCleanTokenStream(const TokenStream& tokens, nsUInt32 uiCurToken, TokenStream& ref_destination, bool bKeepComments)
+  void CreateCleanTokenStream(const TokenStream& tokens, nsUInt32 uiCurToken, TokenStream& ref_destination)
   {
     SkipWhitespace(tokens, uiCurToken);
 
@@ -175,7 +206,7 @@ namespace nsTokenParseUtils
 
     if (bRemoveRedundantWhitespace)
     {
-      CreateCleanTokenStream(tokens0, uiCurToken, Tokens, bKeepComments);
+      CreateCleanTokenStream(tokens0, uiCurToken, Tokens);
       uiCurToken = 0;
     }
     else
@@ -226,5 +257,3 @@ namespace nsTokenParseUtils
     }
   }
 } // namespace nsTokenParseUtils
-
-NS_STATICLINK_FILE(Foundation, Foundation_CodeUtils_Implementation_TokenParseUtils);

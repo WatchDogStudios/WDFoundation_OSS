@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #if defined(_WINDOWS) || defined(_WIN32)
@@ -32,9 +27,9 @@
 #  undef NS_PLATFORM_LINUX
 #  define NS_PLATFORM_LINUX NS_ON
 
-//#elif defined(...)
-//  #undef NS_PLATFORM_LINUX
-//  #define NS_PLATFORM_LINUX NS_ON
+// #elif defined(...)
+//   #undef NS_PLATFORM_LINUX
+//   #define NS_PLATFORM_LINUX NS_ON
 #else
 #  error "Unknown Platform."
 #endif

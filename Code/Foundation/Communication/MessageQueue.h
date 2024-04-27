@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 
 #pragma once
 
@@ -33,10 +28,10 @@ public:
 
 protected:
   /// \brief No memory is allocated during construction.
-  nsMessageQueueBase(nsAllocatorBase* pAllocator); // [tested]
+  nsMessageQueueBase(nsAllocator* pAllocator); // [tested]
 
   /// \brief No memory is allocated during construction.
-  nsMessageQueueBase(const nsMessageQueueBase& rhs, nsAllocatorBase* pAllocator);
+  nsMessageQueueBase(const nsMessageQueueBase& rhs, nsAllocator* pAllocator);
 
   /// \brief Destructor.
   ~nsMessageQueueBase(); // [tested]
@@ -102,7 +97,7 @@ class nsMessageQueue : public nsMessageQueueBase<MetaDataType>
 {
 public:
   nsMessageQueue();
-  nsMessageQueue(nsAllocatorBase* pAllocator);
+  nsMessageQueue(nsAllocator* pAllocator);
 
   nsMessageQueue(const nsMessageQueue<MetaDataType, AllocatorWrapper>& rhs);
   nsMessageQueue(const nsMessageQueueBase<MetaDataType>& rhs);

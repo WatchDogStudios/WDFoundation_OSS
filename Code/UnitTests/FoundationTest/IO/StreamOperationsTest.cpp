@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/Containers/DynamicArray.h>
@@ -371,7 +366,7 @@ NS_CREATE_SIMPLE_TEST(IO, StreamOperation)
 
       nsTime t = sw.GetRunningTotal();
       nsStringBuilder s;
-      s.Format("Write {} byte array: {}", nsArgFileSize(uiCount), t);
+      s.SetFormat("Write {} byte array: {}", nsArgFileSize(uiCount), t);
       nsTestFramework::Output(nsTestOutput::Details, s);
     }
 
@@ -382,7 +377,7 @@ NS_CREATE_SIMPLE_TEST(IO, StreamOperation)
 
       nsTime t = sw.GetRunningTotal();
       nsStringBuilder s;
-      s.Format("Read {} byte array: {}", nsArgFileSize(uiCount), t);
+      s.SetFormat("Read {} byte array: {}", nsArgFileSize(uiCount), t);
       nsTestFramework::Output(nsTestOutput::Details, s);
     }
 
@@ -416,7 +411,7 @@ NS_CREATE_SIMPLE_TEST(IO, StreamOperation)
 
       nsTime t = sw.GetRunningTotal();
       nsStringBuilder s;
-      s.Format("Write {} vec3 array: {}", nsArgFileSize(uiCount * sizeof(nsVec3)), t);
+      s.SetFormat("Write {} vec3 array: {}", nsArgFileSize(uiCount * sizeof(nsVec3)), t);
       nsTestFramework::Output(nsTestOutput::Details, s);
     }
 
@@ -427,7 +422,7 @@ NS_CREATE_SIMPLE_TEST(IO, StreamOperation)
 
       nsTime t = sw.GetRunningTotal();
       nsStringBuilder s;
-      s.Format("Read {} vec3 array: {}", nsArgFileSize(uiCount * sizeof(nsVec3)), t);
+      s.SetFormat("Read {} vec3 array: {}", nsArgFileSize(uiCount * sizeof(nsVec3)), t);
       nsTestFramework::Output(nsTestOutput::Details, s);
     }
 

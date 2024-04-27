@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Strings/Implementation/StringIterator.h>
@@ -15,7 +10,7 @@ const char* nsPathUtils::FindPreviousSeparator(const char* szPathStart, const ch
 
   while (szStartSearchAt > szPathStart)
   {
-    nsUnicodeUtils::MoveToPriorUtf8(szStartSearchAt);
+    nsUnicodeUtils::MoveToPriorUtf8(szStartSearchAt, szPathStart).AssertSuccess();
 
     if (IsPathSeparator(*szStartSearchAt))
       return szStartSearchAt;
@@ -26,40 +21,63 @@ const char* nsPathUtils::FindPreviousSeparator(const char* szPathStart, const ch
 
 bool nsPathUtils::HasAnyExtension(nsStringView sPath)
 {
-  const char* szDot = nsStringUtils::FindLastSubString(sPath.GetStartPointer(), ".", nullptr, sPath.GetEndPointer());
-
-  if (szDot == nullptr)
-    return false;
-
-  // find the last separator in the string
-  const char* szSeparator = FindPreviousSeparator(sPath.GetStartPointer(), sPath.GetEndPointer());
-
-  return (szSeparator < szDot);
+  return !GetFileExtension(sPath, true).IsEmpty();
 }
 
 bool nsPathUtils::HasExtension(nsStringView sPath, nsStringView sExtension)
 {
-  if (nsStringUtils::StartsWith(sExtension.GetStartPointer(), ".", sExtension.GetEndPointer()))
-    return nsStringUtils::EndsWith_NoCase(sPath.GetStartPointer(), sExtension.GetStartPointer(), sPath.GetEndPointer(), sExtension.GetEndPointer());
+  sPath = GetFileNameAndExtension(sPath);
+  nsStringView fullExt = GetFileExtension(sPath, true);
 
-  nsStringBuilder sExt;
-  sExt.Append(".", sExtension);
+  if (sExtension.IsEmpty() && fullExt.IsEmpty())
+    return true;
 
-  return nsStringUtils::EndsWith_NoCase(sPath.GetStartPointer(), sExt.GetData(), sPath.GetEndPointer());
+  // if there is a single dot at the start of the extension, remove it
+  if (sExtension.StartsWith("."))
+    sExtension.ChopAwayFirstCharacterAscii();
+
+  if (!fullExt.EndsWith_NoCase(sExtension))
+    return false;
+
+  // remove the checked extension
+  sPath = nsStringView(sPath.GetStartPointer(), sPath.GetEndPointer() - sExtension.GetElementCount());
+
+  // checked extension didn't start with a dot -> make sure there is one at the end of sPath
+  if (!sPath.EndsWith("."))
+    return false;
+
+  // now make sure the rest isn't just the dot
+  return sPath.GetElementCount() > 1;
 }
 
-nsStringView nsPathUtils::GetFileExtension(nsStringView sPath)
+nsStringView nsPathUtils::GetFileExtension(nsStringView sPath, bool bFullExtension)
 {
-  const char* szDot = nsStringUtils::FindLastSubString(sPath.GetStartPointer(), ".", nullptr, sPath.GetEndPointer());
+  // get rid of any path before the filename
+  sPath = GetFileNameAndExtension(sPath);
 
+  // ignore all dots that the file name may start with (".", "..", ".file", "..file", etc)
+  // filename may be empty afterwards, which means no dot will be found -> no extension
+  while (sPath.StartsWith("."))
+    sPath.ChopAwayFirstCharacterAscii();
+
+  const char* szDot;
+
+  if (bFullExtension)
+  {
+    szDot = sPath.FindSubString(".");
+  }
+  else
+  {
+    szDot = sPath.FindLastSubString(".");
+  }
+
+  // no dot at all -> no extension
   if (szDot == nullptr)
-    return nsStringView(nullptr);
+    return nsStringView();
 
-  // find the last separator in the string
-  const char* szSeparator = FindPreviousSeparator(sPath.GetStartPointer(), sPath.GetEndPointer());
-
-  if (szSeparator > szDot)
-    return nsStringView(nullptr);
+  // dot at the very end of the string -> not an extension
+  if (szDot + 1 == sPath.GetEndPointer())
+    return nsStringView();
 
   return nsStringView(szDot + 1, sPath.GetEndPointer());
 }
@@ -74,28 +92,17 @@ nsStringView nsPathUtils::GetFileNameAndExtension(nsStringView sPath)
   return nsStringView(szSeparator + 1, sPath.GetEndPointer());
 }
 
-nsStringView nsPathUtils::GetFileName(nsStringView sPath)
+nsStringView nsPathUtils::GetFileName(nsStringView sPath, bool bRemoveFullExtension)
 {
-  const char* szSeparator = FindPreviousSeparator(sPath.GetStartPointer(), sPath.GetEndPointer());
+  // reduce the problem to just the filename + extension
+  sPath = GetFileNameAndExtension(sPath);
 
-  const char* szDot = nsStringUtils::FindLastSubString(sPath.GetStartPointer(), ".", sPath.GetEndPointer());
+  nsStringView ext = GetFileExtension(sPath, bRemoveFullExtension);
 
-  if (szDot < szSeparator) // includes (szDot == nullptr), szSeparator will never be nullptr here -> no extension
-  {
-    return nsStringView(szSeparator + 1, sPath.GetEndPointer());
-  }
+  if (ext.IsEmpty())
+    return sPath;
 
-  if (szSeparator == nullptr)
-  {
-    if (szDot == nullptr) // no folder, no extension -> the entire thing is just a name
-      return sPath;
-
-    return nsStringView(sPath.GetStartPointer(), szDot); // no folder, but an extension -> remove the extension
-  }
-
-  // now: there is a separator AND an extension
-
-  return nsStringView(szSeparator + 1, szDot);
+  return nsStringView(sPath.GetStartPointer(), sPath.GetEndPointer() - ext.GetElementCount() - 1);
 }
 
 nsStringView nsPathUtils::GetFileDirectory(nsStringView sPath)
@@ -179,7 +186,7 @@ void nsPathUtils::GetRootedPathParts(nsStringView sPath, nsStringView& ref_sRoot
 
   do
   {
-    nsUnicodeUtils::MoveToNextUtf8(szStart, szPathEnd);
+    nsUnicodeUtils::MoveToNextUtf8(szStart, szPathEnd).AssertSuccess();
 
     if (*szStart == '\0')
       return;
@@ -187,10 +194,10 @@ void nsPathUtils::GetRootedPathParts(nsStringView sPath, nsStringView& ref_sRoot
   } while (IsPathSeparator(*szStart));
 
   const char* szEnd = szStart;
-  nsUnicodeUtils::MoveToNextUtf8(szEnd, szPathEnd);
+  nsUnicodeUtils::MoveToNextUtf8(szEnd, szPathEnd).AssertSuccess();
 
   while (*szEnd != '\0' && !IsPathSeparator(*szEnd))
-    nsUnicodeUtils::MoveToNextUtf8(szEnd, szPathEnd);
+    nsUnicodeUtils::MoveToNextUtf8(szEnd, szPathEnd).AssertSuccess();
 
   ref_sRoot = nsStringView(szStart, szEnd);
   if (*szEnd == '\0')
@@ -200,7 +207,7 @@ void nsPathUtils::GetRootedPathParts(nsStringView sPath, nsStringView& ref_sRoot
   else
   {
     // skip path separator for the relative path
-    nsUnicodeUtils::MoveToNextUtf8(szEnd, szPathEnd);
+    nsUnicodeUtils::MoveToNextUtf8(szEnd, szPathEnd).AssertSuccess();
     ref_sRelPath = nsStringView(szEnd, szPathEnd);
   }
 }
@@ -265,13 +272,34 @@ void nsPathUtils::MakeValidFilename(nsStringView sFilename, nsUInt32 uiReplaceme
 
 bool nsPathUtils::IsSubPath(nsStringView sPrefixPath, nsStringView sFullPath)
 {
-  /// \test this is new
-
   nsStringBuilder tmp = sPrefixPath;
   tmp.MakeCleanPath();
-  tmp.AppendPath("");
+  tmp.Trim("", "/");
 
-  return sFullPath.StartsWith_NoCase(tmp);
+  if (sFullPath.StartsWith(tmp))
+  {
+    if (tmp.GetElementCount() == sFullPath.GetElementCount())
+      return true;
+
+    return sFullPath.GetStartPointer()[tmp.GetElementCount()] == '/';
+  }
+
+  return false;
 }
 
-NS_STATICLINK_FILE(Foundation, Foundation_Strings_Implementation_PathUtils);
+bool nsPathUtils::IsSubPath_NoCase(nsStringView sPrefixPath, nsStringView sFullPath)
+{
+  nsStringBuilder tmp = sPrefixPath;
+  tmp.MakeCleanPath();
+  tmp.Trim("", "/");
+
+  if (sFullPath.StartsWith_NoCase(tmp))
+  {
+    if (tmp.GetElementCount() == sFullPath.GetElementCount())
+      return true;
+
+    return sFullPath.GetStartPointer()[tmp.GetElementCount()] == '/';
+  }
+
+  return false;
+}

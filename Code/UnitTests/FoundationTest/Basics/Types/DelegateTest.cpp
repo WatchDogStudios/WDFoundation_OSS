@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/Types/Delegate.h>
@@ -75,7 +70,10 @@ namespace
     nsDelegate<void()> m_dtorDel;
   };
 
-  static nsInt32 Function(nsInt32 b) { return b + 2; }
+  static nsInt32 Function(nsInt32 b)
+  {
+    return b + 2;
+  }
 } // namespace
 
 NS_CREATE_SIMPLE_TEST(Basics, Delegate)
@@ -119,8 +117,13 @@ NS_CREATE_SIMPLE_TEST(Basics, Delegate)
 
   NS_TEST_BLOCK(nsTestBlock::Enabled, "Complex Class")
   {
+    NS_WARNING_PUSH()
+    NS_WARNING_DISABLE_GCC("-Wfree-nonheap-object")
+
     ComplexClass* c = new ComplexClass();
     delete c;
+
+    NS_WARNING_POP()
   }
 
   NS_TEST_BLOCK(nsTestBlock::Enabled, "Const Method")
@@ -159,7 +162,8 @@ NS_CREATE_SIMPLE_TEST(Basics, Delegate)
 
   NS_TEST_BLOCK(nsTestBlock::Enabled, "Lambda - no capture")
   {
-    d = [](nsInt32 i) { return i * 4; };
+    d = [](nsInt32 i)
+    { return i * 4; };
     NS_TEST_BOOL(d.IsComparable());
     NS_TEST_INT(d(2), 8);
 
@@ -170,7 +174,8 @@ NS_CREATE_SIMPLE_TEST(Basics, Delegate)
   NS_TEST_BLOCK(nsTestBlock::Enabled, "Lambda - capture by value")
   {
     nsInt32 c = 20;
-    d = [c](nsInt32) { return c; };
+    d = [c](nsInt32)
+    { return c; };
     NS_TEST_BOOL(!d.IsComparable());
     NS_TEST_INT(d(3), 20);
     c = 10;
@@ -180,13 +185,15 @@ NS_CREATE_SIMPLE_TEST(Basics, Delegate)
   NS_TEST_BLOCK(nsTestBlock::Enabled, "Lambda - capture by value, mutable")
   {
     nsInt32 c = 20;
-    d = [c](nsInt32) mutable { return c; };
+    d = [c](nsInt32) mutable
+    { return c; };
     NS_TEST_BOOL(!d.IsComparable());
     NS_TEST_INT(d(3), 20);
     c = 10;
     NS_TEST_INT(d(3), 20);
 
-    d = [c](nsInt32 b) mutable -> decltype(b + c) {
+    d = [c](nsInt32 b) mutable -> decltype(b + c)
+    {
       auto result = b + c;
       c = 1;
       return result;
@@ -199,7 +206,8 @@ NS_CREATE_SIMPLE_TEST(Basics, Delegate)
   NS_TEST_BLOCK(nsTestBlock::Enabled, "Lambda - capture by reference")
   {
     nsInt32 c = 20;
-    d = [&c](nsInt32 i) -> decltype(i) {
+    d = [&c](nsInt32 i) -> decltype(i)
+    {
       c = 5;
       return i;
     };
@@ -223,7 +231,8 @@ NS_CREATE_SIMPLE_TEST(Basics, Delegate)
     nsSharedPtr<RefCountedInt> shared = NS_DEFAULT_NEW(RefCountedInt, 1);
     NS_TEST_INT(shared->GetRefCount(), 1);
     {
-      TestDelegate deleteMe = [shared](nsInt32 i) -> decltype(i) { return 0; };
+      TestDelegate deleteMe = [shared](nsInt32 i) -> decltype(i)
+      { return 0; };
       NS_TEST_BOOL(!deleteMe.IsComparable());
       NS_TEST_INT(shared->GetRefCount(), 2);
     }
@@ -235,7 +244,8 @@ NS_CREATE_SIMPLE_TEST(Basics, Delegate)
     nsInt64 a = 10;
     nsInt64 b = 20;
     nsInt64 c = 30;
-    d = [a, b, c](nsInt32 i) -> nsInt32 { return static_cast<nsInt32>(a + b + c + i); };
+    d = [a, b, c](nsInt32 i) -> nsInt32
+    { return static_cast<nsInt32>(a + b + c + i); };
     NS_TEST_INT(d(6), 66);
     NS_TEST_BOOL(!d.IsComparable());
   }
@@ -245,7 +255,8 @@ NS_CREATE_SIMPLE_TEST(Basics, Delegate)
     nsInt64 a = 10;
     nsInt64 b = 20;
     nsInt64 c = 30;
-    d = TestDelegate([a, b, c](nsInt32 i) -> nsInt32 { return static_cast<nsInt32>(a + b + c + i); }, nsFoundation::GetAlignedAllocator());
+    d = TestDelegate([a, b, c](nsInt32 i) -> nsInt32
+      { return static_cast<nsInt32>(a + b + c + i); }, nsFoundation::GetAlignedAllocator());
     NS_TEST_INT(d(6), 66);
     NS_TEST_BOOL(!d.IsComparable());
 
@@ -273,7 +284,8 @@ NS_CREATE_SIMPLE_TEST(Basics, Delegate)
       value.m_iData = 666;
       NS_TEST_INT(nsConstructionCounter::s_iConstructions, 1);
       NS_TEST_INT(nsConstructionCounter::s_iDestructions, 0);
-      TestDelegate d2 = [value](nsInt32 i) -> nsInt32 { return value.m_iData; };
+      TestDelegate d2 = [value](nsInt32 i) -> nsInt32
+      { return value.m_iData; };
       NS_TEST_INT(nsConstructionCounter::s_iConstructions, 3); // Capture plus moving the lambda.
       NS_TEST_INT(nsConstructionCounter::s_iDestructions, 1);  // Move of lambda
       d = std::move(d2);
@@ -300,7 +312,8 @@ NS_CREATE_SIMPLE_TEST(Basics, Delegate)
       value.m_iData = 666;
       NS_TEST_INT(nsConstructionCounter::s_iConstructions, 1);
       NS_TEST_INT(nsConstructionCounter::s_iDestructions, 0);
-      TestDelegate d2 = TestDelegate([value](nsInt32 i) -> nsInt32 { return value.m_iData; }, nsFoundation::GetAlignedAllocator());
+      TestDelegate d2 = TestDelegate([value](nsInt32 i) -> nsInt32
+        { return value.m_iData; }, nsFoundation::GetAlignedAllocator());
       NS_TEST_INT(nsConstructionCounter::s_iConstructions, 3); // Capture plus moving the lambda.
       NS_TEST_INT(nsConstructionCounter::s_iDestructions, 1);  // Move of lambda
       d = d2;
@@ -323,7 +336,8 @@ NS_CREATE_SIMPLE_TEST(Basics, Delegate)
   {
     nsUniquePtr<nsConstructionCounter> data(NS_DEFAULT_NEW(nsConstructionCounter));
     data->m_iData = 666;
-    TestDelegate d2 = [data = std::move(data)](nsInt32 i) -> nsInt32 { return data->m_iData; };
+    TestDelegate d2 = [data = std::move(data)](nsInt32 i) -> nsInt32
+    { return data->m_iData; };
     NS_TEST_INT(d2(0), 666);
     d = std::move(d2);
     NS_TEST_BOOL(d.IsValid());

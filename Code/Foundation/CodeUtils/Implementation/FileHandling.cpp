@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/CodeUtils/Preprocessor.h>
@@ -303,7 +298,3 @@ nsResult nsPreprocessor::HandleInclude(const TokenStream& Tokens0, nsUInt32 uiCu
 
   return NS_SUCCESS;
 }
-
-
-
-NS_STATICLINK_FILE(Foundation, Foundation_CodeUtils_Implementation_FileHandling);

@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/IO/Stream.h>
@@ -10,14 +5,14 @@
 #include <Foundation/Strings/StringBuilder.h>
 
 template <nsUInt16 Size>
-nsHybridStringBase<Size>::nsHybridStringBase(const nsStringBuilder& rhs, nsAllocatorBase* pAllocator)
+nsHybridStringBase<Size>::nsHybridStringBase(const nsStringBuilder& rhs, nsAllocator* pAllocator)
   : m_Data(pAllocator)
 {
   *this = rhs;
 }
 
 template <nsUInt16 Size>
-nsHybridStringBase<Size>::nsHybridStringBase(nsStringBuilder&& rhs, nsAllocatorBase* pAllocator)
+nsHybridStringBase<Size>::nsHybridStringBase(nsStringBuilder&& rhs, nsAllocator* pAllocator)
   : m_Data(pAllocator)
 {
   *this = std::move(rhs);
@@ -38,14 +33,12 @@ NS_ALWAYS_INLINE nsHybridString<Size, A>::nsHybridString(nsStringBuilder&& rhs)
 template <nsUInt16 Size>
 void nsHybridStringBase<Size>::operator=(const nsStringBuilder& rhs)
 {
-  m_uiCharacterCount = rhs.m_uiCharacterCount;
   m_Data = rhs.m_Data;
 }
 
 template <nsUInt16 Size>
 void nsHybridStringBase<Size>::operator=(nsStringBuilder&& rhs)
 {
-  m_uiCharacterCount = rhs.m_uiCharacterCount;
   m_Data = std::move(rhs.m_Data);
 }
 

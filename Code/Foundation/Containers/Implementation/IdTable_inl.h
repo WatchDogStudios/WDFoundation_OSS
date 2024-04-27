@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 
 // ***** Const Iterator *****
 
@@ -91,7 +86,7 @@ NS_ALWAYS_INLINE ValueType& nsIdTableBase<IdType, ValueType>::Iterator::Value()
 // ***** nsIdTableBase *****
 
 template <typename IdType, typename ValueType>
-nsIdTableBase<IdType, ValueType>::nsIdTableBase(nsAllocatorBase* pAllocator)
+nsIdTableBase<IdType, ValueType>::nsIdTableBase(nsAllocator* pAllocator)
 {
   m_pEntries = nullptr;
   m_Count = 0;
@@ -102,7 +97,7 @@ nsIdTableBase<IdType, ValueType>::nsIdTableBase(nsAllocatorBase* pAllocator)
 }
 
 template <typename IdType, typename ValueType>
-nsIdTableBase<IdType, ValueType>::nsIdTableBase(const nsIdTableBase<IdType, ValueType>& other, nsAllocatorBase* pAllocator)
+nsIdTableBase<IdType, ValueType>::nsIdTableBase(const nsIdTableBase<IdType, ValueType>& other, nsAllocator* pAllocator)
 {
   m_pEntries = nullptr;
   m_Count = 0;
@@ -349,7 +344,7 @@ NS_ALWAYS_INLINE typename nsIdTableBase<IdType, ValueType>::ConstIterator nsIdTa
 }
 
 template <typename IdType, typename ValueType>
-NS_ALWAYS_INLINE nsAllocatorBase* nsIdTableBase<IdType, ValueType>::GetAllocator() const
+NS_ALWAYS_INLINE nsAllocator* nsIdTableBase<IdType, ValueType>::GetAllocator() const
 {
   return m_pAllocator;
 }
@@ -416,7 +411,7 @@ nsIdTable<IdType, V, A>::nsIdTable()
 }
 
 template <typename IdType, typename V, typename A>
-nsIdTable<IdType, V, A>::nsIdTable(nsAllocatorBase* pAllocator)
+nsIdTable<IdType, V, A>::nsIdTable(nsAllocator* pAllocator)
   : nsIdTableBase<IdType, V>(pAllocator)
 {
 }

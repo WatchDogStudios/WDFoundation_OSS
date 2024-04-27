@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Types/Variant.h>
@@ -464,6 +459,19 @@ struct nsVariantAdapter<const char*, const char*, 1, 0>
   }
 
   operator const char*() { return m_value.IsValid() ? m_value.Get<nsString>().GetData() : nullptr; }
+
+  nsVariant& m_value;
+};
+
+template <class T>
+struct nsVariantAdapter<T, nsStringView, 1, 0>
+{
+  nsVariantAdapter(nsVariant& value)
+    : m_value(value)
+  {
+  }
+
+  operator const nsStringView() { return m_value.IsA<nsStringView>() ? m_value.Get<nsStringView>() : m_value.Get<nsString>().GetView(); }
 
   nsVariant& m_value;
 };

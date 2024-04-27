@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Math/Transform.h>
@@ -52,7 +47,7 @@ nsTransformTemplate<Type> nsTransformTemplate<Type>::MakeFromMat4(const nsMat4Te
 template <typename Type>
 nsTransformTemplate<Type> nsTransformTemplate<Type>::MakeLocalTransform(const nsTransformTemplate& globalTransformParent, const nsTransformTemplate& globalTransformChild)
 {
-  const auto invRot = -globalTransformParent.m_qRotation;
+  const auto invRot = globalTransformParent.m_qRotation.GetInverse();
   const auto invScale = nsVec3Template<Type>(1).CompDiv(globalTransformParent.m_vScale);
 
   nsTransformTemplate<Type> res;
@@ -234,7 +229,7 @@ NS_ALWAYS_INLINE void nsTransformTemplate<Type>::Invert()
 template <typename Type>
 inline const nsTransformTemplate<Type> nsTransformTemplate<Type>::GetInverse() const
 {
-  const auto invRot = -m_qRotation;
+  const auto invRot = m_qRotation.GetInverse();
   const auto invScale = nsVec3Template<Type>(1).CompDiv(m_vScale);
   const auto invPos = invRot * (invScale.CompMul(-m_vPosition));
 

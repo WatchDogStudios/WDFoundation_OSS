@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/Utilities/Progress.h>
@@ -145,7 +140,8 @@ NS_CREATE_SIMPLE_TEST(Utility, Progress)
     nsUInt32 uiNumProgressUpdatedEvents = 0;
 
     nsProgress progress;
-    progress.m_Events.AddEventHandler([&](const nsProgressEvent& e) {
+    progress.m_Events.AddEventHandler([&](const nsProgressEvent& e)
+      {
       if (e.m_Type == nsProgressEvent::Type::ProgressChanged)
       {
         ++uiNumProgressUpdatedEvents;

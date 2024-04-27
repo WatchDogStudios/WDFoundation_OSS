@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Basics.h>
@@ -85,7 +80,7 @@ class nsMemoryStreamContainerStorage : public nsMemoryStreamStorageInterface
 {
 public:
   /// \brief Creates the storage object for a memory stream. Use \a uiInitialCapacity to reserve some memory up front.
-  nsMemoryStreamContainerStorage(nsUInt32 uiInitialCapacity = 0, nsAllocatorBase* pAllocator = nsFoundation::GetDefaultAllocator())
+  nsMemoryStreamContainerStorage(nsUInt32 uiInitialCapacity = 0, nsAllocator* pAllocator = nsFoundation::GetDefaultAllocator())
     : m_Storage(pAllocator)
   {
     m_Storage.Reserve(uiInitialCapacity);
@@ -149,7 +144,7 @@ private:
 class NS_FOUNDATION_DLL nsContiguousMemoryStreamStorage : public nsMemoryStreamContainerStorage<nsHybridArray<nsUInt8, 256>>
 {
 public:
-  nsContiguousMemoryStreamStorage(nsUInt32 uiInitialCapacity = 0, nsAllocatorBase* pAllocator = nsFoundation::GetDefaultAllocator())
+  nsContiguousMemoryStreamStorage(nsUInt32 uiInitialCapacity = 0, nsAllocator* pAllocator = nsFoundation::GetDefaultAllocator())
     : nsMemoryStreamContainerStorage<nsHybridArray<nsUInt8, 256>>(uiInitialCapacity, pAllocator)
   {
   }
@@ -165,10 +160,10 @@ public:
 class NS_FOUNDATION_DLL nsDefaultMemoryStreamStorage final : public nsMemoryStreamStorageInterface
 {
 public:
-  nsDefaultMemoryStreamStorage(nsUInt32 uiInitialCapacity = 0, nsAllocatorBase* pAllocator = nsFoundation::GetDefaultAllocator());
+  nsDefaultMemoryStreamStorage(nsUInt32 uiInitialCapacity = 0, nsAllocator* pAllocator = nsFoundation::GetDefaultAllocator());
   ~nsDefaultMemoryStreamStorage();
 
-  virtual void Reserve(nsUInt64 uiBytes) override; // [tested]
+  virtual void Reserve(nsUInt64 uiBytes) override;    // [tested]
 
   virtual nsUInt64 GetStorageSize64() const override; // [tested]
   virtual void Clear() override;
@@ -380,7 +375,7 @@ public:
   void Reset(const void* pData, nsUInt64 uiDataSize); // [tested]
 
   template <typename CONTAINER>
-  void Reset(const CONTAINER& container) // [tested]
+  void Reset(const CONTAINER& container)              // [tested]
   {
     Reset(static_cast<const nsUInt8*>(container.GetData()), container.GetCount());
   }
@@ -436,12 +431,12 @@ public:
     Reset(ref_container);
   }
 
-  ~nsRawMemoryStreamWriter(); // [tested]
+  ~nsRawMemoryStreamWriter();                   // [tested]
 
   void Reset(void* pData, nsUInt64 uiDataSize); // [tested]
 
   template <typename CONTAINER>
-  void Reset(CONTAINER& ref_container) // [tested]
+  void Reset(CONTAINER& ref_container)          // [tested]
   {
     Reset(static_cast<nsUInt8*>(ref_container.GetData()), ref_container.GetCount());
   }

@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 
 template <typename T, typename Derived>
 nsArrayBase<T, Derived>::nsArrayBase() = default;
@@ -62,6 +57,22 @@ NS_ALWAYS_INLINE nsArrayBase<T, Derived>::operator nsArrayPtr<T>()
 }
 
 template <typename T, typename Derived>
+bool nsArrayBase<T, Derived>::operator==(const nsArrayBase<T, Derived>& rhs) const
+{
+  if (m_uiCount != rhs.GetCount())
+    return false;
+
+  return nsMemoryUtils::IsEqual(static_cast<const Derived*>(this)->GetElementsPtr(), rhs.GetData(), m_uiCount);
+}
+
+template <typename T, typename Derived>
+NS_ALWAYS_INLINE bool nsArrayBase<T, Derived>::operator<(const nsArrayBase<T, Derived>& rhs) const
+{
+  return GetArrayPtr() < rhs.GetArrayPtr();
+}
+
+#if NS_DISABLED(NS_USE_CPP20_OPERATORS)
+template <typename T, typename Derived>
 bool nsArrayBase<T, Derived>::operator==(const nsArrayPtr<const T>& rhs) const
 {
   if (m_uiCount != rhs.GetCount())
@@ -69,12 +80,7 @@ bool nsArrayBase<T, Derived>::operator==(const nsArrayPtr<const T>& rhs) const
 
   return nsMemoryUtils::IsEqual(static_cast<const Derived*>(this)->GetElementsPtr(), rhs.GetPtr(), m_uiCount);
 }
-
-template <typename T, typename Derived>
-NS_ALWAYS_INLINE bool nsArrayBase<T, Derived>::operator!=(const nsArrayPtr<const T>& rhs) const
-{
-  return !(*this == rhs);
-}
+#endif
 
 template <typename T, typename Derived>
 NS_ALWAYS_INLINE bool nsArrayBase<T, Derived>::operator<(const nsArrayPtr<const T>& rhs) const
@@ -105,7 +111,7 @@ void nsArrayBase<T, Derived>::SetCount(nsUInt32 uiCount)
   if (uiNewCount > uiOldCount)
   {
     static_cast<Derived*>(this)->Reserve(uiNewCount);
-    nsMemoryUtils::DefaultConstruct(static_cast<Derived*>(this)->GetElementsPtr() + uiOldCount, uiNewCount - uiOldCount);
+    nsMemoryUtils::Construct<ConstructAll>(static_cast<Derived*>(this)->GetElementsPtr() + uiOldCount, uiNewCount - uiOldCount);
   }
   else if (uiNewCount < uiOldCount)
   {
@@ -188,7 +194,7 @@ bool nsArrayBase<T, Derived>::Contains(const T& value) const
 }
 
 template <typename T, typename Derived>
-void nsArrayBase<T, Derived>::Insert(const T& value, nsUInt32 uiIndex)
+void nsArrayBase<T, Derived>::InsertAt(nsUInt32 uiIndex, const T& value)
 {
   NS_ASSERT_DEV(uiIndex <= m_uiCount, "Invalid index. Array has {0} elements, trying to insert element at index {1}.", m_uiCount, uiIndex);
 
@@ -199,7 +205,7 @@ void nsArrayBase<T, Derived>::Insert(const T& value, nsUInt32 uiIndex)
 }
 
 template <typename T, typename Derived>
-void nsArrayBase<T, Derived>::Insert(T&& value, nsUInt32 uiIndex)
+void nsArrayBase<T, Derived>::InsertAt(nsUInt32 uiIndex, T&& value)
 {
   NS_ASSERT_DEV(uiIndex <= m_uiCount, "Invalid index. Array has {0} elements, trying to insert element at index {1}.", m_uiCount, uiIndex);
 
@@ -307,7 +313,7 @@ T& nsArrayBase<T, Derived>::ExpandAndGetRef()
 
   T* pElements = static_cast<Derived*>(this)->GetElementsPtr();
 
-  nsMemoryUtils::Construct(pElements + m_uiCount, 1);
+  nsMemoryUtils::Construct<SkipTrivialTypes>(pElements + m_uiCount, 1);
 
   T& ReturnRef = *(pElements + m_uiCount);
 

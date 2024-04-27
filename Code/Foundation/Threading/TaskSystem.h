@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Containers/DynamicArray.h>
@@ -245,11 +240,11 @@ private:
 public:
   /// A helper function to process task items in a parallel fashion by having per-worker index ranges generated.
   static void ParallelForIndexed(nsUInt32 uiStartIndex, nsUInt32 uiNumItems, nsParallelForIndexedFunction32 taskCallback,
-    const char* szTaskName = nullptr, const nsParallelForParams& params = nsParallelForParams());
+    const char* szTaskName = nullptr, nsTaskNesting taskNesting = nsTaskNesting::Never, const nsParallelForParams& params = nsParallelForParams());
 
   /// A helper function to process task items in a parallel fashion by having per-worker index ranges generated.
   static void ParallelForIndexed(nsUInt64 uiStartIndex, nsUInt64 uiNumItems, nsParallelForIndexedFunction64 taskCallback,
-    const char* szTaskName = nullptr, const nsParallelForParams& params = nsParallelForParams());
+    const char* szTaskName = nullptr, nsTaskNesting taskNesting = nsTaskNesting::Never, const nsParallelForParams& params = nsParallelForParams());
 
   /// A helper function to process task items in a parallel fashion by generating per-worker sub-ranges
   /// from an initial item array pointer.

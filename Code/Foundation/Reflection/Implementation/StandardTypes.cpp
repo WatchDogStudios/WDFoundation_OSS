@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Math/Transform.h>
@@ -69,6 +64,7 @@ NS_BEGIN_STATIC_REFLECTED_TYPE(nsTime, nsNoBase, 1, nsRTTINoAllocator)
     NS_SCRIPT_FUNCTION_PROPERTY(MakeFromMinutes, In, "Minutes")->AddFlags(nsPropertyFlags::Const),
     NS_SCRIPT_FUNCTION_PROPERTY(MakeFromHours, In, "Hours")->AddFlags(nsPropertyFlags::Const),
     NS_SCRIPT_FUNCTION_PROPERTY(MakeZero)->AddFlags(nsPropertyFlags::Const),
+    NS_SCRIPT_FUNCTION_PROPERTY(AsFloatInSeconds),
   }
   NS_END_FUNCTIONS;
 }
@@ -90,6 +86,8 @@ NS_BEGIN_STATIC_REFLECTED_TYPE(nsColor, nsNoBase, 1, nsRTTINoAllocator)
     NS_CONSTRUCTOR_PROPERTY(float, float, float, float),
     NS_CONSTRUCTOR_PROPERTY(nsColorLinearUB),
     NS_CONSTRUCTOR_PROPERTY(nsColorGammaUB),
+    NS_SCRIPT_FUNCTION_PROPERTY(MakeRGBA, In, "R", In, "G", In, "B", In, "A")->AddFlags(nsPropertyFlags::Const),
+    NS_SCRIPT_FUNCTION_PROPERTY(MakeHSV, In, "Hue", In, "Saturation", In, "Value")->AddFlags(nsPropertyFlags::Const),
   }
   NS_END_FUNCTIONS;
 }
@@ -168,6 +166,11 @@ NS_BEGIN_STATIC_REFLECTED_TYPE(nsVec3, nsNoBase, 1, nsRTTINoAllocator)
   {
     NS_CONSTRUCTOR_PROPERTY(float),
     NS_CONSTRUCTOR_PROPERTY(float, float, float),
+    NS_SCRIPT_FUNCTION_PROPERTY(GetLength<float>),
+    NS_SCRIPT_FUNCTION_PROPERTY(GetLengthSquared),
+    NS_SCRIPT_FUNCTION_PROPERTY(GetNormalized<float>),
+    NS_SCRIPT_FUNCTION_PROPERTY(Dot, In, "v"),
+    NS_SCRIPT_FUNCTION_PROPERTY(CrossRH, In, "v"),
   }
   NS_END_FUNCTIONS;
 }
@@ -313,6 +316,10 @@ NS_BEGIN_STATIC_REFLECTED_TYPE(nsQuat, nsNoBase, 1, nsRTTINoAllocator)
   NS_BEGIN_FUNCTIONS
   {
     NS_CONSTRUCTOR_PROPERTY(float, float, float, float),
+    NS_SCRIPT_FUNCTION_PROPERTY(MakeFromAxisAndAngle, In, "Axis", In, "Angle")->AddFlags(nsPropertyFlags::Const),
+    NS_SCRIPT_FUNCTION_PROPERTY(MakeShortestRotation, In, "DirFrom", In, "DirTo")->AddFlags(nsPropertyFlags::Const),
+    NS_SCRIPT_FUNCTION_PROPERTY(MakeSlerp, In, "From", In, "To", In, "Lerp")->AddFlags(nsPropertyFlags::Const),
+    NS_SCRIPT_FUNCTION_PROPERTY(GetInverse)->AddFlags(nsPropertyFlags::Const),
   }
   NS_END_FUNCTIONS;
 }
@@ -337,6 +344,11 @@ NS_BEGIN_STATIC_REFLECTED_TYPE(nsTransform, nsNoBase, 1, nsRTTINoAllocator)
   {
     NS_CONSTRUCTOR_PROPERTY(nsVec3, nsQuat),
     NS_CONSTRUCTOR_PROPERTY(nsVec3, nsQuat, nsVec3),
+    NS_SCRIPT_FUNCTION_PROPERTY(Make, In, "Position", In, "Rotation", In, "Scale")->AddFlags(nsPropertyFlags::Const),
+    NS_SCRIPT_FUNCTION_PROPERTY(MakeLocalTransform, In, "Parent", In, "GlobalChild")->AddFlags(nsPropertyFlags::Const),
+    NS_SCRIPT_FUNCTION_PROPERTY(MakeGlobalTransform, In, "Parent", In, "LocalChild")->AddFlags(nsPropertyFlags::Const),
+    NS_SCRIPT_FUNCTION_PROPERTY(TransformPosition, In, "Position"),
+    NS_SCRIPT_FUNCTION_PROPERTY(TransformDirection, In, "Direction"),
   }
   NS_END_FUNCTIONS;
 }
@@ -345,10 +357,10 @@ NS_END_STATIC_REFLECTED_TYPE;
 NS_BEGIN_STATIC_REFLECTED_ENUM(nsBasisAxis, 1)
 NS_ENUM_CONSTANT(nsBasisAxis::PositiveX),
 NS_ENUM_CONSTANT(nsBasisAxis::PositiveY),
-NS_ENUM_CONSTANT(nsBasisAxis::Positivns),
+NS_ENUM_CONSTANT(nsBasisAxis::PositiveZ),
 NS_ENUM_CONSTANT(nsBasisAxis::NegativeX),
 NS_ENUM_CONSTANT(nsBasisAxis::NegativeY),
-NS_ENUM_CONSTANT(nsBasisAxis::Negativns),
+NS_ENUM_CONSTANT(nsBasisAxis::NegativeZ),
 NS_END_STATIC_REFLECTED_ENUM;
 
 NS_BEGIN_STATIC_REFLECTED_TYPE(nsUuid, nsNoBase, 1, nsRTTINoAllocator)
@@ -385,8 +397,9 @@ NS_BEGIN_STATIC_REFLECTED_TYPE(nsAngle, nsNoBase, 1, nsRTTINoAllocator)
 {
   NS_BEGIN_FUNCTIONS
   {
-    NS_FUNCTION_PROPERTY(MakeFromDegree),
-    NS_FUNCTION_PROPERTY(MakeFromRadian),
+    NS_SCRIPT_FUNCTION_PROPERTY(MakeFromDegree, In, "Degree")->AddFlags(nsPropertyFlags::Const),
+    NS_SCRIPT_FUNCTION_PROPERTY(MakeFromRadian, In, "Radian")->AddFlags(nsPropertyFlags::Const),
+    NS_SCRIPT_FUNCTION_PROPERTY(GetNormalizedRange),
   }
   NS_END_FUNCTIONS;
 }

@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Basics.h>
@@ -63,9 +58,9 @@ private:
 
 #define NS_CREATE_SIMPLE_TEST_GROUP(GroupName) nsSimpleTestGroup NS_CONCAT(g_SimpleTestGroup__, GroupName)(NS_STRINGIZE(GroupName));
 
-#define NS_CREATE_SIMPLE_TEST(GroupName, TestName)                                                                                                   \
-  extern nsSimpleTestGroup NS_CONCAT(g_SimpleTestGroup__, GroupName);                                                                                \
-  static void nsSimpleTestFunction__##GroupName##_##TestName();                                                                                      \
-  nsRegisterSimpleTestHelper nsRegisterSimpleTest__##GroupName##TestName(                                                                            \
-    &NS_CONCAT(g_SimpleTestGroup__, GroupName), NS_STRINGIZE(TestName), nsSimpleTestFunction__##GroupName##_##TestName);                             \
+#define NS_CREATE_SIMPLE_TEST(GroupName, TestName)                                                                       \
+  extern nsSimpleTestGroup NS_CONCAT(g_SimpleTestGroup__, GroupName);                                                    \
+  static void nsSimpleTestFunction__##GroupName##_##TestName();                                                          \
+  nsRegisterSimpleTestHelper nsRegisterSimpleTest__##GroupName##TestName(                                                \
+    &NS_CONCAT(g_SimpleTestGroup__, GroupName), NS_STRINGIZE(TestName), nsSimpleTestFunction__##GroupName##_##TestName); \
   static void nsSimpleTestFunction__##GroupName##_##TestName()

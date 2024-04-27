@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #if NS_DISABLED(NS_PLATFORM_WINDOWS_UWP)
@@ -110,7 +105,8 @@ namespace nsUwpUtils
   HRESULT nsWinRtPutCompleted(ObjectType& object, Callback callback)
   {
     object->put_Completed(Microsoft::WRL::Callback<ABI::Windows::Foundation::IAsyncOperationCompletedHandler<AsyncCompletedType>>(
-      [callback](ABI::Windows::Foundation::IAsyncOperation<AsyncCompletedType>* pCompletion, AsyncStatus status) {
+      [callback](ABI::Windows::Foundation::IAsyncOperation<AsyncCompletedType>* pCompletion, AsyncStatus status)
+      {
         if (status != ABI::Windows::Foundation::AsyncStatus::Completed)
           return S_OK;
 

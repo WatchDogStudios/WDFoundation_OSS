@@ -1,17 +1,12 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 
 template <typename T>
-nsDynamicArrayBase<T>::nsDynamicArrayBase(nsAllocatorBase* pAllocator)
+nsDynamicArrayBase<T>::nsDynamicArrayBase(nsAllocator* pAllocator)
   : m_pAllocator(pAllocator)
 {
 }
 
 template <typename T>
-nsDynamicArrayBase<T>::nsDynamicArrayBase(T* pInplaceStorage, nsUInt32 uiCapacity, nsAllocatorBase* pAllocator)
+nsDynamicArrayBase<T>::nsDynamicArrayBase(T* pInplaceStorage, nsUInt32 uiCapacity, nsAllocator* pAllocator)
   : m_pAllocator(pAllocator)
 {
   m_pAllocator.SetFlags(Storage::External);
@@ -20,21 +15,21 @@ nsDynamicArrayBase<T>::nsDynamicArrayBase(T* pInplaceStorage, nsUInt32 uiCapacit
 }
 
 template <typename T>
-nsDynamicArrayBase<T>::nsDynamicArrayBase(const nsDynamicArrayBase<T>& other, nsAllocatorBase* pAllocator)
+nsDynamicArrayBase<T>::nsDynamicArrayBase(const nsDynamicArrayBase<T>& other, nsAllocator* pAllocator)
   : m_pAllocator(pAllocator)
 {
   nsArrayBase<T, nsDynamicArrayBase<T>>::operator=((nsArrayPtr<const T>)other); // redirect this to the nsArrayPtr version
 }
 
 template <typename T>
-nsDynamicArrayBase<T>::nsDynamicArrayBase(nsDynamicArrayBase<T>&& other, nsAllocatorBase* pAllocator)
+nsDynamicArrayBase<T>::nsDynamicArrayBase(nsDynamicArrayBase<T>&& other, nsAllocator* pAllocator)
   : m_pAllocator(pAllocator)
 {
   *this = std::move(other);
 }
 
 template <typename T>
-nsDynamicArrayBase<T>::nsDynamicArrayBase(const nsArrayPtr<const T>& other, nsAllocatorBase* pAllocator)
+nsDynamicArrayBase<T>::nsDynamicArrayBase(const nsArrayPtr<const T>& other, nsAllocator* pAllocator)
   : m_pAllocator(pAllocator)
 {
   nsArrayBase<T, nsDynamicArrayBase<T>>::operator=(other);
@@ -67,7 +62,7 @@ inline void nsDynamicArrayBase<T>::operator=(nsDynamicArrayBase<T>&& rhs) noexce
   // Clear any existing data (calls destructors if necessary)
   this->Clear();
 
-  if (this->m_pAllocator == rhs.m_pAllocator && rhs.m_pAllocator.GetFlags() == Storage::Owned) // only move the storage of rhs, if it owns it
+  if (this->m_pAllocator.GetPtr() == rhs.m_pAllocator.GetPtr() && rhs.m_pAllocator.GetFlags() == Storage::Owned) // only move the storage of rhs, if it owns it
   {
     if (this->m_pAllocator.GetFlags() == Storage::Owned)
     {
@@ -251,7 +246,7 @@ nsDynamicArray<T, A>::nsDynamicArray()
 }
 
 template <typename T, typename A>
-nsDynamicArray<T, A>::nsDynamicArray(nsAllocatorBase* pAllocator)
+nsDynamicArray<T, A>::nsDynamicArray(nsAllocator* pAllocator)
   : nsDynamicArrayBase<T>(pAllocator)
 {
 }

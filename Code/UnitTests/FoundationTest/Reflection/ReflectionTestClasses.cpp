@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <FoundationTest/Reflection/ReflectionTestClasses.h>
@@ -95,7 +90,9 @@ NS_BEGIN_DYNAMIC_REFLECTED_TYPE(nsTestClass2, 22, nsTestClass2Allocator)
 {
   NS_BEGIN_PROPERTIES
   {
-    NS_ACCESSOR_PROPERTY("Text", GetText, SetText)->AddAttributes(new nsDefaultValueAttribute("Legen")),
+    NS_ACCESSOR_PROPERTY("CharPtr", GetCharPtr, SetCharPtr)->AddAttributes(new nsDefaultValueAttribute("AAA")),
+    NS_ACCESSOR_PROPERTY("String", GetString, SetString)->AddAttributes(new nsDefaultValueAttribute("BBB")),
+    NS_ACCESSOR_PROPERTY("StringView", GetStringView, SetStringView)->AddAttributes(new nsDefaultValueAttribute("CCC")),
     NS_MEMBER_PROPERTY("Time", m_Time),
     NS_ENUM_MEMBER_PROPERTY("Enum", nsExampleEnum, m_enumClass),
     NS_BITFLAGS_MEMBER_PROPERTY("Bitflags", nsExampleBitflags, m_bitflagsClass),
@@ -164,7 +161,7 @@ void nsTestArrays::SetValue(nsUInt32 uiIndex, double value)
 }
 void nsTestArrays::Insert(nsUInt32 uiIndex, double value)
 {
-  m_Hybrid.Insert(value, uiIndex);
+  m_Hybrid.InsertAt(uiIndex, value);
 }
 void nsTestArrays::Remove(nsUInt32 uiIndex)
 {
@@ -185,7 +182,7 @@ void nsTestArrays::SetValueChar(nsUInt32 uiIndex, const char* value)
 }
 void nsTestArrays::InsertChar(nsUInt32 uiIndex, const char* value)
 {
-  m_HybridChar.Insert(value, uiIndex);
+  m_HybridChar.InsertAt(uiIndex, value);
 }
 void nsTestArrays::RemoveChar(nsUInt32 uiIndex)
 {
@@ -206,7 +203,7 @@ void nsTestArrays::SetValueDyn(nsUInt32 uiIndex, const nsTestStruct3& value)
 }
 void nsTestArrays::InsertDyn(nsUInt32 uiIndex, const nsTestStruct3& value)
 {
-  m_Dynamic.Insert(value, uiIndex);
+  m_Dynamic.InsertAt(uiIndex, value);
 }
 void nsTestArrays::RemoveDyn(nsUInt32 uiIndex)
 {
@@ -227,7 +224,7 @@ void nsTestArrays::SetValueDeq(nsUInt32 uiIndex, const nsTestArrays& value)
 }
 void nsTestArrays::InsertDeq(nsUInt32 uiIndex, const nsTestArrays& value)
 {
-  m_Deque.Insert(value, uiIndex);
+  m_Deque.InsertAt(uiIndex, value);
 }
 void nsTestArrays::RemoveDeq(nsUInt32 uiIndex)
 {
@@ -248,7 +245,7 @@ void nsTestArrays::SetValueCustom(nsUInt32 uiIndex, nsVarianceTypeAngle value)
 }
 void nsTestArrays::InsertCustom(nsUInt32 uiIndex, nsVarianceTypeAngle value)
 {
-  m_CustomVariant.Insert(value, uiIndex);
+  m_CustomVariant.InsertAt(uiIndex, value);
 }
 void nsTestArrays::RemoveCustom(nsUInt32 uiIndex)
 {
@@ -446,7 +443,14 @@ void nsTestMaps::Remove2(const char* szKey)
 
 const nsRangeView<const char*, nsUInt32> nsTestMaps::GetKeys3() const
 {
-  return nsRangeView<const char*, nsUInt32>([this]() -> nsUInt32 { return 0; }, [this]() -> nsUInt32 { return m_Accessor3.GetCount(); }, [this](nsUInt32& ref_uiIt) { ++ref_uiIt; }, [this](const nsUInt32& uiIt) -> const char* { return m_Accessor3[uiIt].m_Key; });
+  return nsRangeView<const char*, nsUInt32>([this]() -> nsUInt32
+    { return 0; },
+    [this]() -> nsUInt32
+    { return m_Accessor3.GetCount(); },
+    [this](nsUInt32& ref_uiIt)
+    { ++ref_uiIt; },
+    [this](const nsUInt32& uiIt) -> const char*
+    { return m_Accessor3[uiIt].m_Key; });
 }
 
 void nsTestMaps::Insert3(const char* szKey, const nsVariant& value)

@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 
 #include <Foundation/FoundationInternal.h>
 NS_FOUNDATION_INTERNAL_HEADER
@@ -16,6 +11,11 @@ NS_FOUNDATION_INTERNAL_HEADER
 #  include <Foundation/Strings/StringBuilder.h>
 
 using nsPluginModule = HMODULE;
+
+bool nsPlugin::PlatformNeedsPluginCopy()
+{
+  return true;
+}
 
 void nsPlugin::GetPluginPaths(nsStringView sPluginName, nsStringBuilder& ref_sOriginalFile, nsStringBuilder& ref_sCopiedFile, nsUInt8 uiFileCopyNumber)
 {

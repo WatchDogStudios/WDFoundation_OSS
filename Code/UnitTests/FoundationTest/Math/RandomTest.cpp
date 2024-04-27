@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/Containers/StaticArray.h>
@@ -12,7 +7,7 @@
 #include <Foundation/Math/Random.h>
 
 // only works when also linking against CoreUtils
-//#define USE_NSIMAGE
+// #define USE_NSIMAGE
 
 #ifdef USE_NSIMAGE
 #  include <Texture/Image/Image.h>
@@ -115,27 +110,27 @@ NS_CREATE_SIMPLE_TEST(Math, Random)
     }
   }
 
-  NS_TEST_BLOCK(nsTestBlock::Enabled, "DoublnseroToOneExclusive")
+  NS_TEST_BLOCK(nsTestBlock::Enabled, "DoubleZeroToOneExclusive")
   {
     nsRandom r;
     r.Initialize(0xDDEEFF0011AABBCCULL);
 
     for (nsInt32 i = 2; i < 10000; ++i)
     {
-      const double val = r.DoublnseroToOneExclusive();
+      const double val = r.DoubleZeroToOneExclusive();
       NS_TEST_BOOL(val >= 0.0);
       NS_TEST_BOOL(val < 1.0);
     }
   }
 
-  NS_TEST_BLOCK(nsTestBlock::Enabled, "DoublnseroToOneInclusive")
+  NS_TEST_BLOCK(nsTestBlock::Enabled, "DoubleZeroToOneInclusive")
   {
     nsRandom r;
     r.Initialize(0xEEFF0011AABBCCDDULL);
 
     for (nsInt32 i = 2; i < 10000; ++i)
     {
-      const double val = r.DoublnseroToOneInclusive();
+      const double val = r.DoubleZeroToOneInclusive();
       NS_TEST_BOOL(val >= 0.0);
       NS_TEST_BOOL(val <= 1.0);
     }

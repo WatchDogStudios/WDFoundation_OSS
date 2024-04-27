@@ -1,12 +1,7 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/CodeUtils/Expression/ExpressionDeclarations.h>
-#include <Foundation/Containers/DynamicArray.h>
+#include <Foundation/Containers/Blob.h>
 
 class nsStreamWriter;
 class nsStreamReader;
@@ -186,16 +181,20 @@ public:
   using StorageType = nsUInt32;
 
   nsExpressionByteCode();
+  nsExpressionByteCode(const nsExpressionByteCode& other);
   ~nsExpressionByteCode();
+
+  void operator=(const nsExpressionByteCode& other);
 
   bool operator==(const nsExpressionByteCode& other) const;
   bool operator!=(const nsExpressionByteCode& other) const { return !(*this == other); }
 
   void Clear();
-  bool IsEmpty() const { return m_ByteCode.IsEmpty(); }
+  bool IsEmpty() const { return m_uiByteCodeCount == 0; }
 
-  const StorageType* GetByteCode() const;
+  const StorageType* GetByteCodeStart() const;
   const StorageType* GetByteCodeEnd() const;
+  nsArrayPtr<const StorageType> GetByteCode() const;
 
   nsUInt32 GetNumInstructions() const;
   nsUInt32 GetNumTempRegisters() const;
@@ -211,19 +210,37 @@ public:
 
   void Disassemble(nsStringBuilder& out_sDisassembly) const;
 
-  void Save(nsStreamWriter& inout_stream) const;
-  nsResult Load(nsStreamReader& inout_stream);
+  nsResult Save(nsStreamWriter& inout_stream) const;
+  nsResult Load(nsStreamReader& inout_stream, nsByteArrayPtr externalMemory = nsByteArrayPtr());
+
+  nsConstByteBlobPtr GetDataBlob() const { return m_Data.GetByteBlobPtr(); }
 
 private:
   friend class nsExpressionCompiler;
 
-  nsDynamicArray<StorageType> m_ByteCode;
-  nsDynamicArray<nsExpression::StreamDesc> m_Inputs;
-  nsDynamicArray<nsExpression::StreamDesc> m_Outputs;
-  nsDynamicArray<nsExpression::FunctionDesc> m_Functions;
+  void Init(nsArrayPtr<const StorageType> byteCode, nsArrayPtr<const nsExpression::StreamDesc> inputs, nsArrayPtr<const nsExpression::StreamDesc> outputs, nsArrayPtr<const nsExpression::FunctionDesc> functions, nsUInt32 uiNumTempRegisters, nsUInt32 uiNumInstructions);
 
+  nsBlob m_Data;
+
+  nsExpression::StreamDesc* m_pInputs = nullptr;
+  nsExpression::StreamDesc* m_pOutputs = nullptr;
+  nsExpression::FunctionDesc* m_pFunctions = nullptr;
+  StorageType* m_pByteCode = nullptr;
+
+  nsUInt32 m_uiByteCodeCount = 0;
+  nsUInt16 m_uiNumInputs = 0;
+  nsUInt16 m_uiNumOutputs = 0;
+  nsUInt16 m_uiNumFunctions = 0;
+
+  nsUInt16 m_uiNumTempRegisters = 0;
   nsUInt32 m_uiNumInstructions = 0;
-  nsUInt32 m_uiNumTempRegisters = 0;
 };
+
+#if NS_ENABLED(NS_PLATFORM_64BIT)
+static_assert(sizeof(nsExpressionByteCode) == 64);
+#endif
+
+NS_DECLARE_REFLECTABLE_TYPE(NS_FOUNDATION_DLL, nsExpressionByteCode);
+NS_DECLARE_CUSTOM_VARIANT_TYPE(nsExpressionByteCode);
 
 #include <Foundation/CodeUtils/Expression/Implementation/ExpressionByteCode_inl.h>

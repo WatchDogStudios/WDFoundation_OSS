@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Math/Declarations.h>
@@ -55,9 +50,9 @@ struct nsCurveFunction
     EaseOutCirc,
     EaseInOutCirc,
 
-    EaseInBack,    ///< Values exceed the 0-1 range briefly
-    EaseOutBack,   ///< Values exceed the 0-1 range briefly
-    EaseInOutBack, ///< Values exceed the 0-1 range briefly
+    EaseInBack,       ///< Values exceed the 0-1 range briefly
+    EaseOutBack,      ///< Values exceed the 0-1 range briefly
+    EaseInOutBack,    ///< Values exceed the 0-1 range briefly
 
     EaseInElastic,    ///< Values exceed the 0-1 range briefly
     EaseOutElastic,   ///< Values exceed the 0-1 range briefly

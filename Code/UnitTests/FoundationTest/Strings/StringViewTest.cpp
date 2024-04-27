@@ -1,12 +1,15 @@
-﻿/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/Containers/Deque.h>
 #include <Foundation/Strings/String.h>
+
+#include <string_view>
+
+using namespace std;
+
+const nsStringView gConstant1 = "gConstant1"_nssv;
+const nsStringView gConstant2("gConstant2");
+const std::string_view gConstant3 = "gConstant3"sv;
 
 NS_CREATE_SIMPLE_TEST(Strings, StringView)
 {
@@ -60,6 +63,16 @@ NS_CREATE_SIMPLE_TEST(Strings, StringView)
     nsStringView b = "Hello Worl"_nssv;
     NS_TEST_INT(b.GetElementCount(), 10);
     NS_TEST_STRING(b.GetData(tmp), "Hello Worl");
+
+    // tests a special case in which the MSVC compiler would run into trouble
+    NS_TEST_INT(gConstant1.GetElementCount(), 10);
+    NS_TEST_STRING(gConstant1.GetData(tmp), "gConstant1");
+
+    NS_TEST_INT(gConstant2.GetElementCount(), 10);
+    NS_TEST_STRING(gConstant2.GetData(tmp), "gConstant2");
+
+    NS_TEST_INT(gConstant3.size(), 10);
+    NS_TEST_BOOL(gConstant3 == "gConstant3");
   }
 
   NS_TEST_BLOCK(nsTestBlock::Enabled, "operator++")
@@ -275,7 +288,7 @@ NS_CREATE_SIMPLE_TEST(Strings, StringView)
 
     NS_TEST_BOOL(it.GetStartPointer() == &s.GetData()[5]);
     NS_TEST_BOOL(it.GetEndPointer() == &s.GetData()[9]);
-    NS_TEST_STRING(it.GetData(tmp), u8"öü");
+    NS_TEST_STRING(it.GetData(tmp), (const char*)u8"öü");
     NS_TEST_BOOL(it.IsValid());
 
     it.Shrink(1, 1);
@@ -607,9 +620,14 @@ NS_CREATE_SIMPLE_TEST(Strings, StringView)
     p = "This/Is\\My//Path.dot\\";
     NS_TEST_BOOL(p.GetFileName() == "");
 
-    // so far we treat file and folders whose names start with a '.' as extensions
     p = "This/Is\\My//Path.dot\\.stupidfile";
-    NS_TEST_BOOL(p.GetFileName() == "");
+    NS_TEST_BOOL(p.GetFileName() == ".stupidfile");
+
+    p = "This/Is\\My//Path.dot\\.stupidfile.ext";
+    NS_TEST_BOOL(p.GetFileName() == ".stupidfile");
+
+    p = "This/Is\\My//Path.dot\\.stupidfile.ext.";
+    NS_TEST_BOOL(p.GetFileName() == ".stupidfile.ext.");
   }
 
   NS_TEST_BLOCK(nsTestBlock::Enabled, "GetFileDirectory")
@@ -776,5 +794,27 @@ NS_CREATE_SIMPLE_TEST(Strings, StringView)
 
     p = "/noroot/bla";
     NS_TEST_BOOL(p.GetRootedPathRootName() == "");
+  }
+
+  NS_TEST_BLOCK(nsTestBlock::Enabled, "GetSubString")
+  {
+    nsStringView s = u8"Пожалуйста, дай мне очень длинные Unicode-стринги!";
+
+    NS_TEST_BOOL(s.GetElementCount() > nsStringUtils::GetCharacterCount(s.GetStartPointer(), s.GetEndPointer()));
+
+    nsStringView w1 = s.GetSubString(0, 10);
+    nsStringView w2 = s.GetSubString(12, 3);
+    nsStringView w3 = s.GetSubString(20, 5);
+    nsStringView w4 = s.GetSubString(34, 15);
+    nsStringView w5 = s.GetSubString(34, 20);
+    nsStringView w6 = s.GetSubString(100, 10);
+
+    NS_TEST_BOOL(w1 == nsStringView(u8"Пожалуйста"));
+    NS_TEST_BOOL(w2 == nsStringView(u8"дай"));
+    NS_TEST_BOOL(w3 == nsStringView(u8"очень"));
+    NS_TEST_BOOL(w4 == nsStringView(u8"Unicode-стринги"));
+    NS_TEST_BOOL(w5 == nsStringView(u8"Unicode-стринги!"));
+    NS_TEST_BOOL(!w6.IsValid());
+    NS_TEST_BOOL(w6 == nsStringView(""));
   }
 }

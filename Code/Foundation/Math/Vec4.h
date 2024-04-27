@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Math/Math.h>
@@ -30,12 +25,17 @@ public:
   /// \brief Initializes the vector with x,y,z,w
   nsVec4Template(Type x, Type y, Type z, Type w); // [tested]
 
+  /// \brief Initializes the vector from a vec3 and a float.
+  nsVec4Template(nsVec3Template<Type> vXyz, Type w);
+
   /// \brief Initializes all 4 components with xyzw
   explicit nsVec4Template(Type v); // [tested]
   // no copy-constructor and operator= since the default-generated ones will be faster
 
   /// \brief Returns a vector with all components set to Not-a-Number (NaN).
-  [[nodiscard]] static nsVec4Template<Type> MakeNaN() { return nsVec4Template<Type>(nsMath::NaN<Type>()); }
+  NS_DECLARE_IF_FLOAT_TYPE
+  [[nodiscard]] static nsVec4Template<Type>
+  MakeNaN() { return nsVec4Template<Type>(nsMath::NaN<Type>()); }
 
   /// \brief Returns a vector with all components set to zero.
   [[nodiscard]] static nsVec4Template<Type> MakeZero() { return nsVec4Template<Type>(0); } // [tested]
@@ -76,6 +76,7 @@ public:
   // *** Functions dealing with length ***
 public:
   /// \brief Returns the length of the vector.
+  NS_DECLARE_IF_FLOAT_TYPE
   Type GetLength() const; // [tested]
 
   /// \brief Returns the squared length. Faster, since no square-root is taken. Useful, if one only wants to compare the lengths of two
@@ -84,16 +85,20 @@ public:
 
   /// \brief Normalizes this vector and returns its previous length in one operation. More efficient than calling GetLength and then
   /// Normalize.
+  NS_DECLARE_IF_FLOAT_TYPE
   Type GetLengthAndNormalize(); // [tested]
 
   /// \brief Returns a normalized version of this vector, leaves the vector itself unchanged.
+  NS_DECLARE_IF_FLOAT_TYPE
   const nsVec4Template<Type> GetNormalized() const; // [tested]
 
   /// \brief Normalizes this vector.
+  NS_DECLARE_IF_FLOAT_TYPE
   void Normalize(); // [tested]
 
   /// \brief Tries to normalize this vector. If the vector is too close to zero, NS_FAILURE is returned and the vector is set to the given
   /// fallback value.
+  NS_DECLARE_IF_FLOAT_TYPE
   nsResult NormalizeIfNotZero(const nsVec4Template<Type>& vFallback = nsVec4Template<Type>(1, 0, 0, 0), Type fEpsilon = nsMath::SmallEpsilon<Type>()); // [tested]
 
   /// \brief Returns, whether this vector is (0, 0, 0, 0).
@@ -103,6 +108,7 @@ public:
   bool IsZero(Type fEpsilon) const; // [tested]
 
   /// \brief Returns, whether the squared length of this vector is between 0.999f and 1.001f.
+  NS_DECLARE_IF_FLOAT_TYPE
   bool IsNormalized(Type fEpsilon = nsMath::HugeEpsilon<Type>()) const; // [tested]
 
   /// \brief Returns true, if any of x, y, z or w is NaN.
@@ -159,8 +165,6 @@ public:
   /// brief Returns the component-wise absolute of *this.
   const nsVec4Template<Type> Abs() const; // [tested]
 };
-
-
 
 // *** Operators ***
 

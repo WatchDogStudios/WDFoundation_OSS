@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Memory/AllocatorWrapper.h>
@@ -78,10 +73,10 @@ public:
 
 protected:
   /// \brief Creates an empty id-table. Does not allocate any data yet.
-  explicit nsIdTableBase(nsAllocatorBase* pAllocator); // [tested]
+  explicit nsIdTableBase(nsAllocator* pAllocator); // [tested]
 
   /// \brief Creates a copy of the given id-table.
-  nsIdTableBase(const nsIdTableBase<IdType, ValueType>& rhs, nsAllocatorBase* pAllocator); // [tested]
+  nsIdTableBase(const nsIdTableBase<IdType, ValueType>& rhs, nsAllocator* pAllocator); // [tested]
 
   /// \brief Destructor.
   ~nsIdTableBase(); // [tested]
@@ -139,7 +134,7 @@ public:
   ConstIterator GetIterator() const; // [tested]
 
   /// \brief Returns the allocator that is used by this instance.
-  nsAllocatorBase* GetAllocator() const;
+  nsAllocator* GetAllocator() const;
 
   /// \brief Returns whether the internal free-list is valid. For testing purpose only.
   bool IsFreelistValid() const;
@@ -164,7 +159,7 @@ private:
   IndexType m_FreelistEnqueue;
   IndexType m_FreelistDequeue;
 
-  nsAllocatorBase* m_pAllocator;
+  nsAllocator* m_pAllocator;
 
   void SetCapacity(IndexType uiCapacity);
   void InitializeFreelist(IndexType uiStart, IndexType uiEnd);
@@ -176,7 +171,7 @@ class nsIdTable : public nsIdTableBase<IdType, ValueType>
 {
 public:
   nsIdTable();
-  explicit nsIdTable(nsAllocatorBase* pAllocator);
+  explicit nsIdTable(nsAllocator* pAllocator);
 
   nsIdTable(const nsIdTable<IdType, ValueType, AllocatorWrapper>& other);
   nsIdTable(const nsIdTableBase<IdType, ValueType>& other);

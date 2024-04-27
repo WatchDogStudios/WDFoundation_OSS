@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #if NS_ENABLED(NS_SUPPORTS_DIRECTORY_WATCHER)
@@ -50,10 +45,12 @@ NS_CREATE_SIMPLE_TEST(IO, DirectoryWatcher)
   nsStringBuilder sTestRootPath = nsTestFramework::GetInstance()->GetAbsOutputPath();
   sTestRootPath.AppendPath("DirectoryWatcher/");
 
-  auto CheckExpectedEvents = [&](nsDirectoryWatcher& ref_watcher, nsArrayPtr<ExpectedEvent> events) {
+  auto CheckExpectedEvents = [&](nsDirectoryWatcher& ref_watcher, nsArrayPtr<ExpectedEvent> events)
+  {
     nsDynamicArray<ExpectedEventStorage> firedEvents;
     nsUInt32 i = 0;
-    ref_watcher.EnumerateChanges([&](nsStringView sPath, nsDirectoryWatcherAction action, nsDirectoryWatcherType type) {
+    ref_watcher.EnumerateChanges([&](nsStringView sPath, nsDirectoryWatcherAction action, nsDirectoryWatcherType type)
+      {
       tmp = sPath;
       tmp.Shrink(sTestRootPath.GetCharacterCount(), 0);
       firedEvents.PushBack({tmp, action, type});
@@ -68,24 +65,26 @@ NS_CREATE_SIMPLE_TEST(IO, DirectoryWatcher)
     NS_TEST_BOOL_MSG(firedEvents.GetCount() == events.GetCount(), "Directory watcher did not fire expected amount of events");
   };
 
-  auto CheckExpectedEventsUnordered = [&](nsDirectoryWatcher& ref_watcher, nsArrayPtr<ExpectedEvent> events) {
+  auto CheckExpectedEventsUnordered = [&](nsDirectoryWatcher& ref_watcher, nsArrayPtr<ExpectedEvent> events)
+  {
     nsDynamicArray<ExpectedEventStorage> firedEvents;
     nsUInt32 i = 0;
     nsDynamicArray<bool> eventFired;
     eventFired.SetCount(events.GetCount());
-    ref_watcher.EnumerateChanges([&](nsStringView sPath, nsDirectoryWatcherAction action, nsDirectoryWatcherType type) {
-      tmp = sPath;
-      tmp.Shrink(sTestRootPath.GetCharacterCount(), 0);
-      firedEvents.PushBack({tmp, action, type});
-      auto index = events.IndexOf({tmp, action, type});
-      NS_TEST_BOOL_MSG(index != nsInvalidIndex, "Event %d (%s, %d, %d) not found in expected events list", i, tmp.GetData(), (int)action, (int)type);
-      if (index != nsInvalidIndex)
+    ref_watcher.EnumerateChanges([&](nsStringView sPath, nsDirectoryWatcherAction action, nsDirectoryWatcherType type)
       {
-        eventFired[index] = true;
-      }
-      i++;
-      //
-    },
+        tmp = sPath;
+        tmp.Shrink(sTestRootPath.GetCharacterCount(), 0);
+        firedEvents.PushBack({tmp, action, type});
+        auto index = events.IndexOf({tmp, action, type});
+        NS_TEST_BOOL_MSG(index != nsInvalidIndex, "Event %d (%s, %d, %d) not found in expected events list", i, tmp.GetData(), (int)action, (int)type);
+        if (index != nsInvalidIndex)
+        {
+          eventFired[index] = true;
+        }
+        i++;
+        //
+      },
       nsTime::MakeFromMilliseconds(100));
     for (auto& fired : eventFired)
     {
@@ -94,11 +93,13 @@ NS_CREATE_SIMPLE_TEST(IO, DirectoryWatcher)
     NS_TEST_BOOL_MSG(firedEvents.GetCount() == events.GetCount(), "Directory watcher did not fire expected amount of events");
   };
 
-  auto CheckExpectedEventsMultiple = [&](nsArrayPtr<nsDirectoryWatcher*> watchers, nsArrayPtr<ExpectedEvent> events) {
+  auto CheckExpectedEventsMultiple = [&](nsArrayPtr<nsDirectoryWatcher*> watchers, nsArrayPtr<ExpectedEvent> events)
+  {
     nsDynamicArray<ExpectedEventStorage> firedEvents;
     nsUInt32 i = 0;
     nsDirectoryWatcher::EnumerateChanges(
-      watchers, [&](nsStringView sPath, nsDirectoryWatcherAction action, nsDirectoryWatcherType type) {
+      watchers, [&](nsStringView sPath, nsDirectoryWatcherAction action, nsDirectoryWatcherType type)
+      {
         tmp = sPath;
         tmp.Shrink(sTestRootPath.GetCharacterCount(), 0);
         firedEvents.PushBack({tmp, action, type});
@@ -115,7 +116,8 @@ NS_CREATE_SIMPLE_TEST(IO, DirectoryWatcher)
     NS_TEST_BOOL_MSG(firedEvents.GetCount() == events.GetCount(), "Directory watcher did not fire expected amount of events");
   };
 
-  auto CreateFile = [&](const char* szRelPath) {
+  auto CreateFile = [&](const char* szRelPath)
+  {
     tmp = sTestRootPath;
     tmp.AppendPath(szRelPath);
 
@@ -124,7 +126,8 @@ NS_CREATE_SIMPLE_TEST(IO, DirectoryWatcher)
     NS_TEST_BOOL(file.Write("Hello World", 11).Succeeded());
   };
 
-  auto ModifyFile = [&](const char* szRelPath) {
+  auto ModifyFile = [&](const char* szRelPath)
+  {
     tmp = sTestRootPath;
     tmp.AppendPath(szRelPath);
 
@@ -133,19 +136,22 @@ NS_CREATE_SIMPLE_TEST(IO, DirectoryWatcher)
     NS_TEST_BOOL(file.Write("Hello World", 11).Succeeded());
   };
 
-  auto DeleteFile = [&](const char* szRelPath) {
+  auto DeleteFile = [&](const char* szRelPath)
+  {
     tmp = sTestRootPath;
     tmp.AppendPath(szRelPath);
     NS_TEST_BOOL(nsOSFile::DeleteFile(tmp).Succeeded());
   };
 
-  auto CreateDirectory = [&](const char* szRelPath) {
+  auto CreateDirectory = [&](const char* szRelPath)
+  {
     tmp = sTestRootPath;
     tmp.AppendPath(szRelPath);
     NS_TEST_BOOL(nsOSFile::CreateDirectoryStructure(tmp).Succeeded());
   };
 
-  auto Rename = [&](const char* szFrom, const char* szTo) {
+  auto Rename = [&](const char* szFrom, const char* szTo)
+  {
     tmp = sTestRootPath;
     tmp.AppendPath(szFrom);
 
@@ -155,7 +161,8 @@ NS_CREATE_SIMPLE_TEST(IO, DirectoryWatcher)
     NS_TEST_BOOL(nsOSFile::MoveFileOrDirectory(tmp, tmp2).Succeeded());
   };
 
-  auto DeleteDirectory = [&](const char* szRelPath, bool bTest = true) {
+  auto DeleteDirectory = [&](const char* szRelPath, bool bTest = true)
+  {
     tmp = sTestRootPath;
     tmp.AppendPath(szRelPath);
     tmp.MakeCleanPath();

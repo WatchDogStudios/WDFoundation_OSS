@@ -1,21 +1,20 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/Containers/List.h>
 
 NS_CREATE_SIMPLE_TEST(Containers, List)
 {
-  NS_TEST_BLOCK(nsTestBlock::Enabled, "Constructor") { nsList<nsInt32> l; }
+  NS_TEST_BLOCK(nsTestBlock::Enabled, "Constructor")
+  {
+    nsList<nsInt32> l;
+  }
 
   NS_TEST_BLOCK(nsTestBlock::Enabled, "PushBack() / PeekBack")
   {
     nsList<nsInt32> l;
-    l.PushBack();
+    nsInt32& val = l.PushBack();
 
+    NS_TEST_INT(val, 0);
     NS_TEST_INT(l.GetCount(), 1);
     NS_TEST_INT(l.PeekBack(), 0);
   }
@@ -64,8 +63,9 @@ NS_CREATE_SIMPLE_TEST(Containers, List)
   NS_TEST_BLOCK(nsTestBlock::Enabled, "PushFront() / PeekFront")
   {
     nsList<nsInt32> l;
-    l.PushFront();
+    nsInt32& val = l.PushFront();
 
+    NS_TEST_INT(val, 0);
     NS_TEST_INT(l.GetCount(), 1);
     NS_TEST_INT(l.PeekFront(), 0);
   }
@@ -252,13 +252,16 @@ NS_CREATE_SIMPLE_TEST(Containers, List)
       l.Insert(it, *it + 10000);
     }
 
+    i = 1;
+
     // now remove every second element and only keep the larger values
-    for (nsList<nsInt32>::Iterator it = l.GetLastIterator(); it.IsValid(); --it)
+    for (nsList<nsInt32>::Iterator it = l.GetIterator(); it.IsValid();)
     {
-      it = l.Remove(it);
-      --it;
-      --i;
       NS_TEST_INT(*it, i + 10000);
+
+      ++it;
+      it = l.Remove(it);
+      ++i;
     }
 
     i = 1;
@@ -297,13 +300,13 @@ NS_CREATE_SIMPLE_TEST(Containers, List)
     NS_TEST_BOOL(nsConstructionCounter::HasAllDestructed());
 
     l.PushBack();
-    NS_TEST_BOOL(nsConstructionCounter::HasDone(2, 1));
+    NS_TEST_BOOL(nsConstructionCounter::HasDone(1, 0));
 
     l.PushBack(nsConstructionCounter(1));
     NS_TEST_BOOL(nsConstructionCounter::HasDone(2, 1));
 
     l.SetCount(4);
-    NS_TEST_BOOL(nsConstructionCounter::HasDone(4, 2));
+    NS_TEST_BOOL(nsConstructionCounter::HasDone(2, 0));
 
     l.Clear();
     NS_TEST_BOOL(nsConstructionCounter::HasDone(0, 4));

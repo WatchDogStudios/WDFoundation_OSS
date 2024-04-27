@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Containers/DynamicArray.h>
@@ -30,14 +25,20 @@ public:
   ///
   /// You should typically not disable bAllowFileEvents, unless you need to prevent recursive file events,
   /// which is only the case, if you are doing file accesses from within a File Event Handler.
-  nsResult Open(nsStringView sFile, nsUInt32 uiCacheSize = 1024 * 64, nsFileShareMode::Enum fileShareMode = nsFileShareMode::Default,
-    bool bAllowFileEvents = true);
+  nsResult Open(nsStringView sFile, nsUInt32 uiCacheSize = 1024 * 64, nsFileShareMode::Enum fileShareMode = nsFileShareMode::Default, bool bAllowFileEvents = true);
 
   /// \brief Closes the file, if it is open.
   void Close();
 
   /// \brief Attempts to read the given number of bytes into the buffer. Returns the actual number of bytes read.
   virtual nsUInt64 ReadBytes(void* pReadBuffer, nsUInt64 uiBytesToRead) override;
+
+  /// \brief Helper method to skip a number of bytes. Returns the actual number of bytes skipped.
+  virtual nsUInt64 SkipBytes(nsUInt64 uiBytesToSkip) override;
+  /// \brief Whether the end of the file was reached during reading.
+  ///
+  /// \note This is not 100% accurate, it does not guarantee that if it returns false, that the next read will return any data.
+  bool IsEOF() const { return m_bEOF; }
 
 private:
   nsUInt64 m_uiBytesCached = 0;

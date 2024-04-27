@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <ToolsFoundationTest/ToolsFoundationTestPCH.h>
 
 #include <Foundation/Reflection/Reflection.h>
@@ -93,8 +88,36 @@ NS_CREATE_SIMPLE_TEST(Reflection, ReflectionUtils)
     NS_TEST_BOOL(podClass.GetBool() == false);
     VariantToPropertyTest(&podClass, pRttiPOD, "Color", nsVariant::Type::Color);
     NS_TEST_BOOL(podClass.GetColor() == nsColor(1.0f, 1.0f, 1.0f, 1.0f));
+
+    VariantToPropertyTest(&podClass, pRttiPOD, "CharPtr", nsVariant::Type::String);
+    NS_TEST_STRING(podClass.GetCharPtr(), "");
+
     VariantToPropertyTest(&podClass, pRttiPOD, "String", nsVariant::Type::String);
     NS_TEST_STRING(podClass.GetString(), "");
+
+    // An nsStringView is special, nsReflectionUtils::GetMemberPropertyValue will return an nsString as that is the default assignment behaviour of nsStringView to nsVariant. However, nsReflectionUtils::GetDefaultValue will still return an nsStringView.
+    {
+      const nsAbstractMemberProperty* pProp = nsReflectionUtils::GetMemberProperty(pRttiPOD, "StringView");
+      NS_TEST_BOOL(pProp != nullptr);
+      if (pProp)
+      {
+        nsVariant oldValue = nsReflectionUtils::GetMemberPropertyValue(pProp, &podClass);
+        NS_TEST_BOOL(oldValue.IsValid());
+        NS_TEST_BOOL(oldValue.GetType() == nsVariant::Type::String);
+
+        nsVariant defaultValue = nsReflectionUtils::GetDefaultValue(pProp);
+        NS_TEST_BOOL(defaultValue.GetType() == nsVariant::Type::StringView);
+        nsReflectionUtils::SetMemberPropertyValue(pProp, &podClass, defaultValue);
+
+        nsVariant newValue = nsReflectionUtils::GetMemberPropertyValue(pProp, &podClass);
+        NS_TEST_BOOL(newValue.IsValid());
+        NS_TEST_BOOL(newValue.GetType() == nsVariant::Type::String);
+        NS_TEST_BOOL(newValue == defaultValue);
+        NS_TEST_BOOL(newValue != oldValue);
+      }
+      NS_TEST_STRING(podClass.GetStringView(), "");
+    }
+
     VariantToPropertyTest(&podClass, pRttiPOD, "Buffer", nsVariant::Type::DataBuffer);
     NS_TEST_BOOL(podClass.GetBuffer() == nsDataBuffer());
     VariantToPropertyTest(&podClass, pRttiPOD, "VarianceAngle", nsVariant::Type::TypedObject);
@@ -147,7 +170,7 @@ void AccessorPropertyTest(nsIReflectedTypeAccessor& ref_accessor, const char* sz
   NS_TEST_BOOL(oldValue.GetType() == type);
 
   const nsAbstractProperty* pProp = ref_accessor.GetType()->FindPropertyByName(szProperty);
-  nsVariant defaultValue = nsReflectionUtils::GetDefaultValue(pProp);
+  nsVariant defaultValue = nsToolsReflectionUtils::GetStorageDefault(pProp);
   NS_TEST_BOOL(defaultValue.GetType() == type);
   bool bSetSuccess = ref_accessor.SetValue(szProperty, defaultValue);
   NS_TEST_BOOL(bSetSuccess);
@@ -193,7 +216,8 @@ nsUInt32 AccessorPropertiesTest(nsIReflectedTypeAccessor& ref_accessor, const ns
         }
         else if (bIsValueType)
         {
-          AccessorPropertyTest(ref_accessor, pProp->GetPropertyName(), pProp3->GetSpecificType()->GetVariantType());
+          nsVariantType::Enum storageType = nsToolsReflectionUtils::GetStorageType(pProp);
+          AccessorPropertyTest(ref_accessor, pProp->GetPropertyName(), storageType);
           uiPropertiesSet++;
         }
         else // nsPropertyFlags::Class
@@ -229,7 +253,8 @@ nsUInt32 AccessorPropertiesTest(nsIReflectedTypeAccessor& ref_accessor)
 static nsUInt32 GetTypeCount()
 {
   nsUInt32 uiCount = 0;
-  nsRTTI::ForEachType([&](const nsRTTI* pRtti) { uiCount++; });
+  nsRTTI::ForEachType([&](const nsRTTI* pRtti)
+    { uiCount++; });
   return uiCount;
 }
 
@@ -273,12 +298,12 @@ NS_CREATE_SIMPLE_TEST(Reflection, ReflectedType)
     }
     {
       nsDocumentObject* pObject = manager.CreateObject(pRttiPOD);
-      NS_TEST_INT(AccessorPropertiesTest(pObject->GetTypeAccessor()), 18);
+      NS_TEST_INT(AccessorPropertiesTest(pObject->GetTypeAccessor()), 20);
       manager.DestroyObject(pObject);
     }
     {
       nsDocumentObject* pObject = manager.CreateObject(pRttiMath);
-      NS_TEST_INT(AccessorPropertiesTest(pObject->GetTypeAccessor()), 27);
+      NS_TEST_INT(AccessorPropertiesTest(pObject->GetTypeAccessor()), 29);
       manager.DestroyObject(pObject);
     }
     {

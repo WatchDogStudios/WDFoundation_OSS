@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/Communication/IpcChannel.h>
@@ -73,9 +68,9 @@ public:
       NS_LOCK(m_Mutex);
       if (m_ReceivedMessages.GetCount() > 0)
       {
-        auto res = m_ReceivedMessages.PeekFront();
+        auto res2 = m_ReceivedMessages.PeekFront();
         m_ReceivedMessages.PopFront();
-        return res;
+        return res2;
       }
     }
     return {};
@@ -91,7 +86,8 @@ private:
 
 void TestIPCChannel(nsIpcChannel* pServer, ChannelTester* pServerTester, nsIpcChannel* pClient, ChannelTester* pClientTester)
 {
-  auto MessageMatches = [](const nsStringView& sReference, const nsDataBuffer& msg) -> bool {
+  auto MessageMatches = [](const nsStringView& sReference, const nsDataBuffer& msg) -> bool
+  {
     nsStringView sTemp(reinterpret_cast<const char*>(msg.GetData()), msg.GetCount());
     return sTemp == sReference;
   };

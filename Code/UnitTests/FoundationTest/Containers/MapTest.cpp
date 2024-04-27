@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/Containers/Map.h>
@@ -21,7 +16,8 @@ NS_CREATE_SIMPLE_TEST(Containers, Map)
 
     // NS_TEST_INT(std::find(begin(m), end(m), 500).Key(), 499);
 
-    auto itfound = std::find_if(begin(m), end(m), [](nsMap<nsUInt32, nsUInt32>::ConstIterator val) { return val.Value() == 500; });
+    auto itfound = std::find_if(begin(m), end(m), [](nsMap<nsUInt32, nsUInt32>::ConstIterator val)
+      { return val.Value() == 500; });
 
     // NS_TEST_BOOL(std::find(begin(m), end(m), 500) == itfound);
 
@@ -387,40 +383,6 @@ NS_CREATE_SIMPLE_TEST(Containers, Map)
     NS_TEST_INT(i, 1000);
   }
 
-  NS_TEST_BLOCK(nsTestBlock::Enabled, "GetLastIterator / Backward Iteration")
-  {
-    nsMap<nsUInt32, nsUInt32> m;
-
-    for (nsInt32 i = 0; i < 1000; ++i)
-      m[i] = i * 10;
-
-    nsInt32 i = 1000 - 1;
-    for (nsMap<nsUInt32, nsUInt32>::Iterator it = m.GetLastIterator(); it.IsValid(); --it)
-    {
-      NS_TEST_INT(it.Key(), i);
-      NS_TEST_INT(it.Value(), i * 10);
-      --i;
-    }
-  }
-
-  NS_TEST_BLOCK(nsTestBlock::Enabled, "GetLastIterator / Backward Iteration (const)")
-  {
-    nsMap<nsUInt32, nsUInt32> m;
-
-    for (nsInt32 i = 0; i < 1000; ++i)
-      m[i] = i * 10;
-
-    const nsMap<nsUInt32, nsUInt32> m2(m);
-
-    nsInt32 i = 1000 - 1;
-    for (nsMap<nsUInt32, nsUInt32>::ConstIterator it = m2.GetLastIterator(); it.IsValid(); --it)
-    {
-      NS_TEST_INT(it.Key(), i);
-      NS_TEST_INT(it.Value(), i * 10);
-      --i;
-    }
-  }
-
   NS_TEST_BLOCK(nsTestBlock::Enabled, "LowerBound")
   {
     nsMap<nsInt32, nsInt32> m, m2;
@@ -606,10 +568,10 @@ NS_CREATE_SIMPLE_TEST(Containers, Map)
 
     for (nsUInt32 i = 0; i < 1000; ++i)
     {
-      tmp.Format("stuff{}bla", i);
+      tmp.SetFormat("stuff{}bla", i);
       map1[tmp] = i;
 
-      tmp.Format("{0}{0}{0}", i);
+      tmp.SetFormat("{0}{0}{0}", i);
       map2[tmp] = i;
     }
 
@@ -617,11 +579,11 @@ NS_CREATE_SIMPLE_TEST(Containers, Map)
 
     for (nsUInt32 i = 0; i < 1000; ++i)
     {
-      tmp.Format("stuff{}bla", i);
+      tmp.SetFormat("stuff{}bla", i);
       NS_TEST_BOOL(map2.Contains(tmp));
       NS_TEST_INT(map2[tmp], i);
 
-      tmp.Format("{0}{0}{0}", i);
+      tmp.SetFormat("{0}{0}{0}", i);
       NS_TEST_BOOL(map1.Contains(tmp));
       NS_TEST_INT(map1[tmp], i);
     }
@@ -642,10 +604,10 @@ NS_CREATE_SIMPLE_TEST(Containers, Map)
 
     for (nsUInt32 i = 0; i < 1000; ++i)
     {
-      tmp.Format("stuff{}bla", i);
+      tmp.SetFormat("stuff{}bla", i);
       map1->Insert(tmp, i);
 
-      tmp.Format("{0}{0}{0}", i);
+      tmp.SetFormat("{0}{0}{0}", i);
       map2->Insert(tmp, i);
     }
 
@@ -654,11 +616,11 @@ NS_CREATE_SIMPLE_TEST(Containers, Map)
     // test swapped elements
     for (nsUInt32 i = 0; i < 1000; ++i)
     {
-      tmp.Format("stuff{}bla", i);
+      tmp.SetFormat("stuff{}bla", i);
       NS_TEST_BOOL(map2->Contains(tmp));
       NS_TEST_INT((*map2)[tmp], i);
 
-      tmp.Format("{0}{0}{0}", i);
+      tmp.SetFormat("{0}{0}{0}", i);
       NS_TEST_BOOL(map1->Contains(tmp));
       NS_TEST_INT((*map1)[tmp], i);
     }
@@ -699,7 +661,7 @@ NS_CREATE_SIMPLE_TEST(Containers, Map)
 
     for (nsUInt32 i = 0; i < 100; ++i)
     {
-      tmp.Format("stuff{}bla", i);
+      tmp.SetFormat("stuff{}bla", i);
       map1->Insert(tmp, i);
     }
 
@@ -712,7 +674,7 @@ NS_CREATE_SIMPLE_TEST(Containers, Map)
     // test swapped elements
     for (nsUInt32 i = 0; i < 100; ++i)
     {
-      tmp.Format("stuff{}bla", i);
+      tmp.SetFormat("stuff{}bla", i);
       NS_TEST_BOOL(map2->Contains(tmp));
     }
 
@@ -726,5 +688,39 @@ NS_CREATE_SIMPLE_TEST(Containers, Map)
 
     map2->~nsMap<nsString, nsInt32>();
     nsMemoryUtils::PatternFill(map2Mem, 0xBA, uiMapSize);
+  }
+
+  NS_TEST_BLOCK(nsTestBlock::Enabled, "GetReverseIterator")
+  {
+    nsMap<nsUInt32, nsUInt32> m;
+
+    for (nsInt32 i = 0; i < 1000; ++i)
+      m[i] = i * 10;
+
+    nsInt32 i = 1000 - 1;
+    for (nsMap<nsUInt32, nsUInt32>::ReverseIterator it = m.GetReverseIterator(); it.IsValid(); ++it)
+    {
+      NS_TEST_INT(it.Key(), i);
+      NS_TEST_INT(it.Value(), i * 10);
+      --i;
+    }
+  }
+
+  NS_TEST_BLOCK(nsTestBlock::Enabled, "GetReverseIterator (const)")
+  {
+    nsMap<nsUInt32, nsUInt32> m;
+
+    for (nsInt32 i = 0; i < 1000; ++i)
+      m[i] = i * 10;
+
+    const nsMap<nsUInt32, nsUInt32> m2(m);
+
+    nsInt32 i = 1000 - 1;
+    for (nsMap<nsUInt32, nsUInt32>::ConstReverseIterator it = m2.GetReverseIterator(); it.IsValid(); ++it)
+    {
+      NS_TEST_INT(it.Key(), i);
+      NS_TEST_INT(it.Value(), i * 10);
+      --i;
+    }
   }
 }

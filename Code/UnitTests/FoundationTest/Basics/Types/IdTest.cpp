@@ -1,14 +1,13 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/Types/Id.h>
 
-#define NS_MSVC_WARNING_NUMBER 4463
-#include <Foundation/Basics/Compiler/MSVC/DisableWarning_MSVC.h>
+NS_WARNING_PUSH()
+NS_WARNING_DISABLE_MSVC(4463)
+NS_WARNING_DISABLE_MSVC(4068)
+NS_WARNING_DISABLE_GCC("-Wbitfield-constant-conversion")
+NS_WARNING_DISABLE_GCC("-Woverflow")
+NS_WARNING_DISABLE_CLANG("-Wbitfield-constant-conversion")
 
 struct TestId
 {
@@ -38,10 +37,6 @@ struct TestId
 
 using LargeTestId = nsGenericId<32, 10>;
 
-#pragma warning(disable : 4068)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wbitfield-constant-conversion"
-
 NS_CREATE_SIMPLE_TEST(Basics, Id)
 {
   TestId id1;
@@ -66,14 +61,15 @@ NS_CREATE_SIMPLE_TEST(Basics, Id)
   NS_TEST_BOOL(id2 != id3);
   NS_TEST_BOOL(id2.IsIndexAndGenerationEqual(id3));
 
-  id2.m_Generation = 94; // overflow
+  id2.m_Generation = 94;    // overflow
   NS_TEST_INT(id2.m_Generation, 30);
 
-  id2.m_SystemIndex = 94; // overflow
+  id2.m_SystemIndex = 94;   // overflow
   NS_TEST_INT(id2.m_SystemIndex, 30);
 
   LargeTestId id4(1, 1224); // overflow
   NS_TEST_INT(id4.m_InstanceIndex, 1);
   NS_TEST_INT(id4.m_Generation, 200);
 }
-#pragma GCC diagnostic pop
+
+NS_WARNING_POP()

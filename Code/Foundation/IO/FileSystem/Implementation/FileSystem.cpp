@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Configuration/Startup.h>
@@ -104,7 +99,8 @@ nsResult nsFileSystem::AddDataDirectory(nsStringView sDataDirectory, nsStringVie
 
   if (!failed)
   {
-    s_pData->m_DataDirFactories.Sort([](const auto& a, const auto& b) { return a.m_fPriority < b.m_fPriority; });
+    s_pData->m_DataDirFactories.Sort([](const auto& a, const auto& b)
+      { return a.m_fPriority < b.m_fPriority; });
 
     // use the factory that was added last as the one with the highest priority -> allows to override already added factories
     for (nsInt32 i = s_pData->m_DataDirFactories.GetCount() - 1; i >= 0; --i)
@@ -113,7 +109,7 @@ nsResult nsFileSystem::AddDataDirectory(nsStringView sDataDirectory, nsStringVie
 
       if (pDataDir != nullptr)
       {
-        DataDirectory dd;
+        DataDirectoryInfo dd;
         dd.m_Usage = usage;
         dd.m_pDataDirectory = pDataDir;
         dd.m_sRootName = sCleanRootName;
@@ -276,6 +272,13 @@ nsDataDirectoryType* nsFileSystem::GetDataDirectory(nsUInt32 uiDataDirIndex)
   return s_pData->m_DataDirectories[uiDataDirIndex].m_pDataDirectory;
 }
 
+const nsFileSystem::DataDirectoryInfo& nsFileSystem::GetDataDirectoryInfo(nsUInt32 uiDataDirIndex)
+{
+  NS_ASSERT_DEV(s_pData != nullptr, "FileSystem is not initialized.");
+
+  return s_pData->m_DataDirectories[uiDataDirIndex];
+}
+
 nsStringView nsFileSystem::GetDataDirRelativePath(nsStringView sPath, nsUInt32 uiDataDir)
 {
   NS_LOCK(s_pData->m_FsMutex);
@@ -322,7 +325,7 @@ nsStringView nsFileSystem::GetDataDirRelativePath(nsStringView sPath, nsUInt32 u
 }
 
 
-nsFileSystem::DataDirectory* nsFileSystem::GetDataDirForRoot(const nsString& sRoot)
+nsFileSystem::DataDirectoryInfo* nsFileSystem::GetDataDirForRoot(const nsString& sRoot)
 {
   NS_LOCK(s_pData->m_FsMutex);
 
@@ -435,29 +438,13 @@ nsResult nsFileSystem::GetFileStats(nsStringView sFileOrFolder, nsFileStats& out
 
 nsStringView nsFileSystem::ExtractRootName(nsStringView sPath, nsString& rootName)
 {
-  rootName.Clear();
+  nsStringView root, path;
+  nsPathUtils::GetRootedPathParts(sPath, root, path);
 
-  if (!sPath.StartsWith(":"))
-    return sPath;
-
-  nsStringBuilder sCur;
-  const nsStringView view = sPath;
-  nsStringIterator it = view.GetIteratorFront();
-  ++it;
-
-  while (it.IsValid() && (it.GetCharacter() != '/'))
-  {
-    sCur.Append(it.GetCharacter());
-    ++it;
-  }
-
-  NS_ASSERT_DEV(it.IsValid(), "Cannot parse the path \"{0}\". The data-dir root name starts with a ':' but does not end with '/'.", sPath);
-
-  sCur.ToUpper();
-  rootName = sCur;
-  ++it;
-
-  return it.GetData(); // return the string after the data-dir filter declaration
+  nsStringBuilder rootUpr = root;
+  rootUpr.ToUpper();
+  rootName = rootUpr;
+  return path;
 }
 
 nsDataDirectoryReader* nsFileSystem::GetFileReader(nsStringView sFile, nsFileShareMode::Enum FileShareMode, bool bAllowFileEvents)
@@ -618,7 +605,7 @@ nsResult nsFileSystem::ResolvePath(nsStringView sPath, nsStringBuilder* out_pAbs
     nsString sRootName;
     ExtractRootName(sPath, sRootName);
 
-    DataDirectory* pDataDir = GetDataDirForRoot(sRootName);
+    DataDirectoryInfo* pDataDir = GetDataDirForRoot(sRootName);
 
     if (pDataDir == nullptr)
       return NS_FAILURE;
@@ -987,20 +974,62 @@ void nsFileSystem::StartSearch(nsFileSystemIterator& ref_iterator, nsStringView 
   NS_LOCK(s_pData->m_FsMutex);
 
   nsHybridArray<nsString, 16> folders;
-  nsStringBuilder sDdPath;
+  nsStringBuilder sDdPath, sRelPath;
 
-  for (const auto& dd : s_pData->m_DataDirectories)
+  if (sSearchTerm.IsRootedPath())
   {
-    sDdPath = dd.m_pDataDirectory->GetRedirectedDataDirectoryPath();
+    const nsStringView root = sSearchTerm.GetRootedPathRootName();
 
-    if (ResolvePath(sDdPath, &sDdPath, nullptr).Failed())
-      continue;
+    nsDataDirectoryType* pDataDir = FindDataDirectoryWithRoot(root);
+    if (pDataDir == nullptr)
+      return;
 
-    if (sDdPath.IsEmpty() || !nsOSFile::ExistsDirectory(sDdPath))
-      continue;
+    sSearchTerm.SetStartPosition(root.GetEndPointer());
 
+    if (!sSearchTerm.IsEmpty())
+    {
+      // root name should be followed by a slash
+      sSearchTerm.ChopAwayFirstCharacterAscii();
+    }
 
-    folders.PushBack(sDdPath);
+    folders.PushBack(pDataDir->GetRedirectedDataDirectoryPath().GetView());
+  }
+  else if (sSearchTerm.IsAbsolutePath())
+  {
+    for (nsUInt32 idx = s_pData->m_DataDirectories.GetCount(); idx > 0; --idx)
+    {
+      const auto& dd = s_pData->m_DataDirectories[idx - 1];
+
+      sDdPath = dd.m_pDataDirectory->GetRedirectedDataDirectoryPath();
+
+      sRelPath = sSearchTerm;
+
+      if (!sDdPath.IsEmpty())
+      {
+        if (sRelPath.MakeRelativeTo(sDdPath).Failed())
+          continue;
+
+        // this would use "../" if necessary, which we don't want
+        if (sRelPath.StartsWith(".."))
+          continue;
+      }
+
+      sSearchTerm = sRelPath;
+
+      folders.PushBack(sDdPath);
+      break;
+    }
+  }
+  else
+  {
+    for (nsUInt32 idx = s_pData->m_DataDirectories.GetCount(); idx > 0; --idx)
+    {
+      const auto& dd = s_pData->m_DataDirectories[idx - 1];
+
+      sDdPath = dd.m_pDataDirectory->GetRedirectedDataDirectoryPath();
+
+      folders.PushBack(sDdPath);
+    }
   }
 
   ref_iterator.StartMultiFolderSearch(folders, sSearchTerm, flags);

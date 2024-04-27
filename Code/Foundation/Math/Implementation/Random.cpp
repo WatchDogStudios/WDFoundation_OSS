@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Math/Random.h>
@@ -114,21 +109,21 @@ nsInt32 nsRandom::IntMinMax(nsInt32 iMinValue, nsInt32 iMaxValue)
 
 double nsRandom::DoubleInRange(double fMinValue, double fRange)
 {
-  return fMinValue + DoublnseroToOneExclusive() * fRange;
+  return fMinValue + DoubleZeroToOneExclusive() * fRange;
 }
 
 double nsRandom::DoubleMinMax(double fMinValue, double fMaxValue)
 {
   NS_ASSERT_DEBUG(fMinValue <= fMaxValue, "Invalid min/max values");
 
-  return fMinValue + DoublnseroToOneExclusive() * (fMaxValue - fMinValue); /// \todo Probably not correct
+  return fMinValue + DoubleZeroToOneExclusive() * (fMaxValue - fMinValue); /// \todo Probably not correct
 }
 
 double nsRandom::DoubleVariance(double fValue, double fVariance)
 {
   /// \todo Test whether this is actually correct
 
-  const double dev = DoublnseroToOneInclusive();
+  const double dev = DoubleZeroToOneInclusive();
   const double offset = fValue * fVariance * dev;
   return DoubleMinMax(fValue - offset, fValue + offset);
 }
@@ -137,7 +132,7 @@ double nsRandom::DoubleVarianceAroundZero(double fAbsMaxValue)
 {
   /// \todo Test whether this is actually correct
 
-  const double dev = DoublnseroToOneInclusive();
+  const double dev = DoubleZeroToOneInclusive();
   const double offset = fAbsMaxValue * dev;
   return DoubleMinMax(-offset, +offset);
 }
@@ -249,7 +244,3 @@ void nsRandomGauss::Load(nsStreamReader& inout_stream)
 
   m_Generator.Load(inout_stream);
 }
-
-
-
-NS_STATICLINK_FILE(Foundation, Foundation_Math_Implementation_Random);

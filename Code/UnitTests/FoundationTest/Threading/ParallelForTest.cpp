@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/Containers/StaticArray.h>
@@ -33,7 +28,8 @@ NS_CREATE_SIMPLE_TEST(Threading, ParallelFor)
   parallelForParams.m_uiBinSize = ::s_uiTaskItemSliceSize;
   parallelForParams.m_uiMaxTasksPerThread = 1;
 
-  auto ResetSharedVariables = [&uiRangesEncounteredCheck, &uiNumbersSum, &uiNumbersCheckSum, &numbers]() {
+  auto ResetSharedVariables = [&uiRangesEncounteredCheck, &uiNumbersSum, &uiNumbersCheckSum, &numbers]()
+  {
     uiRangesEncounteredCheck = 0;
     uiNumbersSum = 0;
 
@@ -57,7 +53,8 @@ NS_CREATE_SIMPLE_TEST(Threading, ParallelFor)
     // check if the ranges described by them are as expected
     nsTaskSystem::ParallelForIndexed(
       0, ::s_uiTotalNumberOfTaskItems,
-      [&dataAccessMutex, &uiRangesEncounteredCheck, &uiNumbersSum, &numbers](nsUInt32 uiStartIndex, nsUInt32 uiEndIndex) {
+      [&dataAccessMutex, &uiRangesEncounteredCheck, &uiNumbersSum, &numbers](nsUInt32 uiStartIndex, nsUInt32 uiEndIndex)
+      {
         NS_LOCK(dataAccessMutex);
 
         // size check
@@ -72,7 +69,7 @@ NS_CREATE_SIMPLE_TEST(Threading, ParallelFor)
           uiNumbersSum += numbers[uiIndex];
         }
       },
-      "ParallelForIndexed Test", parallelForParams);
+      "ParallelForIndexed Test", nsTaskNesting::Never, parallelForParams);
 
     // check results
     NS_TEST_INT(uiRangesEncounteredCheck, 0b1111);
@@ -96,7 +93,8 @@ NS_CREATE_SIMPLE_TEST(Threading, ParallelFor)
     // check if the ranges described by them are as expected
     nsTaskSystem::ParallelFor<nsUInt32>(
       numbers.GetArrayPtr(),
-      [&dataAccessMutex, &uiRangesEncounteredCheck, &uiNumbersSum, &startAddresses](nsArrayPtr<nsUInt32> taskItemSlice) {
+      [&dataAccessMutex, &uiRangesEncounteredCheck, &uiNumbersSum, &startAddresses](nsArrayPtr<nsUInt32> taskItemSlice)
+      {
         NS_LOCK(dataAccessMutex);
 
         // size check
@@ -133,7 +131,8 @@ NS_CREATE_SIMPLE_TEST(Threading, ParallelFor)
     // sum up the slice of numbers by summing up the individual numbers that get handed to us
     nsTaskSystem::ParallelForSingle(
       numbers.GetArrayPtr(),
-      [&dataAccessMutex, &uiNumbersSum](nsUInt32 uiNumber) {
+      [&dataAccessMutex, &uiNumbersSum](nsUInt32 uiNumber)
+      {
         NS_LOCK(dataAccessMutex);
         uiNumbersSum += uiNumber;
       },
@@ -152,7 +151,8 @@ NS_CREATE_SIMPLE_TEST(Threading, ParallelFor)
     // sum up the slice of numbers that got assigned to us via an index range
     nsTaskSystem::ParallelForSingleIndex(
       numbers.GetArrayPtr(),
-      [&dataAccessMutex, &uiNumbersSum](nsUInt32 uiIndex, nsUInt32 uiNumber) {
+      [&dataAccessMutex, &uiNumbersSum](nsUInt32 uiIndex, nsUInt32 uiNumber)
+      {
         NS_LOCK(dataAccessMutex);
         uiNumbersSum += uiNumber + (uiIndex + 1);
       },
@@ -171,7 +171,8 @@ NS_CREATE_SIMPLE_TEST(Threading, ParallelFor)
     // modify the original array of numbers
     nsTaskSystem::ParallelForSingle(
       numbers.GetArrayPtr(),
-      [&dataAccessMutex](nsUInt32& ref_uiNumber) {
+      [&dataAccessMutex](nsUInt32& ref_uiNumber)
+      {
         NS_LOCK(dataAccessMutex);
         ref_uiNumber = ref_uiNumber * 3;
       },
@@ -180,7 +181,8 @@ NS_CREATE_SIMPLE_TEST(Threading, ParallelFor)
     // sum up the new values to test if writing worked
     nsTaskSystem::ParallelForSingle(
       numbers.GetArrayPtr(),
-      [&dataAccessMutex, &uiNumbersSum](const nsUInt32& uiNumber) {
+      [&dataAccessMutex, &uiNumbersSum](const nsUInt32& uiNumber)
+      {
         NS_LOCK(dataAccessMutex);
         uiNumbersSum += uiNumber;
       },
@@ -199,7 +201,8 @@ NS_CREATE_SIMPLE_TEST(Threading, ParallelFor)
     // modify the original array of numbers
     nsTaskSystem::ParallelForSingleIndex(
       numbers.GetArrayPtr(),
-      [&dataAccessMutex](nsUInt32, nsUInt32& ref_uiNumber) {
+      [&dataAccessMutex](nsUInt32, nsUInt32& ref_uiNumber)
+      {
         NS_LOCK(dataAccessMutex);
         ref_uiNumber = ref_uiNumber * 4;
       },
@@ -208,7 +211,8 @@ NS_CREATE_SIMPLE_TEST(Threading, ParallelFor)
     // sum up the new values to test if writing worked
     nsTaskSystem::ParallelForSingle(
       numbers.GetArrayPtr(),
-      [&dataAccessMutex, &uiNumbersSum](const nsUInt32& uiNumber) {
+      [&dataAccessMutex, &uiNumbersSum](const nsUInt32& uiNumber)
+      {
         NS_LOCK(dataAccessMutex);
         uiNumbersSum += uiNumber;
       },

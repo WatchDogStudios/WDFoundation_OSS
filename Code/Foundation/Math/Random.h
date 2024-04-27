@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Containers/DynamicArray.h>
@@ -50,10 +45,10 @@ public:
   NS_ALWAYS_INLINE bool Bool() { return static_cast<bool>(UInt() & 1); } // [tested]
 
   /// \brief Returns a value in range [0.0 ; 1.0), ie. including zero, but excluding one
-  NS_ALWAYS_INLINE double DoublnseroToOneExclusive() { return (double)UInt() / (double)(0xFFFFFFFFUL); } // [tested]
+  NS_ALWAYS_INLINE double DoubleZeroToOneExclusive() { return (double)UInt() / (double)(0xFFFFFFFFUL); } // [tested]
 
   /// \brief Returns a value in range [0.0 ; 1.0], ie. including zero and one
-  NS_ALWAYS_INLINE double DoublnseroToOneInclusive() { return (double)UInt() / (double)(0xFFFFFFFFUL + 1.0); } // [tested]
+  NS_ALWAYS_INLINE double DoubleZeroToOneInclusive() { return (double)UInt() / (double)(0xFFFFFFFFUL + 1.0); } // [tested]
 
   /// \brief Returns a double value in range [fMinValue ; fMinValue + fRange)
   double DoubleInRange(double fMinValue, double fRange); // [tested]
@@ -68,10 +63,10 @@ public:
   double DoubleVarianceAroundZero(double fAbsMaxValue);
 
   /// \brief Returns a value in range [0.0 ; 1.0), ie. including zero, but excluding one
-  NS_ALWAYS_INLINE float FloatZeroToOneExclusive() { return static_cast<float>(DoublnseroToOneExclusive()); } // [tested]
+  NS_ALWAYS_INLINE float FloatZeroToOneExclusive() { return static_cast<float>(DoubleZeroToOneExclusive()); } // [tested]
 
   /// \brief Returns a value in range [0.0 ; 1.0], ie. including zero and one
-  NS_ALWAYS_INLINE float FloatZeroToOneInclusive() { return static_cast<float>(DoublnseroToOneInclusive()); } // [tested]
+  NS_ALWAYS_INLINE float FloatZeroToOneInclusive() { return static_cast<float>(DoubleZeroToOneInclusive()); } // [tested]
 
   /// \brief Returns a float value in range [fMinValue ; fMinValue + fRange)
   NS_ALWAYS_INLINE float FloatInRange(float fMinValue, float fRange) { return static_cast<float>(DoubleInRange(fMinValue, fRange)); } // [tested]

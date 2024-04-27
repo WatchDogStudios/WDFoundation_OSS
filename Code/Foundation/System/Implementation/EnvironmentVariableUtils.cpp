@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Logging/Log.h>
@@ -50,7 +45,7 @@ nsInt32 nsEnvironmentVariableUtils::GetValueInt(nsStringView sName, nsInt32 iDef
 nsResult nsEnvironmentVariableUtils::SetValueInt(nsStringView sName, nsInt32 iValue)
 {
   nsStringBuilder sb;
-  sb.Format("{}", iValue);
+  sb.SetFormat("{}", iValue);
 
   return SetValueString(sName, sb);
 }
@@ -68,14 +63,3 @@ nsResult nsEnvironmentVariableUtils::UnsetVariable(nsStringView sName)
 
   return UnsetVariableImpl(sName);
 }
-
-#if NS_ENABLED(NS_PLATFORM_WINDOWS_DESKTOP)
-#  include <Foundation/System/Implementation/Win/EnvironmentVariableUtils_win.h>
-#elif NS_ENABLED(NS_PLATFORM_WINDOWS_UWP)
-#  include <Foundation/System/Implementation/Win/EnvironmentVariableUtils_win_uwp.h>
-#else
-#  include <Foundation/System/Implementation/Posix/EnvironmentVariableUtils_posix.h>
-#endif
-
-
-NS_STATICLINK_FILE(Foundation, Foundation_System_Implementation_EnvironmentVariableUtils);

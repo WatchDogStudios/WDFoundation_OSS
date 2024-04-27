@@ -56,16 +56,11 @@ macro(ns_find_qt)
 	mark_as_advanced(FORCE WINDEPLOYQT_EXECUTABLE)
 	mark_as_advanced(FORCE QT_ADDITIONAL_HOST_PACKAGES_PREFIX_PATH)
 	mark_as_advanced(FORCE QT_ADDITIONAL_PACKAGES_PREFIX_PATH)
-	
-	if(NS_CMAKE_PLATFORM_WINDOWS AND NS_CMAKE_COMPILER_CLANG)
-		# The qt6 interface compile options contain msvc specific flags which don't exist for clang.
-		set_target_properties(Qt6::Platform PROPERTIES INTERFACE_COMPILE_OPTIONS "")
-		
-		# Qt6 link options include '-NXCOMPAT' which does not exist on clang.
-		get_target_property(QtLinkOptions Qt6::PlatformCommonInternal INTERFACE_LINK_OPTIONS)
-		string(REPLACE "-NXCOMPAT;" "" QtLinkOptions "${QtLinkOptions}")
-		set_target_properties(Qt6::PlatformCommonInternal PROPERTIES INTERFACE_LINK_OPTIONS ${QtLinkOptions})
+
+	if (COMMAND ns_platformhook_find_qt)
+		ns_platformhook_find_qt()
 	endif()
+	
 endmacro()
 
 # #####################################
@@ -81,23 +76,8 @@ function(ns_prepare_find_qt)
 	ns_pull_platform_vars()
 	ns_pull_config_vars()
 
-	# Currently only implemented for x64
-	if(NS_CMAKE_PLATFORM_WINDOWS_DESKTOP AND NS_CMAKE_ARCHITECTURE_64BIT)
-		# Upgrade from Qt5 to Qt6 if the NS_QT_DIR points to a previously automatically downloaded Qt5 package.
-		if("${NS_QT_DIR}" MATCHES ".*Qt-5\\.13\\.0-vs141-x64")
-			set(NS_QT_DIR "NS_QT_DIR-NOTFOUND" CACHE PATH "Directory of the Qt installation" FORCE)
-		endif()
-	
-		if(NS_CMAKE_ARCHITECTURE_64BIT)
-			set(NS_SDK_VERSION "${NS_CONFIG_QT_WINX64_VERSION}")
-			set(NS_SDK_URL "${NS_CONFIG_QT_WINX64_URL}")
-		endif()
-
-		if((NS_QT_DIR STREQUAL "NS_QT_DIR-NOTFOUND") OR(NS_QT_DIR STREQUAL ""))
-			ns_download_and_extract("${NS_SDK_URL}" "${CMAKE_BINARY_DIR}" "${NS_SDK_VERSION}")
-
-			set(NS_QT_DIR "${CMAKE_BINARY_DIR}/${NS_SDK_VERSION}" CACHE PATH "Directory of the Qt installation" FORCE)
-		endif()
+	if (COMMAND ns_platformhook_download_qt)
+		ns_platformhook_download_qt()
 	endif()
 
 	# # Download Qt package

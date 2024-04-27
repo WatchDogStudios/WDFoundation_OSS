@@ -1,13 +1,12 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Algorithm/Sorting.h>
 #include <Foundation/Math/Math.h>
 #include <Foundation/Types/ArrayPtr.h>
+
+#if NS_ENABLED(NS_INTEROP_STL_SPAN)
+#  include <span>
+#endif
 
 /// \brief Value used by containers for indices to indicate an invalid index.
 #ifndef nsInvalidIndex
@@ -35,10 +34,17 @@ public:
   operator nsArrayPtr<T>(); // [tested]
 
   /// \brief Compares this array to another contiguous array type.
-  bool operator==(const nsArrayPtr<const T>& rhs) const; // [tested]
+  bool operator==(const nsArrayBase<T, Derived>& rhs) const; // [tested]
+  NS_ADD_DEFAULT_OPERATOR_NOTEQUAL(const nsArrayBase<T, Derived>&);
 
   /// \brief Compares this array to another contiguous array type.
-  bool operator!=(const nsArrayPtr<const T>& rhs) const; // [tested]
+  bool operator<(const nsArrayBase<T, Derived>& rhs) const; // [tested]
+
+#if NS_DISABLED(NS_USE_CPP20_OPERATORS)
+  /// \brief Compares this array to another contiguous array type.
+  bool operator==(const nsArrayPtr<const T>& rhs) const; // [tested]
+  NS_ADD_DEFAULT_OPERATOR_NOTEQUAL(const nsArrayPtr<const T>&);
+#endif
 
   /// \brief Compares this array to another contiguous array type.
   bool operator<(const nsArrayPtr<const T>& rhs) const; // [tested]
@@ -56,7 +62,7 @@ public:
   void SetCount(nsUInt32 uiCount, const T& fillValue); // [tested]
 
   /// \brief Resizes the array to have exactly uiCount elements. Extra elements might be uninitialized.
-  template <typename = void> // Template is used to only conditionally compile this function in when it is actually used.
+  template <typename = void>                    // Template is used to only conditionally compile this function in when it is actually used.
   void SetCountUninitialized(nsUInt32 uiCount); // [tested]
 
   /// \brief Ensures the container has at least \a uiCount elements. Ie. calls SetCount() if the container has fewer elements, does nothing
@@ -76,10 +82,10 @@ public:
   bool Contains(const T& value) const; // [tested]
 
   /// \brief Inserts value at index by shifting all following elements.
-  void Insert(const T& value, nsUInt32 uiIndex); // [tested]
+  void InsertAt(nsUInt32 uiIndex, const T& value); // [tested]
 
   /// \brief Inserts value at index by shifting all following elements.
-  void Insert(T&& value, nsUInt32 uiIndex); // [tested]
+  void InsertAt(nsUInt32 uiIndex, T&& value); // [tested]
 
   /// \brief Inserts all elements in the range starting at the given index, shifting the elements after the index.
   void InsertRange(const nsArrayPtr<const T>& range, nsUInt32 uiIndex); // [tested]
@@ -160,10 +166,32 @@ public:
   /// \brief Returns the reserved number of elements that the array can hold without reallocating.
   nsUInt32 GetCapacity() const { return m_uiCapacity; }
 
-  using const_iterator = const T *;
+  using const_iterator = const T*;
   using const_reverse_iterator = const_reverse_pointer_iterator<T>;
-  using iterator = T *;
+  using iterator = T*;
   using reverse_iterator = reverse_pointer_iterator<T>;
+
+#if NS_ENABLED(NS_INTEROP_STL_SPAN)
+  operator std::span<const T>() const
+  {
+    return std::span(GetData(), static_cast<size_t>(GetCount()));
+  }
+
+  operator std::span<T>()
+  {
+    return std::span(GetData(), static_cast<size_t>(GetCount()));
+  }
+
+  std::span<T> GetSpan()
+  {
+    return std::span(GetData(), static_cast<size_t>(GetCount()));
+  }
+
+  std::span<const T> GetSpan() const
+  {
+    return std::span(GetData(), static_cast<size_t>(GetCount()));
+  }
+#endif
 
 protected:
   void DoSwap(nsArrayBase<T, Derived>& other);

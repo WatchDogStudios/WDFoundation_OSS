@@ -1,15 +1,10 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 
 /// \brief [Internal] Storage for lambdas with captures in nsDelegate.
 struct NS_FOUNDATION_DLL nsLambdaDelegateStorageBase
 {
   nsLambdaDelegateStorageBase() = default;
   virtual ~nsLambdaDelegateStorageBase() = default;
-  virtual nsLambdaDelegateStorageBase* Clone(nsAllocatorBase* pAllocator) const = 0;
+  virtual nsLambdaDelegateStorageBase* Clone(nsAllocator* pAllocator) const = 0;
   virtual void InplaceCopy(nsUInt8* pBuffer) const = 0;
   virtual void InplaceMove(nsUInt8* pBuffer) = 0;
 
@@ -36,7 +31,7 @@ private:
   }
 
 public:
-  virtual nsLambdaDelegateStorageBase* Clone(nsAllocatorBase* pAllocator) const override
+  virtual nsLambdaDelegateStorageBase* Clone(nsAllocator* pAllocator) const override
   {
     if constexpr (std::is_copy_constructible<Function>::value)
     {
@@ -117,7 +112,7 @@ public:
 
   /// \brief Constructs the delegate from a regular C function type.
   template <typename Function>
-  NS_FORCE_INLINE nsDelegate(Function function, nsAllocatorBase* pAllocator = nsFoundation::GetDefaultAllocator())
+  NS_FORCE_INLINE nsDelegate(Function function, nsAllocator* pAllocator = nsFoundation::GetDefaultAllocator())
   {
     NS_CHECK_AT_COMPILETIME_MSG(DataSize >= 16, "DataSize must be at least 16 bytes");
 
@@ -343,7 +338,7 @@ private:
     struct
     {
       nsLambdaDelegateStorageBase* m_pLambdaStorage;
-      nsAllocatorBase* m_pAllocator;
+      nsAllocator* m_pAllocator;
     };
   };
 };

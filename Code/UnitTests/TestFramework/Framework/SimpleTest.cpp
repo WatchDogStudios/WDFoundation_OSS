@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <TestFramework/TestFrameworkPCH.h>
 
 #include <Foundation/Profiling/Profiling.h>
@@ -59,6 +54,3 @@ nsResult nsSimpleTestGroup::DeInitializeSubTest(nsInt32 iIdentifier)
   nsMemoryTracker::DumpMemoryLeaks();
   return NS_SUCCESS;
 }
-
-
-NS_STATICLINK_FILE(TestFramework, TestFramework_Framework_SimpleTest);

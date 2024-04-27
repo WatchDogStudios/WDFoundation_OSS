@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 
 #include <Foundation/IO/Stream.h>
 
@@ -13,7 +8,7 @@ NS_ALWAYS_INLINE nsResult nsDeduplicationReadContext::ReadObjectInplace(nsStream
 }
 
 template <typename T>
-nsResult nsDeduplicationReadContext::ReadObject(nsStreamReader& inout_stream, T& obj, nsAllocatorBase* pAllocator)
+nsResult nsDeduplicationReadContext::ReadObject(nsStreamReader& inout_stream, T& obj, nsAllocator* pAllocator)
 {
   bool bIsRealObject;
   inout_stream >> bIsRealObject;
@@ -28,7 +23,7 @@ nsResult nsDeduplicationReadContext::ReadObject(nsStreamReader& inout_stream, T&
 }
 
 template <typename T>
-nsResult nsDeduplicationReadContext::ReadObject(nsStreamReader& inout_stream, T*& ref_pObject, nsAllocatorBase* pAllocator)
+nsResult nsDeduplicationReadContext::ReadObject(nsStreamReader& inout_stream, T*& ref_pObject, nsAllocator* pAllocator)
 {
   bool bIsRealObject;
   inout_stream >> bIsRealObject;
@@ -63,7 +58,7 @@ nsResult nsDeduplicationReadContext::ReadObject(nsStreamReader& inout_stream, T*
 }
 
 template <typename T>
-nsResult nsDeduplicationReadContext::ReadObject(nsStreamReader& inout_stream, nsSharedPtr<T>& ref_pObject, nsAllocatorBase* pAllocator)
+nsResult nsDeduplicationReadContext::ReadObject(nsStreamReader& inout_stream, nsSharedPtr<T>& ref_pObject, nsAllocator* pAllocator)
 {
   T* ptr = nullptr;
   if (ReadObject(inout_stream, ptr, pAllocator).Succeeded())
@@ -75,7 +70,7 @@ nsResult nsDeduplicationReadContext::ReadObject(nsStreamReader& inout_stream, ns
 }
 
 template <typename T>
-nsResult nsDeduplicationReadContext::ReadObject(nsStreamReader& inout_stream, nsUniquePtr<T>& ref_pObject, nsAllocatorBase* pAllocator)
+nsResult nsDeduplicationReadContext::ReadObject(nsStreamReader& inout_stream, nsUniquePtr<T>& ref_pObject, nsAllocator* pAllocator)
 {
   T* ptr = nullptr;
   if (ReadObject(inout_stream, ptr, pAllocator).Succeeded())
@@ -87,7 +82,7 @@ nsResult nsDeduplicationReadContext::ReadObject(nsStreamReader& inout_stream, ns
 }
 
 template <typename ArrayType, typename ValueType>
-nsResult nsDeduplicationReadContext::ReadArray(nsStreamReader& inout_stream, nsArrayBase<ValueType, ArrayType>& ref_array, nsAllocatorBase* pAllocator)
+nsResult nsDeduplicationReadContext::ReadArray(nsStreamReader& inout_stream, nsArrayBase<ValueType, ArrayType>& ref_array, nsAllocator* pAllocator)
 {
   nsUInt64 uiCount = 0;
   NS_SUCCEED_OR_RETURN(inout_stream.ReadQWordValue(&uiCount));
@@ -110,7 +105,7 @@ nsResult nsDeduplicationReadContext::ReadArray(nsStreamReader& inout_stream, nsA
 }
 
 template <typename KeyType, typename Comparer>
-nsResult nsDeduplicationReadContext::ReadSet(nsStreamReader& inout_stream, nsSetBase<KeyType, Comparer>& ref_set, nsAllocatorBase* pAllocator)
+nsResult nsDeduplicationReadContext::ReadSet(nsStreamReader& inout_stream, nsSetBase<KeyType, Comparer>& ref_set, nsAllocator* pAllocator)
 {
   nsUInt64 uiCount = 0;
   NS_SUCCEED_OR_RETURN(inout_stream.ReadQWordValue(&uiCount));
@@ -152,7 +147,7 @@ namespace nsInternal
 } // namespace nsInternal
 
 template <typename KeyType, typename ValueType, typename Comparer>
-nsResult nsDeduplicationReadContext::ReadMap(nsStreamReader& inout_stream, nsMapBase<KeyType, ValueType, Comparer>& ref_map, ReadMapMode mode, nsAllocatorBase* pKeyAllocator, nsAllocatorBase* pValueAllocator)
+nsResult nsDeduplicationReadContext::ReadMap(nsStreamReader& inout_stream, nsMapBase<KeyType, ValueType, Comparer>& ref_map, ReadMapMode mode, nsAllocator* pKeyAllocator, nsAllocator* pValueAllocator)
 {
   nsUInt64 uiCount = 0;
   NS_SUCCEED_OR_RETURN(inout_stream.ReadQWordValue(&uiCount));

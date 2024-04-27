@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/Threading/ThreadUtils.h>
@@ -36,6 +31,11 @@ NS_CREATE_SIMPLE_TEST(Time, Timestamp)
       "Sleeping for 10 ms should cause the timestamp to change!");
     NS_TEST_BOOL_MSG(!currentTimestamp.Compare(nsTimestamp::CurrentTimestamp(), nsTimestamp::CompareMode::Identical),
       "Sleeping for 10 ms should cause the timestamp to change!");
+
+    // a valid timestamp should always be 'newer' than an invalid one
+    NS_TEST_BOOL(currentTimestamp.Compare(nsTimestamp::MakeInvalid(), nsTimestamp::CompareMode::Newer) == true);
+    // an invalid timestamp should not be 'newer' than any valid one
+    NS_TEST_BOOL(nsTimestamp::MakeInvalid().Compare(currentTimestamp, nsTimestamp::CompareMode::Newer) == false);
   }
 
   NS_TEST_BLOCK(nsTestBlock::Enabled, "Public Accessors")
@@ -171,11 +171,11 @@ NS_CREATE_SIMPLE_TEST(Time, Timestamp)
     BuildString(szTimestampFormatted, 256, nsArgDateTime(dateTime, nsArgDateTime::Default | nsArgDateTime::ShowMilliseconds));
     NS_TEST_STRING("2019-08-16 - 13:40:30.345", szTimestampFormatted);
     // no names, with UTC, no milliseconds
-    BuildString(szTimestampFormatted, 256, nsArgDateTime(dateTime, nsArgDateTime::Default | nsArgDateTime::ShowTimnsone));
+    BuildString(szTimestampFormatted, 256, nsArgDateTime(dateTime, nsArgDateTime::Default | nsArgDateTime::ShowTimeZone));
     NS_TEST_STRING("2019-08-16 - 13:40:30 (UTC)", szTimestampFormatted);
     // no names, with UTC, with milliseconds
     BuildString(
-      szTimestampFormatted, 256, nsArgDateTime(dateTime, nsArgDateTime::ShowDate | nsArgDateTime::ShowMilliseconds | nsArgDateTime::ShowTimnsone));
+      szTimestampFormatted, 256, nsArgDateTime(dateTime, nsArgDateTime::ShowDate | nsArgDateTime::ShowMilliseconds | nsArgDateTime::ShowTimeZone));
     NS_TEST_STRING("2019-08-16 - 13:40:30.345 (UTC)", szTimestampFormatted);
     // with names, no UTC, no milliseconds
     BuildString(szTimestampFormatted, 256, nsArgDateTime(dateTime, nsArgDateTime::DefaultTextual | nsArgDateTime::ShowWeekday));
@@ -186,12 +186,12 @@ NS_CREATE_SIMPLE_TEST(Time, Timestamp)
     NS_TEST_STRING("2019 Aug 16 (Fri) - 13:40:30.345", szTimestampFormatted);
     // no names, with UTC, no milliseconds
     BuildString(
-      szTimestampFormatted, 256, nsArgDateTime(dateTime, nsArgDateTime::DefaultTextual | nsArgDateTime::ShowWeekday | nsArgDateTime::ShowTimnsone));
+      szTimestampFormatted, 256, nsArgDateTime(dateTime, nsArgDateTime::DefaultTextual | nsArgDateTime::ShowWeekday | nsArgDateTime::ShowTimeZone));
     NS_TEST_STRING("2019 Aug 16 (Fri) - 13:40:30 (UTC)", szTimestampFormatted);
     // no names, with UTC, with milliseconds
     BuildString(szTimestampFormatted, 256,
       nsArgDateTime(
-        dateTime, nsArgDateTime::DefaultTextual | nsArgDateTime::ShowWeekday | nsArgDateTime::ShowMilliseconds | nsArgDateTime::ShowTimnsone));
+        dateTime, nsArgDateTime::DefaultTextual | nsArgDateTime::ShowWeekday | nsArgDateTime::ShowMilliseconds | nsArgDateTime::ShowTimeZone));
     NS_TEST_STRING("2019 Aug 16 (Fri) - 13:40:30.345 (UTC)", szTimestampFormatted);
 
     BuildString(szTimestampFormatted, 256, nsArgDateTime(dateTime, nsArgDateTime::ShowDate));

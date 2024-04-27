@@ -1,14 +1,24 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Math/Color8UNorm.h>
 #include <Foundation/Math/Mat4.h>
 
 // ****** nsColor ******
+
+nsColor nsColor::MakeNaN()
+{
+  return nsColor(nsMath::NaN<float>(), nsMath::NaN<float>(), nsMath::NaN<float>(), nsMath::NaN<float>());
+}
+
+nsColor nsColor::MakeZero()
+{
+  return nsColor(0.0f, 0.0f, 0.0f, 0.0f);
+}
+
+nsColor nsColor::MakeRGBA(float fLinearRed, float fLinearGreen, float fLinearBlue, float fLinearAlpha /*= 1.0f*/)
+{
+  return nsColor(fLinearRed, fLinearGreen, fLinearBlue, fLinearAlpha);
+}
 
 void nsColor::operator=(const nsColorLinearUB& cc)
 {
@@ -212,6 +222,14 @@ void nsColor::ScaleRGB(float fFactor)
   r *= fFactor;
   g *= fFactor;
   b *= fFactor;
+}
+
+void nsColor::ScaleRGBA(float fFactor)
+{
+  r *= fFactor;
+  g *= fFactor;
+  b *= fFactor;
+  a *= fFactor;
 }
 
 float nsColor::ComputeHdrMultiplier() const
@@ -433,14 +451,13 @@ const nsColor nsColor::WhiteSmoke(nsColorGammaUB(0xF5, 0xF5, 0xF5));
 const nsColor nsColor::Yellow(nsColorGammaUB(0xFF, 0xFF, 0x00));
 const nsColor nsColor::YellowGreen(nsColorGammaUB(0x9A, 0xCD, 0x32));
 
-nsColor nsColor::MakeNaN()
+
+nsUInt32 nsColor::ToRGBA8() const
 {
-  return nsColor(nsMath::NaN<float>(), nsMath::NaN<float>(), nsMath::NaN<float>(), nsMath::NaN<float>());
+  return nsColorLinearUB(*this).ToRGBA8();
 }
 
-nsColor nsColor::MakeZero()
+nsUInt32 nsColor::ToABGR8() const
 {
-  return nsColor(0.0f, 0.0f, 0.0f, 0.0f);
+  return nsColorLinearUB(*this).ToABGR8();
 }
-
-NS_STATICLINK_FILE(Foundation, Foundation_Math_Implementation_Color);

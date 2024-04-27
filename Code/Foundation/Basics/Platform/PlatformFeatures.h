@@ -1,9 +1,10 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
+
+#ifdef BUILDSYSTEM_ENABLE_GLFW_SUPPORT
+#  define NS_SUPPORTS_GLFW NS_ON
+#else
+#  define NS_SUPPORTS_GLFW NS_OFF
+#endif
 
 #if NS_ENABLED(NS_PLATFORM_WINDOWS)
 #  include <Foundation/Basics/Platform/Win/PlatformFeatures_win.h>
@@ -16,7 +17,6 @@
 #else
 #  error "Undefined platform!"
 #endif
-
 
 // now check that the defines for each feature are set (either to 1 or 0, but they must be defined)
 

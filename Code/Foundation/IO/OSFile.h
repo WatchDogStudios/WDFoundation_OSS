@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Basics.h>
@@ -233,6 +228,12 @@ public:
   /// \brief Checks whether the given file exists.
   static bool ExistsDirectory(nsStringView sDirectory); // [tested]
 
+  /// \brief If the given file already exists, determines a file path that doesn't exist yet.
+  ///
+  /// If the original file already exists, sSuffix is appended and then a number starting at 1.
+  /// Loops until it finds a filename that is not yet taken.
+  static void FindFreeFilename(nsStringBuilder& inout_sPath, nsStringView sSuffix = "-");
+
   /// \brief Deletes the given file. Returns NS_SUCCESS, if the file was deleted or did not exist in the first place. Returns NS_FAILURE
   static nsResult DeleteFile(nsStringView sFile); // [tested]
 
@@ -269,13 +270,14 @@ public:
   static nsResult CopyFolder(nsStringView sSourceFolder, nsStringView sDestinationFolder, nsDynamicArray<nsString>* out_pFilesCopied = nullptr);
 
   /// \brief Deletes all files recursively in \a szFolder.
-  ///
-  /// \note The current implementation does not remove the (empty) folders themselves.
   static nsResult DeleteFolder(nsStringView sFolder);
 
 #endif
 
-  /// \brief Returns the path in which the applications binary file is located.
+  /// \brief Returns the full path to the application binary.
+  static nsStringView GetApplicationPath();
+
+  /// \brief Returns the path to the directory in which the application binary is located.
   static nsStringView GetApplicationDirectory();
 
   /// \brief Returns the folder into which user data may be safely written.
@@ -404,7 +406,7 @@ private:
   /// \brief Platform specific data about the open file.
   nsOSFileData m_FileData;
 
-  /// \brief The application binaries' path.
+  /// \brief The application binary's path.
   static nsString64 s_sApplicationPath;
 
   /// \brief The path where user data is stored on this OS

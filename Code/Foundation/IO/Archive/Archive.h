@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Containers/DynamicArray.h>
@@ -111,6 +106,10 @@ public:
 
   /// \brief Returns the entry index for the given file or nsInvalidIndex, if not found.
   nsUInt32 FindEntry(nsStringView sFile) const;
+
+  nsUInt32 AddPathString(nsStringView sPathString);
+
+  void RebuildPathToEntryHashes();
 
   nsStringView GetEntryPathString(nsUInt32 uiEntryIdx) const;
 

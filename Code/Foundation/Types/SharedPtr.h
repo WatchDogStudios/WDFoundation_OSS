@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Types/RefCounted.h>
@@ -26,7 +21,7 @@ public:
   /// \brief Creates a shared ptr from a pointer and an allocator. The passed allocator will be used to destroy the instance when the shared
   /// ptr goes out of scope.
   template <typename U>
-  nsSharedPtr(U* pInstance, nsAllocatorBase* pAllocator);
+  nsSharedPtr(U* pInstance, nsAllocator* pAllocator);
 
   /// \brief Copy constructs a shared ptr from another. Both will hold a reference to the managed object afterwards.
   nsSharedPtr(const nsSharedPtr<T>& other);
@@ -125,7 +120,7 @@ private:
   void ReleaseReferenceIfValid();
 
   T* m_pInstance;
-  nsAllocatorBase* m_pAllocator;
+  nsAllocator* m_pAllocator;
 };
 
 #include <Foundation/Types/Implementation/SharedPtr_inl.h>

@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Containers/HybridArray.h>
@@ -18,7 +13,7 @@ class nsTaskWorkerThread;
 class nsTaskSystemState;
 class nsTaskSystemThreadState;
 class nsDGMLGraph;
-class nsAllocatorBase;
+class nsAllocator;
 
 /// \brief Describes the priority with which to execute a task.
 ///
@@ -188,7 +183,7 @@ struct NS_FOUNDATION_DLL nsParallelForParams
   nsTaskNesting m_NestingMode = nsTaskNesting::Never;
 
   /// The allocator used to for the tasks that the parallel-for uses internally. If null, will use the default allocator.
-  nsAllocatorBase* m_pTaskAllocator = nullptr;
+  nsAllocator* m_pTaskAllocator = nullptr;
 
   void DetermineThreading(nsUInt64 uiNumItemsToExecute, nsUInt32& out_uiNumTasksToRun, nsUInt64& out_uiNumItemsPerTask) const;
 };

@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/IO/MemoryStream.h>
@@ -112,7 +107,8 @@ NS_CREATE_SIMPLE_TEST(Reflection, Types)
     bool bFoundClass1 = false;
     bool bFoundClass2 = false;
 
-    nsRTTI::ForEachType([&](const nsRTTI* pRtti) {
+    nsRTTI::ForEachType([&](const nsRTTI* pRtti)
+      {
         if (pRtti->GetTypeName() == "nsTestStruct")
           bFoundStruct = true;
         if (pRtti->GetTypeName() == "nsTestClass1")
@@ -130,10 +126,12 @@ NS_CREATE_SIMPLE_TEST(Reflection, Types)
   NS_TEST_BLOCK(nsTestBlock::Enabled, "IsDerivedFrom")
   {
     nsDynamicArray<const nsRTTI*> allTypes;
-    nsRTTI::ForEachType([&](const nsRTTI* pRtti) { allTypes.PushBack(pRtti); });
+    nsRTTI::ForEachType([&](const nsRTTI* pRtti)
+      { allTypes.PushBack(pRtti); });
 
     // ground truth - traversing up the parent list
-    auto ManualIsDerivedFrom = [](const nsRTTI* t, const nsRTTI* pBaseType) -> bool {
+    auto ManualIsDerivedFrom = [](const nsRTTI* t, const nsRTTI* pBaseType) -> bool
+    {
       while (t != nullptr)
       {
         if (t == pBaseType)
@@ -252,27 +250,31 @@ NS_CREATE_SIMPLE_TEST(Reflection, Types)
       const nsRTTI* pType = nsRTTI::FindTypeByName("nsTestClass2");
 
       auto Props = pType->GetProperties();
-      NS_TEST_INT(Props.GetCount(), 6);
-      NS_TEST_STRING(Props[0]->GetPropertyName(), "Text");
-      NS_TEST_STRING(Props[1]->GetPropertyName(), "Time");
-      NS_TEST_STRING(Props[2]->GetPropertyName(), "Enum");
-      NS_TEST_STRING(Props[3]->GetPropertyName(), "Bitflags");
-      NS_TEST_STRING(Props[4]->GetPropertyName(), "Array");
-      NS_TEST_STRING(Props[5]->GetPropertyName(), "Variant");
+      NS_TEST_INT(Props.GetCount(), 8);
+      NS_TEST_STRING(Props[0]->GetPropertyName(), "CharPtr");
+      NS_TEST_STRING(Props[1]->GetPropertyName(), "String");
+      NS_TEST_STRING(Props[2]->GetPropertyName(), "StringView");
+      NS_TEST_STRING(Props[3]->GetPropertyName(), "Time");
+      NS_TEST_STRING(Props[4]->GetPropertyName(), "Enum");
+      NS_TEST_STRING(Props[5]->GetPropertyName(), "Bitflags");
+      NS_TEST_STRING(Props[6]->GetPropertyName(), "Array");
+      NS_TEST_STRING(Props[7]->GetPropertyName(), "Variant");
 
       nsHybridArray<const nsAbstractProperty*, 32> AllProps;
       pType->GetAllProperties(AllProps);
 
-      NS_TEST_INT(AllProps.GetCount(), 9);
+      NS_TEST_INT(AllProps.GetCount(), 11);
       NS_TEST_STRING(AllProps[0]->GetPropertyName(), "SubStruct");
       NS_TEST_STRING(AllProps[1]->GetPropertyName(), "Color");
       NS_TEST_STRING(AllProps[2]->GetPropertyName(), "SubVector");
-      NS_TEST_STRING(AllProps[3]->GetPropertyName(), "Text");
-      NS_TEST_STRING(AllProps[4]->GetPropertyName(), "Time");
-      NS_TEST_STRING(AllProps[5]->GetPropertyName(), "Enum");
-      NS_TEST_STRING(AllProps[6]->GetPropertyName(), "Bitflags");
-      NS_TEST_STRING(AllProps[7]->GetPropertyName(), "Array");
-      NS_TEST_STRING(AllProps[8]->GetPropertyName(), "Variant");
+      NS_TEST_STRING(AllProps[3]->GetPropertyName(), "CharPtr");
+      NS_TEST_STRING(AllProps[4]->GetPropertyName(), "String");
+      NS_TEST_STRING(AllProps[5]->GetPropertyName(), "StringView");
+      NS_TEST_STRING(AllProps[6]->GetPropertyName(), "Time");
+      NS_TEST_STRING(AllProps[7]->GetPropertyName(), "Enum");
+      NS_TEST_STRING(AllProps[8]->GetPropertyName(), "Bitflags");
+      NS_TEST_STRING(AllProps[9]->GetPropertyName(), "Array");
+      NS_TEST_STRING(AllProps[10]->GetPropertyName(), "Variant");
     }
   }
 
@@ -321,7 +323,8 @@ NS_CREATE_SIMPLE_TEST(Reflection, Types)
     bool bFoundStruct2 = false;
 
     nsRTTI::ForEachType(
-      [&](const nsRTTI* pRtti) {
+      [&](const nsRTTI* pRtti)
+      {
         if (pRtti->GetTypeName() == "nsTestStruct2")
         {
           bFoundStruct2 = true;
@@ -533,7 +536,15 @@ NS_CREATE_SIMPLE_TEST(Reflection, MemberProperties)
     const nsRTTI* pRtti = nsGetStaticRTTI<nsTestClass2>();
 
     {
-      TestMemberProperty<const char*>("Text", &Instance, pRtti, nsPropertyFlags::StandardType | nsPropertyFlags::Const, nsString("Legen"), nsString("dary"));
+      TestMemberProperty<const char*>("CharPtr", &Instance, pRtti, nsPropertyFlags::StandardType | nsPropertyFlags::Const, nsString("AAA"), nsString("aaaa"));
+
+      TestMemberProperty<nsString>("String", &Instance, pRtti, nsPropertyFlags::StandardType, nsString("BBB"), nsString("bbbb"));
+
+      TestMemberProperty<nsStringView>("StringView", &Instance, pRtti, nsPropertyFlags::StandardType, "CCC"_nssv, "cccc"_nssv);
+
+      Instance.SetStringView("CCC");
+      TestMemberProperty<nsStringView>("StringView", &Instance, pRtti, nsPropertyFlags::StandardType, nsString("CCC"), nsString("cccc"));
+
       const nsAbstractProperty* pProp = pRtti->FindPropertyByName("SubVector", false);
       NS_TEST_BOOL(pProp == nullptr);
     }
@@ -980,7 +991,18 @@ NS_CREATE_SIMPLE_TEST(Reflection, Arrays)
   TestSerialization<nsTestArrays>(containers);
 }
 
+/// \brief Determines whether a type is a pointer.
+template <typename T>
+struct nsIsPointer
+{
+  static constexpr bool value = false;
+};
 
+template <typename T>
+struct nsIsPointer<T*>
+{
+  static constexpr bool value = true;
+};
 
 template <typename T>
 void TestSetProperty(const char* szPropName, void* pObject, const nsRTTI* pRtti, T& ref_value1, T& ref_value2)

@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/IO/OpenDdlReader.h>
@@ -268,7 +263,7 @@ void nsAbstractGraphDdlSerializer::WriteDocument(nsStreamWriter& inout_stream, c
     writer.SetIndentation(-1);
 
   nsStringBuilder sHeaderVersion;
-  sHeaderVersion.Format("HeaderV{0}", (int)NS_DOCUMENT_VERSION);
+  sHeaderVersion.SetFormat("HeaderV{0}", (int)NS_DOCUMENT_VERSION);
   WriteGraph(writer, pHeader, sHeaderVersion);
   WriteGraph(writer, pGraph, "Objects");
   WriteGraph(writer, pTypes, "Types");
@@ -304,7 +299,7 @@ nsResult nsAbstractGraphDdlSerializer::ReadDocument(nsStreamReader& inout_stream
   {
     // Move header into its own graph.
     nsStringBuilder sHeaderVersion;
-    sHeaderVersion.Format("HeaderV{0}", iVersion);
+    sHeaderVersion.SetFormat("HeaderV{0}", iVersion);
     pHB = GetOrCreateBlock(blocks, sHeaderVersion);
     nsAbstractObjectGraph& graph = *pOB->m_Graph.Borrow();
     if (auto* pHeaderNode = graph.GetNodeByName("Header"))
@@ -455,7 +450,3 @@ nsResult nsAbstractGraphDdlSerializer::ReadHeader(nsStreamReader& inout_stream, 
   }
   return NS_SUCCESS;
 }
-
-
-
-NS_STATICLINK_FILE(Foundation, Foundation_Serialization_Implementation_DdlSerializer);

@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/SimdMath/SimdSwizzle.h>
@@ -20,32 +15,32 @@ public:
 
 public:
   template <int N>
-  bool GetComponent() const; // [tested]
+  bool GetComponent() const;                                                                               // [tested]
 
-  bool x() const; // [tested]
-  bool y() const; // [tested]
-  bool z() const; // [tested]
-  bool w() const; // [tested]
+  bool x() const;                                                                                          // [tested]
+  bool y() const;                                                                                          // [tested]
+  bool z() const;                                                                                          // [tested]
+  bool w() const;                                                                                          // [tested]
 
   template <nsSwizzle::Enum s>
-  nsSimdVec4b Get() const; // [tested]
+  nsSimdVec4b Get() const;                                                                                 // [tested]
 
 public:
-  nsSimdVec4b operator&&(const nsSimdVec4b& rhs) const; // [tested]
-  nsSimdVec4b operator||(const nsSimdVec4b& rhs) const; // [tested]
-  nsSimdVec4b operator!() const;                        // [tested]
+  nsSimdVec4b operator&&(const nsSimdVec4b& rhs) const;                                                    // [tested]
+  nsSimdVec4b operator||(const nsSimdVec4b& rhs) const;                                                    // [tested]
+  nsSimdVec4b operator!() const;                                                                           // [tested]
 
-  nsSimdVec4b operator==(const nsSimdVec4b& rhs) const; // [tested]
-  nsSimdVec4b operator!=(const nsSimdVec4b& rhs) const; // [tested]
-
-  template <int N = 4>
-  bool AllSet() const; // [tested]
+  nsSimdVec4b operator==(const nsSimdVec4b& rhs) const;                                                    // [tested]
+  nsSimdVec4b operator!=(const nsSimdVec4b& rhs) const;                                                    // [tested]
 
   template <int N = 4>
-  bool AnySet() const; // [tested]
+  bool AllSet() const;                                                                                     // [tested]
 
   template <int N = 4>
-  bool NoneSet() const; // [tested]
+  bool AnySet() const;                                                                                     // [tested]
+
+  template <int N = 4>
+  bool NoneSet() const;                                                                                    // [tested]
 
   static nsSimdVec4b Select(const nsSimdVec4b& vCmp, const nsSimdVec4b& vTrue, const nsSimdVec4b& vFalse); // [tested]
 

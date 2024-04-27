@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Reflection/Reflection.h>
@@ -56,7 +51,6 @@ public:
 
   // *** Public Functions ***
 public:
-
   /// \brief Returns whether the timestamp is valid.
   bool IsValid() const; // [tested]
 
@@ -89,7 +83,7 @@ public:
 
 
 private:
-  static constexpr const nsInt64 NS_INVALID_TIME_STAMP = 0x7FFFFFFFFFFFFFFFLL;
+  static constexpr const nsInt64 NS_INVALID_TIME_STAMP = nsMath::MinValue<nsInt64>();
 
   NS_ALLOW_PRIVATE_PROPERTIES(nsTimestamp);
   /// \brief The date is stored as microseconds since Unix epoch.
@@ -221,7 +215,7 @@ struct nsArgDateTime
     ShowTime = NS_BIT(3),
     ShowSeconds = ShowTime | NS_BIT(4),
     ShowMilliseconds = ShowSeconds | NS_BIT(5),
-    ShowTimnsone = NS_BIT(6),
+    ShowTimeZone = NS_BIT(6),
 
     Default = ShowDate | ShowSeconds,
     DefaultTextual = TextualDate | ShowSeconds,
@@ -231,7 +225,7 @@ struct nsArgDateTime
   /// \param dateTime The nsDateTime instance to format.
   /// \param bUseNames Indicates whether to use names for days of week and months (true)
   ///        or a purely numerical representation (false).
-  /// \param bShowTimnsoneIndicator Whether to indicate the timnsone of the nsDateTime object.
+  /// \param bShowTimeZoneIndicator Whether to indicate the timnsone of the nsDateTime object.
   inline explicit nsArgDateTime(const nsDateTime& dateTime, nsUInt32 uiFormattingFlags = Default)
     : m_Value(dateTime)
     , m_uiFormattingFlags(uiFormattingFlags)

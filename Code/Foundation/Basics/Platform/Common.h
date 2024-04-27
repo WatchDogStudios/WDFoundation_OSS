@@ -1,13 +1,8 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 // On MSVC 2008 in 64 Bit <cmath> generates a lot of warnings (actually it is math.h, which is included by cmath)
-#define NS_MSVC_WARNING_NUMBER 4985
-#include <Foundation/Basics/Compiler/MSVC/DisableWarning_MSVC.h>
+NS_WARNING_PUSH()
+NS_WARNING_DISABLE_MSVC(4985)
 
 // include std header
 #include <cmath>
@@ -18,7 +13,7 @@
 #include <cwctype>
 #include <new>
 
-#include <Foundation/Basics/Compiler/MSVC/RestoreWarning_MSVC.h>
+NS_WARNING_POP()
 
 // redefine NULL to nullptr
 #undef NULL
@@ -79,9 +74,9 @@
 #define NS_WINCHECK_1 1          // NS_INCLUDED_WINDOWS_H defined to 1, _WINDOWS_ defined (stringyfied to nothing)
 #define NS_WINCHECK_1_WINDOWS_ 1 // NS_INCLUDED_WINDOWS_H defined to 1, _WINDOWS_ undefined (stringyfied to "_WINDOWS_")
 #define NS_WINCHECK_NS_INCLUDED_WINDOWS_H \
-  0 // NS_INCLUDED_WINDOWS_H undefined (stringyfied to "NS_INCLUDED_WINDOWS_H", _WINDOWS_ defined (stringyfied to nothing)
+  0                              // NS_INCLUDED_WINDOWS_H undefined (stringyfied to "NS_INCLUDED_WINDOWS_H", _WINDOWS_ defined (stringyfied to nothing)
 #define NS_WINCHECK_NS_INCLUDED_WINDOWS_H_WINDOWS_ \
-  1 // NS_INCLUDED_WINDOWS_H undefined (stringyfied to "NS_INCLUDED_WINDOWS_H", _WINDOWS_ undefined (stringyfied to "_WINDOWS_")
+  1                              // NS_INCLUDED_WINDOWS_H undefined (stringyfied to "NS_INCLUDED_WINDOWS_H", _WINDOWS_ undefined (stringyfied to "_WINDOWS_")
 
 /// \brief Checks whether Windows.h has been included directly instead of through 'IncludeWindows.h'
 ///
@@ -111,7 +106,6 @@
 /// they then end up in the final application, where they will do what they are meant for.
 #  define NS_STATICLINK_FILE(LibraryName, UniqueName) NS_CHECK_WINDOWS_INCLUDE(NS_INCLUDED_WINDOWS_H, _WINDOWS_)
 
-
 /// \brief Used by the tool 'StaticLinkUtil' to generate the block after NS_STATICLINK_LIBRARY, to create references to all
 /// files inside a library. \see NS_STATICLINK_FILE
 #  define NS_STATICLINK_REFERENCE(UniqueName)
@@ -127,14 +121,25 @@ struct nsStaticLinkHelper
   nsStaticLinkHelper(Func f) { f(true); }
 };
 
+/// \brief Helper struct to register the existence of statically linked plugins.
+/// The macro NS_STATICLINK_LIBRARY will register a the given library name prepended with `ns` to the nsPlugin system.
+/// Implemented in Plugin.cpp.
+struct NS_FOUNDATION_DLL nsPluginRegister
+{
+  nsPluginRegister(const char* szName);
+};
+
 /// \brief The tool 'StaticLinkUtil' inserts this macro into each file in a library.
 /// Each library also needs to contain exactly one instance of NS_STATICLINK_LIBRARY.
 /// The macros create functions that reference each other, which means the linker is forced to look at all files in the library.
 /// This in turn will drag all global variables into the visibility of the linker, and since it mustn't optimize them away,
 /// they then end up in the final application, where they will do what they are meant for.
-#  define NS_STATICLINK_FILE(LibraryName, UniqueName)      \
-    void nsReferenceFunction_##UniqueName(bool bReturn) {} \
-    void nsReferenceFunction_##LibraryName(bool bReturn);  \
+#  define NS_STATICLINK_FILE(LibraryName, UniqueName)        \
+    extern "C"                                               \
+    {                                                        \
+      void nsReferenceFunction_##UniqueName(bool bReturn) {} \
+      void nsReferenceFunction_##LibraryName(bool bReturn);  \
+    }                                                        \
     static nsStaticLinkHelper StaticLinkHelper_##UniqueName(nsReferenceFunction_##LibraryName);
 
 /// \brief Used by the tool 'StaticLinkUtil' to generate the block after NS_STATICLINK_LIBRARY, to create references to all
@@ -144,7 +149,9 @@ struct nsStaticLinkHelper
     nsReferenceFunction_##UniqueName()
 
 /// \brief This must occur exactly once in each static library, such that all NS_STATICLINK_FILE macros can reference it.
-#  define NS_STATICLINK_LIBRARY(LibraryName) void nsReferenceFunction_##LibraryName(bool bReturn = true)
+#  define NS_STATICLINK_LIBRARY(LibraryName)                                                      \
+    nsPluginRegister nsPluginRegister_##LibraryName(NS_PP_STRINGIFY(NS_CONCAT(ns, LibraryName))); \
+    extern "C" void nsReferenceFunction_##LibraryName(bool bReturn = true)
 
 #endif
 
@@ -163,15 +170,6 @@ void NS_IGNORE_UNUSED(const T&)
 {
 }
 
-
-// Math Debug checks
-#if NS_ENABLED(NS_COMPILE_FOR_DEBUG)
-
-#  undef NS_MATH_CHECK_FOR_NAN
-#  define NS_MATH_CHECK_FOR_NAN NS_ON
-
-#endif
-
 #if NS_ENABLED(NS_PLATFORM_WINDOWS)
 #  define NS_DECL_EXPORT __declspec(dllexport)
 #  define NS_DECL_IMPORT __declspec(dllimport)
@@ -182,4 +180,20 @@ void NS_IGNORE_UNUSED(const T&)
 #  define NS_DECL_IMPORT [[gnu::visibility("default")]]
 #  define NS_DECL_EXPORT_FRIEND
 #  define NS_DECL_IMPORT_FRIEND
+#endif
+
+#if (__cplusplus >= 202002L || _MSVC_LANG >= 202002L)
+#  undef NS_USE_CPP20_OPERATORS
+#  define NS_USE_CPP20_OPERATORS NS_ON
+#endif
+
+#if NS_ENABLED(NS_USE_CPP20_OPERATORS)
+// in C++ 20 we don't need to declare an operator!=, it is automatically generated from operator==
+#  define NS_ADD_DEFAULT_OPERATOR_NOTEQUAL(...) /*empty*/
+#else
+#  define NS_ADD_DEFAULT_OPERATOR_NOTEQUAL(...)                                   \
+    NS_ALWAYS_INLINE bool operator!=(NS_EXPAND_ARGS_COMMA(__VA_ARGS__) rhs) const \
+    {                                                                             \
+      return !(*this == rhs);                                                     \
+    }
 #endif

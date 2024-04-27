@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 template <typename T, nsUInt32 C>
@@ -51,12 +46,6 @@ bool nsStaticRingBuffer<T, C>::operator==(const nsStaticRingBuffer<T, C>& rhs) c
   }
 
   return true;
-}
-
-template <typename T, nsUInt32 C>
-NS_ALWAYS_INLINE bool nsStaticRingBuffer<T, C>::operator!=(const nsStaticRingBuffer<T, C>& rhs) const
-{
-  return !(*this == rhs);
 }
 
 template <typename T, nsUInt32 C>

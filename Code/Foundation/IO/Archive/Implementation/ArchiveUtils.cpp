@@ -1,22 +1,18 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/IO/Archive/ArchiveUtils.h>
 
 #include <Foundation/Algorithm/HashStream.h>
+#include <Foundation/IO/CompressedStreamZlib.h>
 #include <Foundation/IO/CompressedStreamZstd.h>
 #include <Foundation/IO/FileSystem/FileReader.h>
 #include <Foundation/IO/MemoryMappedFile.h>
 #include <Foundation/IO/MemoryStream.h>
 #include <Foundation/Logging/Log.h>
 
-nsHybridArray<nsString, 4, nsStaticAllocatorWrapper>& nsArchiveUtils::GetAcceptedArchiveFileExtensions()
+nsHybridArray<nsString, 4, nsStaticsAllocatorWrapper>& nsArchiveUtils::GetAcceptedArchiveFileExtensions()
 {
-  static nsHybridArray<nsString, 4, nsStaticAllocatorWrapper> extensions;
+  static nsHybridArray<nsString, 4, nsStaticsAllocatorWrapper> extensions;
 
   if (extensions.IsEmpty())
   {
@@ -39,6 +35,8 @@ bool nsArchiveUtils::IsAcceptedArchiveFileExtensions(nsStringView sExtension)
 
 nsResult nsArchiveUtils::WriteHeader(nsStreamWriter& inout_stream)
 {
+  static_assert(16 == ArchiveHeaderSize);
+
   const char* szTag = "NSARCHIVE";
   NS_SUCCEED_OR_RETURN(inout_stream.WriteBytes(szTag, 10));
 
@@ -57,6 +55,8 @@ nsResult nsArchiveUtils::WriteHeader(nsStreamWriter& inout_stream)
 
 nsResult nsArchiveUtils::ReadHeader(nsStreamReader& inout_stream, nsUInt8& out_uiVersion)
 {
+  static_assert(16 == ArchiveHeaderSize);
+
   char szTag[10];
   if (inout_stream.ReadBytes(szTag, 10) != 10 || !nsStringUtils::IsEqual(szTag, "NSARCHIVE"))
   {
@@ -91,6 +91,21 @@ nsResult nsArchiveUtils::ReadHeader(nsStreamReader& inout_stream, nsUInt8& out_u
   return NS_SUCCESS;
 }
 
+nsResult nsArchiveUtils::WriteEntryPreprocessed(nsStreamWriter& inout_stream, nsConstByteArrayPtr entryData, nsUInt32 uiPathStringOffset, nsArchiveCompressionMode compression, nsUInt32 uiUncompressedEntryDataSize, nsArchiveEntry& ref_tocEntry, nsUInt64& inout_uiCurrentStreamPosition)
+{
+  NS_SUCCEED_OR_RETURN(inout_stream.WriteBytes(entryData.GetPtr(), entryData.GetCount()));
+
+  ref_tocEntry.m_uiPathStringOffset = uiPathStringOffset;
+  ref_tocEntry.m_uiDataStartOffset = inout_uiCurrentStreamPosition;
+  ref_tocEntry.m_uiUncompressedDataSize = uiUncompressedEntryDataSize;
+  ref_tocEntry.m_uiStoredDataSize = entryData.GetCount();
+  ref_tocEntry.m_CompressionMode = compression;
+
+  inout_uiCurrentStreamPosition += entryData.GetCount();
+
+  return NS_SUCCESS;
+}
+
 nsResult nsArchiveUtils::WriteEntry(
   nsStreamWriter& inout_stream, nsStringView sAbsSourcePath, nsUInt32 uiPathStringOffset, nsArchiveCompressionMode compression,
   nsInt32 iCompressionLevel, nsArchiveEntry& inout_tocEntry, nsUInt64& inout_uiCurrentStreamPosition, FileWriteProgressCallback progress /*= FileWriteProgressCallback()*/)
@@ -100,7 +115,22 @@ nsResult nsArchiveUtils::WriteEntry(
 
   const nsUInt64 uiMaxBytes = file.GetFileSize();
 
-  nsUInt8 uiTemp[1024 * 8];
+  constexpr nsUInt32 uiMaxNumWorkerThreads = 12u;
+
+  nsUInt8 buf[1024 * 32];
+
+#ifdef BUILDSYSTEM_ENABLE_ZSTD_SUPPORT
+  nsUInt32 uiWorkerThreadCount;
+  if (uiMaxBytes > nsMath::MaxValue<nsUInt32>())
+  {
+    uiWorkerThreadCount = uiMaxNumWorkerThreads;
+  }
+  else
+  {
+    constexpr nsUInt32 uiBytesPerThread = 1024u * 1024u;
+    uiWorkerThreadCount = nsMath::Clamp((nsUInt32)floor(uiMaxBytes / uiBytesPerThread), 1u, uiMaxNumWorkerThreads);
+  }
+#endif
 
   inout_tocEntry.m_uiPathStringOffset = uiPathStringOffset;
   inout_tocEntry.m_uiDataStartOffset = inout_uiCurrentStreamPosition;
@@ -120,8 +150,7 @@ nsResult nsArchiveUtils::WriteEntry(
 #ifdef BUILDSYSTEM_ENABLE_ZSTD_SUPPORT
     case nsArchiveCompressionMode::Compressed_zstd:
     {
-      constexpr nsUInt32 uiMaxNumWorkerThreads = 12u;
-      zstdWriter.SetOutputStream(&inout_stream, uiMaxNumWorkerThreads, (nsCompressedStreamWriterZstd::Compression)iCompressionLevel);
+      zstdWriter.SetOutputStream(&inout_stream, uiWorkerThreadCount, (nsCompressedStreamWriterZstd::Compression)iCompressionLevel);
       pWriter = &zstdWriter;
     }
     break;
@@ -137,7 +166,7 @@ nsResult nsArchiveUtils::WriteEntry(
   nsUInt64 uiRead = 0;
   while (true)
   {
-    uiRead = file.ReadBytes(uiTemp, NS_ARRAY_SIZE(uiTemp));
+    uiRead = file.ReadBytes(buf, NS_ARRAY_SIZE(buf));
 
     if (uiRead == 0)
       break;
@@ -150,7 +179,7 @@ nsResult nsArchiveUtils::WriteEntry(
         return NS_FAILURE;
     }
 
-    NS_SUCCEED_OR_RETURN(pWriter->WriteBytes(uiTemp, uiRead));
+    NS_SUCCEED_OR_RETURN(pWriter->WriteBytes(buf, uiRead));
   }
 
 
@@ -213,6 +242,15 @@ public:
 
 #endif
 
+#ifdef BUILDSYSTEM_ENABLE_ZLIB_SUPPORT
+
+class nsCompressedStreamReaderZipWithSource : public nsCompressedStreamReaderZip
+{
+public:
+  nsRawMemoryStreamReader m_Source;
+};
+
+#endif
 
 nsUniquePtr<nsStreamReader> nsArchiveUtils::CreateEntryReader(const nsArchiveEntry& entry, const void* pStartOfArchiveData)
 {
@@ -238,6 +276,16 @@ nsUniquePtr<nsStreamReader> nsArchiveUtils::CreateEntryReader(const nsArchiveEnt
       break;
     }
 #endif
+#ifdef BUILDSYSTEM_ENABLE_ZLIB_SUPPORT
+    case nsArchiveCompressionMode::Compressed_zip:
+    {
+      reader = NS_DEFAULT_NEW(nsCompressedStreamReaderZipWithSource);
+      nsCompressedStreamReaderZipWithSource* pRawReader = static_cast<nsCompressedStreamReaderZipWithSource*>(reader.Borrow());
+      ConfigureRawMemoryStreamReader(entry, pStartOfArchiveData, pRawReader->m_Source);
+      pRawReader->SetInputStream(&pRawReader->m_Source, entry.m_uiStoredDataSize);
+      break;
+    }
+#endif
 
     default:
       NS_REPORT_FAILURE("Archive entry compression mode '{}' is not supported by nsArchiveReader", (int)entry.m_CompressionMode);
@@ -249,7 +297,7 @@ nsUniquePtr<nsStreamReader> nsArchiveUtils::CreateEntryReader(const nsArchiveEnt
 
 void nsArchiveUtils::ConfigureRawMemoryStreamReader(const nsArchiveEntry& entry, const void* pStartOfArchiveData, nsRawMemoryStreamReader& ref_memReader)
 {
-  ref_memReader.Reset(nsMemoryUtils::AddByteOffset(pStartOfArchiveData, static_cast<ptrdiff_t>(entry.m_uiDataStartOffset)), entry.m_uiStoredDataSize);
+  ref_memReader.Reset(nsMemoryUtils::AddByteOffset(pStartOfArchiveData, static_cast<std::ptrdiff_t>(entry.m_uiDataStartOffset)), entry.m_uiStoredDataSize);
 }
 
 static const char* szEndMarker = "NSARCHIVE-END";
@@ -302,14 +350,22 @@ nsResult nsArchiveUtils::AppendTOC(nsStreamWriter& inout_stream, const nsArchive
   return inout_stream.WriteBytes(szEndMarker, 14);
 }
 
-static nsResult VerifyEndMarker(nsMemoryMappedFile& ref_memFile, nsUInt8 uiArchiveVersion)
+static nsResult VerifyEndMarker(nsUInt64 uiArchiveDataSize, const void* pArchiveDataBuffer, nsUInt8 uiArchiveVersion)
 {
   const nsUInt32 uiEndMarkerSize = GetEndMarkerSize(uiArchiveVersion);
 
   if (uiEndMarkerSize == 0)
+  {
     return NS_SUCCESS;
+  }
 
-  const void* pStart = ref_memFile.GetReadPointer(uiEndMarkerSize, nsMemoryMappedFile::OffsetBase::End);
+  if (uiEndMarkerSize > uiArchiveDataSize)
+  {
+    nsLog::Error("Archive is too small. End-marker not found.");
+    return NS_FAILURE;
+  }
+
+  const void* pStart = nsMemoryUtils::AddByteOffset(pArchiveDataBuffer, uiArchiveDataSize - uiEndMarkerSize);
 
   nsRawMemoryStreamReader reader(pStart, uiEndMarkerSize);
 
@@ -323,9 +379,9 @@ static nsResult VerifyEndMarker(nsMemoryMappedFile& ref_memFile, nsUInt8 uiArchi
   return NS_SUCCESS;
 }
 
-nsResult nsArchiveUtils::ExtractTOC(nsMemoryMappedFile& ref_memFile, nsArchiveTOC& ref_toc, nsUInt8 uiArchiveVersion)
+nsResult nsArchiveUtils::ExtractTOCMeta(nsUInt64 uiArchiveEndingDataSize, const void* pArchiveEndingDataBuffer, TOCMeta& ref_tocMeta, nsUInt8 uiArchiveVersion)
 {
-  NS_SUCCEED_OR_RETURN(VerifyEndMarker(ref_memFile, uiArchiveVersion));
+  NS_SUCCEED_OR_RETURN(VerifyEndMarker(uiArchiveEndingDataSize, pArchiveEndingDataBuffer, uiArchiveVersion));
 
   const nsUInt32 uiEndMarkerSize = GetEndMarkerSize(uiArchiveVersion);
   const nsUInt32 uiTocMetaSize = GetTocMetaSize(uiArchiveVersion);
@@ -335,7 +391,15 @@ nsResult nsArchiveUtils::ExtractTOC(nsMemoryMappedFile& ref_memFile, nsArchiveTO
 
   // read the TOC meta data
   {
-    const void* pTocMetaStart = ref_memFile.GetReadPointer(uiEndMarkerSize + uiTocMetaSize, nsMemoryMappedFile::OffsetBase::End);
+    NS_ASSERT_DEV(uiEndMarkerSize + uiTocMetaSize <= ArchiveTOCMetaMaxFooterSize, "");
+
+    if (uiEndMarkerSize + uiTocMetaSize > uiArchiveEndingDataSize)
+    {
+      nsLog::Error("Unable to extract Archive TOC. File size too small: {0}", nsArgFileSize(uiArchiveEndingDataSize));
+      return NS_FAILURE;
+    }
+
+    const void* pTocMetaStart = nsMemoryUtils::AddByteOffset(pArchiveEndingDataBuffer, uiArchiveEndingDataSize - uiEndMarkerSize - uiTocMetaSize);
 
     nsRawMemoryStreamReader tocMetaReader(pTocMetaStart, uiTocMetaSize);
 
@@ -353,13 +417,46 @@ nsResult nsArchiveUtils::ExtractTOC(nsMemoryMappedFile& ref_memFile, nsArchiveTO
     }
   }
 
-  const void* pTocStart = ref_memFile.GetReadPointer(uiTocSize + uiTocMetaSize + uiEndMarkerSize, nsMemoryMappedFile::OffsetBase::End);
+  // output the result
+  {
+    ref_tocMeta = TOCMeta();
+    ref_tocMeta.m_uiTocSize = uiTocSize;
+    ref_tocMeta.m_uiExpectedTocHash = uiExpectedTocHash;
+    ref_tocMeta.m_uiTocOffsetFromArchiveEnd = uiTocSize + uiTocMetaSize + uiEndMarkerSize;
+  }
+
+  return NS_SUCCESS;
+}
+
+nsResult nsArchiveUtils::ExtractTOCMeta(const nsMemoryMappedFile& memFile, TOCMeta& ref_tocMeta, nsUInt8 uiArchiveVersion)
+{
+  return ExtractTOCMeta(memFile.GetFileSize(), memFile.GetReadPointer(), ref_tocMeta, uiArchiveVersion);
+}
+
+nsResult nsArchiveUtils::ExtractTOC(nsUInt64 uiArchiveEndingDataSize, const void* pArchiveEndingDataBuffer, nsArchiveTOC& ref_toc, nsUInt8 uiArchiveVersion)
+{
+  // get toc meta
+  TOCMeta tocMeta;
+  if (ExtractTOCMeta(uiArchiveEndingDataSize, pArchiveEndingDataBuffer, tocMeta, uiArchiveVersion).Failed())
+  {
+    return NS_FAILURE;
+  }
+
+  // verify meta is valid
+  if (tocMeta.m_uiTocOffsetFromArchiveEnd > uiArchiveEndingDataSize)
+  {
+    nsLog::Error("Archive TOC offset is corrupted.");
+    return NS_FAILURE;
+  }
+
+  // get toc data ptr
+  const void* pTocStart = nsMemoryUtils::AddByteOffset(pArchiveEndingDataBuffer, uiArchiveEndingDataSize - tocMeta.m_uiTocOffsetFromArchiveEnd);
 
   // validate the TOC hash
   if (uiArchiveVersion >= 2)
   {
-    const nsUInt64 uiActualTocHash = nsHashingUtils::xxHash64(pTocStart, uiTocSize);
-    if (uiExpectedTocHash != uiActualTocHash)
+    const nsUInt64 uiActualTocHash = nsHashingUtils::xxHash64(pTocStart, tocMeta.m_uiTocSize);
+    if (tocMeta.m_uiExpectedTocHash != uiActualTocHash)
     {
       nsLog::Error("Archive TOC is corrupted. Hashes do not match.");
       return NS_FAILURE;
@@ -368,7 +465,7 @@ nsResult nsArchiveUtils::ExtractTOC(nsMemoryMappedFile& ref_memFile, nsArchiveTO
 
   // read the actual TOC data
   {
-    nsRawMemoryStreamReader tocReader(pTocStart, uiTocSize);
+    nsRawMemoryStreamReader tocReader(pTocStart, tocMeta.m_uiTocSize);
 
     if (ref_toc.Deserialize(tocReader, uiArchiveVersion).Failed())
     {
@@ -378,6 +475,11 @@ nsResult nsArchiveUtils::ExtractTOC(nsMemoryMappedFile& ref_memFile, nsArchiveTO
   }
 
   return NS_SUCCESS;
+}
+
+nsResult nsArchiveUtils::ExtractTOC(const nsMemoryMappedFile& memFile, nsArchiveTOC& ref_toc, nsUInt8 uiArchiveVersion)
+{
+  return ExtractTOC(memFile.GetFileSize(), memFile.GetReadPointer(), ref_toc, uiArchiveVersion);
 }
 
 namespace ZipFormat
@@ -447,6 +549,7 @@ namespace ZipFormat
     inout_stream >> ref_value.signature >> ref_value.version >> ref_value.versionNeeded >> ref_value.flags >> ref_value.compression >> ref_value.modTime >> ref_value.modDate;
     inout_stream >> ref_value.crc32 >> ref_value.compressedSize >> ref_value.uncompressedSize >> ref_value.fileNameLength >> ref_value.extraFieldLength;
     inout_stream >> ref_value.fileCommentLength >> ref_value.diskNumStart >> ref_value.internalAttr >> ref_value.externalAttr >> ref_value.offsetLocalHeader;
+    NS_IGNORE_UNUSED(CDFileMagicSignature);
     NS_ASSERT_DEBUG(ref_value.signature == CDFileMagicSignature, "ZIP: Corrupt central directory file entry header.");
     return inout_stream;
   }
@@ -489,7 +592,7 @@ nsResult nsArchiveUtils::ReadZipHeader(nsStreamReader& inout_stream, nsUInt8& ou
   return NS_SUCCESS;
 }
 
-nsResult nsArchiveUtils::ExtractZipTOC(nsMemoryMappedFile& ref_memFile, nsArchiveTOC& ref_toc)
+nsResult nsArchiveUtils::ExtractZipTOC(const nsMemoryMappedFile& memFile, nsArchiveTOC& ref_toc)
 {
   using namespace ZipFormat;
 
@@ -497,9 +600,9 @@ nsResult nsArchiveUtils::ExtractZipTOC(nsMemoryMappedFile& ref_memFile, nsArchiv
   {
     // Find End of CD signature by searching from the end of the file.
     // As a comment can come after it we have to potentially walk max comment length backwards.
-    const nsUInt64 SearchEnd = ref_memFile.GetFileSize() - nsMath::Min(MaxEndOfCDSearchLength, ref_memFile.GetFileSize());
-    const nsUInt8* pSearchEnd = static_cast<const nsUInt8*>(ref_memFile.GetReadPointer(SearchEnd, nsMemoryMappedFile::OffsetBase::End));
-    const nsUInt8* pSearchStart = static_cast<const nsUInt8*>(ref_memFile.GetReadPointer(EndOfCDHeaderLength, nsMemoryMappedFile::OffsetBase::End));
+    const nsUInt64 SearchEnd = memFile.GetFileSize() - nsMath::Min(MaxEndOfCDSearchLength, memFile.GetFileSize());
+    const nsUInt8* pSearchEnd = static_cast<const nsUInt8*>(memFile.GetReadPointer(SearchEnd, nsMemoryMappedFile::OffsetBase::End));
+    const nsUInt8* pSearchStart = static_cast<const nsUInt8*>(memFile.GetReadPointer(EndOfCDHeaderLength, nsMemoryMappedFile::OffsetBase::End));
     while (pSearchStart >= pSearchEnd)
     {
       if (*reinterpret_cast<const nsUInt32*>(pSearchStart) == EndOfCDMagicSignature)
@@ -525,7 +628,7 @@ nsResult nsArchiveUtils::ExtractZipTOC(nsMemoryMappedFile& ref_memFile, nsArchiv
   for (nsUInt16 uiEntry = 0; uiEntry < ecdHeader.diskEntries; ++uiEntry)
   {
     // First, read the current file's header from the central directory
-    const void* pCdfStart = ref_memFile.GetReadPointer(ecdHeader.cdOffset + uiEntryOffset, nsMemoryMappedFile::OffsetBase::Start);
+    const void* pCdfStart = memFile.GetReadPointer(ecdHeader.cdOffset + uiEntryOffset, nsMemoryMappedFile::OffsetBase::Start);
     nsRawMemoryStreamReader cdfReader(pCdfStart, ecdHeader.cdSize - uiEntryOffset);
     CDFileHeader cdfHeader;
     cdfReader >> cdfHeader;
@@ -547,8 +650,8 @@ nsResult nsArchiveUtils::ExtractZipTOC(nsMemoryMappedFile& ref_memFile, nsArchiv
       ref_toc.m_PathToEntryIndex.Insert(nsArchiveStoredString(nsHashingUtils::StringHash(sLowerCaseHash), entry.m_uiPathStringOffset), ref_toc.m_Entries.GetCount() - 1);
 
       // Compute data stream start location. We need to skip past the local (and redundant) file header to find it.
-      const void* pLfStart = ref_memFile.GetReadPointer(cdfHeader.offsetLocalHeader, nsMemoryMappedFile::OffsetBase::Start);
-      nsRawMemoryStreamReader lfReader(pLfStart, ref_memFile.GetFileSize() - cdfHeader.offsetLocalHeader);
+      const void* pLfStart = memFile.GetReadPointer(cdfHeader.offsetLocalHeader, nsMemoryMappedFile::OffsetBase::Start);
+      nsRawMemoryStreamReader lfReader(pLfStart, memFile.GetFileSize() - cdfHeader.offsetLocalHeader);
       LocalFileHeader lfHeader;
       lfReader >> lfHeader;
       entry.m_uiDataStartOffset = cdfHeader.offsetLocalHeader + LocalFileHeaderLength + lfHeader.fileNameLength + lfHeader.extraFieldLength;
@@ -559,6 +662,3 @@ nsResult nsArchiveUtils::ExtractZipTOC(nsMemoryMappedFile& ref_memFile, nsArchiv
 
   return NS_SUCCESS;
 }
-
-
-NS_STATICLINK_FILE(Foundation, Foundation_IO_Archive_Implementation_ArchiveUtils);

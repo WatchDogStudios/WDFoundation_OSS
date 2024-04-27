@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/IO/JSONWriter.h>
@@ -354,6 +349,19 @@ void nsJSONWriter::WriteVariant(const nsVariant& value)
       EndArray();
     }
       return;
+    case nsVariant::Type::VariantDictionary:
+    {
+      BeginObject();
+
+      const auto& dict = value.Get<nsVariantDictionary>();
+
+      for (auto& kv : dict)
+      {
+        AddVariableVariant(kv.Key(), kv.Value());
+      }
+      EndObject();
+    }
+      return;
 
     default:
       break;
@@ -372,5 +380,3 @@ void nsJSONWriter::SetWriteErrorState()
 {
   m_bHadWriteError = true;
 }
-
-NS_STATICLINK_FILE(Foundation, Foundation_IO_Implementation_JSONWriter);

@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Reflection/Implementation/AbstractProperty.h>
@@ -15,7 +10,7 @@
 struct nsTypeData
 {
   nsMutex m_Mutex;
-  nsHashTable<nsUInt64, nsRTTI*, nsHashHelper<nsUInt64>, nsStaticAllocatorWrapper> m_TypeNameHashToType;
+  nsHashTable<nsUInt64, nsRTTI*, nsHashHelper<nsUInt64>, nsStaticsAllocatorWrapper> m_TypeNameHashToType;
   nsDynamicArray<nsRTTI*> m_AllTypes;
 
   bool m_bIterating = false;
@@ -25,7 +20,8 @@ nsTypeData* GetTypeData()
 {
   // Prevent static initialization hazard between first nsRTTI instance
   // and type data and also make sure it is sufficiently sized before first use.
-  auto CreateData = []() -> nsTypeData* {
+  auto CreateData = []() -> nsTypeData*
+  {
     nsTypeData* pData = new nsTypeData();
     pData->m_TypeNameHashToType.Reserve(512);
     pData->m_AllTypes.Reserve(512);
@@ -180,6 +176,7 @@ void nsRTTI::VerifyCorrectness() const
         const bool bNewProperty = !Known.Find(pInstance->m_Properties[i]->GetPropertyName()).IsValid();
         Known.Insert(pInstance->m_Properties[i]->GetPropertyName());
 
+        NS_IGNORE_UNUSED(bNewProperty);
         NS_ASSERT_DEV(bNewProperty, "{0}: The property with name '{1}' is already defined in type '{2}'.", m_sTypeName,
           pInstance->m_Properties[i]->GetPropertyName(), pInstance->GetTypeName());
       }
@@ -191,6 +188,7 @@ void nsRTTI::VerifyCorrectness() const
   {
     for (const nsAbstractProperty* pFunc : m_Functions)
     {
+      NS_IGNORE_UNUSED(pFunc);
       NS_ASSERT_DEV(pFunc->GetCategory() == nsPropertyCategory::Function, "Invalid function property '{}'", pFunc->GetPropertyName());
     }
   }
@@ -198,7 +196,8 @@ void nsRTTI::VerifyCorrectness() const
 
 void nsRTTI::VerifyCorrectnessForAllTypes()
 {
-  nsRTTI::ForEachType([](const nsRTTI* pRtti) { pRtti->VerifyCorrectness(); });
+  nsRTTI::ForEachType([](const nsRTTI* pRtti)
+    { pRtti->VerifyCorrectness(); });
 }
 
 
@@ -272,7 +271,8 @@ const nsRTTI* nsRTTI::FindTypeByNameHash(nsUInt64 uiNameHash)
 
 const nsRTTI* nsRTTI::FindTypeByNameHash32(nsUInt32 uiNameHash)
 {
-  return FindTypeIf([=](const nsRTTI* pRtti) { return (nsHashingUtils::StringHashTo32(pRtti->GetTypeNameHash()) == uiNameHash); });
+  return FindTypeIf([=](const nsRTTI* pRtti)
+    { return (nsHashingUtils::StringHashTo32(pRtti->GetTypeNameHash()) == uiNameHash); });
 }
 
 const nsRTTI* nsRTTI::FindTypeIf(PredicateFunc func)
@@ -365,7 +365,7 @@ void nsRTTI::ForEachType(VisitorFunc func, nsBitflags<ForEachOptions> options /*
 
   pData->m_bIterating = true;
   // Can't use ranged based for loop here since we might add new types while iterating and the m_AllTypes array might re-allocate.
-  for (nsUInt32 i = 0; i < pData->m_AllTypes.GetCount(); ++i) 
+  for (nsUInt32 i = 0; i < pData->m_AllTypes.GetCount(); ++i)
   {
     auto pRtti = pData->m_AllTypes.GetData()[i];
     if (options.IsSet(ForEachOptions::ExcludeNonAllocatable) && (pRtti->GetAllocator() == nullptr || pRtti->GetAllocator()->CanAllocate() == false))
@@ -423,10 +423,7 @@ void nsRTTI::AssignPlugin(nsStringView sPluginName)
   }
 }
 
-// warning C4505: 'IsValidIdentifierName': unreferenced function with internal linkage has been removed
-// happens in Release builds, because the function is only used in a debug assert
-#define NS_MSVC_WARNING_NUMBER 4505
-#include <Foundation/Basics/Compiler/MSVC/DisableWarning_MSVC.h>
+#if NS_ENABLED(NS_COMPILE_FOR_DEBUG)
 
 static bool IsValidIdentifierName(nsStringView sIdentifier)
 {
@@ -460,7 +457,7 @@ static bool IsValidIdentifierName(nsStringView sIdentifier)
   return true;
 }
 
-#include <Foundation/Basics/Compiler/MSVC/RestoreWarning_MSVC.h>
+#endif
 
 void nsRTTI::SanityCheckType(nsRTTI* pType)
 {
@@ -487,6 +484,7 @@ void nsRTTI::SanityCheckType(nsRTTI* pType)
     {
       case nsPropertyCategory::Constant:
       {
+        NS_IGNORE_UNUSED(pSpecificType);
         NS_ASSERT_DEV(pSpecificType->GetTypeFlags().IsSet(nsTypeFlags::StandardType), "Only standard type constants are supported!");
       }
       break;

@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <ToolsFoundationTest/ToolsFoundationTestPCH.h>
 
 #if NS_ENABLED(NS_SUPPORTS_DIRECTORY_WATCHER) && NS_ENABLED(NS_SUPPORTS_FILE_ITERATORS)
@@ -35,7 +30,8 @@ NS_CREATE_SIMPLE_TEST(FileSystem, DataDirPath)
   const nsStringView sFilePathView = "C:/Code/nsEngine/Data/Samples/Testing Chambers/Objects/Barrel.nsPrefab"_nssv;
   const nsStringView sDataDirView = "C:/Code/nsEngine/Data/Samples/Testing Chambers"_nssv;
 
-  auto CheckIsValid = [&](const nsDataDirPath& path) {
+  auto CheckIsValid = [&](const nsDataDirPath& path)
+  {
     NS_TEST_BOOL(path.IsValid());
     nsStringView sAbs = path.GetAbsolutePath();
     NS_TEST_STRING(sAbs, sFilePathView);
@@ -86,7 +82,7 @@ NS_CREATE_SIMPLE_TEST(FileSystem, DataDirPath)
 
   NS_TEST_BLOCK(nsTestBlock::Enabled, "Path to DataDir Itself")
   {
-    nsString sDataDirView = u8"/Code/nsEngine/Data/Sämples/Testing Chämbers";
+    nsString sDataDirView = (const char*)u8"/Code/nsEngine/Data/Sämples/Testing Chämbers";
     nsHybridArray<nsString, 2> rootFolders;
     rootFolders.PushBack(sDataDirView);
 
@@ -97,7 +93,7 @@ NS_CREATE_SIMPLE_TEST(FileSystem, DataDirPath)
     nsStringView sDD = path.GetDataDir();
     NS_TEST_STRING(sDD, sDataDirView);
     nsStringView sPR = path.GetDataDirParentRelativePath();
-    NS_TEST_STRING(sPR, u8"Testing Chämbers");
+    NS_TEST_STRING(sPR, (const char*)u8"Testing Chämbers");
     nsStringView sR = path.GetDataDirRelativePath();
     NS_TEST_STRING(sR, "");
     nsUInt32 uiIndex = path.GetDataDirIndex();
@@ -143,7 +139,7 @@ NS_CREATE_SIMPLE_TEST(FileSystem, DataDirPath)
     CheckIsValid(path);
     NS_TEST_INT(path.GetDataDirIndex(), 0);
 
-    newRootFolders.Insert("C:/Some/Other/DataDir2", 0);
+    newRootFolders.InsertAt(0, "C:/Some/Other/DataDir2");
     path.UpdateDataDirInfos(newRootFolders);
     CheckIsValid(path);
     NS_TEST_INT(path.GetDataDirIndex(), 1);
@@ -185,7 +181,8 @@ NS_CREATE_SIMPLE_TEST(FileSystem, FileSystemModel)
   nsHybridArray<nsFileChangedEvent, 2> fileEvents;
   nsHybridArray<nsTime, 2> fileEventTimestamps;
   nsMutex fileEventLock;
-  auto fileEvent = [&](const nsFileChangedEvent& e) {
+  auto fileEvent = [&](const nsFileChangedEvent& e)
+  {
     NS_LOCK(fileEventLock);
     fileEvents.PushBack(e);
     fileEventTimestamps.PushBack(nsTime::Now());
@@ -213,7 +210,8 @@ NS_CREATE_SIMPLE_TEST(FileSystem, FileSystemModel)
   nsHybridArray<nsFolderChangedEvent, 2> folderEvents;
   nsHybridArray<nsTime, 2> folderEventTimestamps;
   nsMutex folderEventLock;
-  auto folderEvent = [&](const nsFolderChangedEvent& e) {
+  auto folderEvent = [&](const nsFolderChangedEvent& e)
+  {
     NS_LOCK(folderEventLock);
     folderEvents.PushBack(e);
     folderEventTimestamps.PushBack(nsTime::Now());
@@ -234,7 +232,8 @@ NS_CREATE_SIMPLE_TEST(FileSystem, FileSystemModel)
   nsEventSubscriptionID folderId = nsFileSystemModel::GetSingleton()->m_FolderChangedEvents.AddEventHandler(folderEvent);
 
   // Helper functions
-  auto CompareFiles = [&](nsArrayPtr<nsFileChangedEvent> expected) {
+  auto CompareFiles = [&](nsArrayPtr<nsFileChangedEvent> expected)
+  {
     NS_LOCK(fileEventLock);
     if (NS_TEST_INT(expected.GetCount(), fileEvents.GetCount()))
     {
@@ -248,13 +247,15 @@ NS_CREATE_SIMPLE_TEST(FileSystem, FileSystemModel)
     }
   };
 
-  auto ClearFiles = [&]() {
+  auto ClearFiles = [&]()
+  {
     NS_LOCK(fileEventLock);
     fileEvents.Clear();
     fileEventTimestamps.Clear();
   };
 
-  auto CompareFolders = [&](nsArrayPtr<nsFolderChangedEvent> expected) {
+  auto CompareFolders = [&](nsArrayPtr<nsFolderChangedEvent> expected)
+  {
     NS_LOCK(folderEventLock);
     if (NS_TEST_INT(expected.GetCount(), folderEvents.GetCount()))
     {
@@ -267,13 +268,15 @@ NS_CREATE_SIMPLE_TEST(FileSystem, FileSystemModel)
     }
   };
 
-  auto ClearFolders = [&]() {
+  auto ClearFolders = [&]()
+  {
     NS_LOCK(folderEventLock);
     folderEvents.Clear();
     folderEventTimestamps.Clear();
   };
 
-  auto MakePath = [&](nsStringView sPath) {
+  auto MakePath = [&](nsStringView sPath)
+  {
     return nsDataDirPath(sPath, rootFolders);
   };
 
@@ -466,10 +469,10 @@ NS_CREATE_SIMPLE_TEST(FileSystem, FileSystemModel)
     sFilePathOld.AppendPath("Folder1", "rootFile2.txt");
 
     nsStringBuilder sFolderPathNew(sOutputFolder);
-    sFolderPathNew.AppendPath("Folder2");
+    sFolderPathNew.AppendPath("Folder12");
 
     nsStringBuilder sFilePathNew(sOutputFolder);
-    sFilePathNew.AppendPath("Folder2", "rootFile2.txt");
+    sFilePathNew.AppendPath("Folder12", "rootFile2.txt");
 
     NS_TEST_RESULT(nsOSFile::MoveFileOrDirectory(sFolderPathOld, sFolderPathNew));
 
@@ -516,7 +519,7 @@ NS_CREATE_SIMPLE_TEST(FileSystem, FileSystemModel)
   NS_TEST_BLOCK(nsTestBlock::Enabled, "HashFile")
   {
     nsStringBuilder sFilePathNew(sOutputFolder);
-    sFilePathNew.AppendPath("Folder2", "rootFile2.txt");
+    sFilePathNew.AppendPath("Folder12", "rootFile2.txt");
 
     nsFileStatus status;
     NS_TEST_RESULT(nsFileSystemModel::GetSingleton()->HashFile(sFilePathNew, status));
@@ -555,8 +558,8 @@ NS_CREATE_SIMPLE_TEST(FileSystem, FileSystemModel)
       dataDir.m_sDataDirSpecialPath = sOutputFolder2;
       dataDir.m_sRootName = "output2";
 
-      rootFolders.Insert(sOutputFolder, 0);
-      fsConfig.m_DataDirs.Insert(dataDir, 0);
+      rootFolders.InsertAt(0, sOutputFolder);
+      fsConfig.m_DataDirs.InsertAt(0, dataDir);
     }
 
     nsFileSystemModel::GetSingleton()->Initialize(fsConfig, std::move(referencedFiles), std::move(referencedFolders));
@@ -582,7 +585,7 @@ NS_CREATE_SIMPLE_TEST(FileSystem, FileSystemModel)
   NS_TEST_BLOCK(nsTestBlock::Enabled, "GetFiles")
   {
     nsStringBuilder sFilePathNew(sOutputFolder);
-    sFilePathNew.AppendPath("Folder2", "rootFile2.txt");
+    sFilePathNew.AppendPath("Folder12", "rootFile2.txt");
 
     nsFileSystemModel::LockedFiles files = nsFileSystemModel::GetSingleton()->GetFiles();
     NS_TEST_INT(files->GetCount(), 1);
@@ -596,7 +599,7 @@ NS_CREATE_SIMPLE_TEST(FileSystem, FileSystemModel)
   NS_TEST_BLOCK(nsTestBlock::Enabled, "GetFolders")
   {
     nsStringBuilder sFolder(sOutputFolder);
-    sFolder.AppendPath("Folder2");
+    sFolder.AppendPath("Folder12");
 
     nsFileSystemModel::LockedFolders folders = nsFileSystemModel::GetSingleton()->GetFolders();
     NS_TEST_INT(folders->GetCount(), 3);
@@ -618,10 +621,10 @@ NS_CREATE_SIMPLE_TEST(FileSystem, FileSystemModel)
   NS_TEST_BLOCK(nsTestBlock::Enabled, "CheckFileSystem")
   {
     nsStringBuilder sFolderPath(sOutputFolder);
-    sFolderPath.AppendPath("Folder2");
+    sFolderPath.AppendPath("Folder12");
 
     nsStringBuilder sFilePath(sOutputFolder);
-    sFilePath.AppendPath("Folder2", "rootFile2.txt");
+    sFilePath.AppendPath("Folder12", "rootFile2.txt");
 
     nsFileSystemModel::GetSingleton()->CheckFileSystem();
 
@@ -718,7 +721,7 @@ NS_CREATE_SIMPLE_TEST(FileSystem, FileSystemModel)
   NS_TEST_BLOCK(nsTestBlock::Enabled, "CheckFolder - File")
   {
     nsStringBuilder sFilePath(sOutputFolder);
-    sFilePath.AppendPath("Folder2", "subFile.txt");
+    sFilePath.AppendPath("Folder12", "subFile.txt");
     {
       NS_TEST_RESULT(nstCreateFile(sFilePath));
       nsFileSystemModel::GetSingleton()->CheckFolder(sOutputFolder);
@@ -798,10 +801,11 @@ NS_CREATE_SIMPLE_TEST(FileSystem, FileSystemModel)
   NS_TEST_BLOCK(nsTestBlock::Enabled, "ReadDocument")
   {
     nsStringBuilder sFilePathNew(sOutputFolder);
-    sFilePathNew.AppendPath("Folder2", "rootFile2.txt");
+    sFilePathNew.AppendPath("Folder12", "rootFile2.txt");
 
     nsUuid docGuid = nsUuid::MakeUuid();
-    auto callback = [&](const nsFileStatus& status, nsStreamReader& ref_reader) {
+    auto callback = [&](const nsFileStatus& status, nsStreamReader& ref_reader)
+    {
       NS_TEST_INT((nsInt64)status.m_uiHash, (nsInt64)10983861097202158394u);
       nsFileSystemModel::GetSingleton()->LinkDocument(sFilePathNew, docGuid).IgnoreResult();
     };
@@ -818,7 +822,7 @@ NS_CREATE_SIMPLE_TEST(FileSystem, FileSystemModel)
   NS_TEST_BLOCK(nsTestBlock::Enabled, "LinkDocument")
   {
     nsStringBuilder sFilePathNew(sOutputFolder);
-    sFilePathNew.AppendPath("Folder2", "rootFile2.txt");
+    sFilePathNew.AppendPath("Folder12", "rootFile2.txt");
 
     nsUuid guid = nsUuid::MakeUuid();
     nsUuid guid2 = nsUuid::MakeUuid();
@@ -862,10 +866,10 @@ NS_CREATE_SIMPLE_TEST(FileSystem, FileSystemModel)
   NS_TEST_BLOCK(nsTestBlock::Enabled, "Change file casing")
   {
     nsStringBuilder sFilePathOld(sOutputFolder);
-    sFilePathOld.AppendPath("Folder2", "rootFile2.txt");
+    sFilePathOld.AppendPath("Folder12", "rootFile2.txt");
 
     nsStringBuilder sFilePathNew(sOutputFolder);
-    sFilePathNew.AppendPath("Folder2", "RootFile2.txt");
+    sFilePathNew.AppendPath("Folder12", "RootFile2.txt");
 
     NS_TEST_RESULT(nsOSFile::MoveFileOrDirectory(sFilePathOld, sFilePathNew));
 
@@ -893,10 +897,10 @@ NS_CREATE_SIMPLE_TEST(FileSystem, FileSystemModel)
   NS_TEST_BLOCK(nsTestBlock::Enabled, "Change folder casing")
   {
     nsStringBuilder sFolderPathOld(sOutputFolder);
-    sFolderPathOld.AppendPath("Folder2");
+    sFolderPathOld.AppendPath("Folder12");
 
     nsStringBuilder sFolderPathNew(sOutputFolder);
-    sFolderPathNew.AppendPath("FOLDER2");
+    sFolderPathNew.AppendPath("FOLDER12");
 
     NS_TEST_RESULT(nsOSFile::MoveFileOrDirectory(sFolderPathOld, sFolderPathNew));
 
@@ -920,9 +924,9 @@ NS_CREATE_SIMPLE_TEST(FileSystem, FileSystemModel)
 
     {
       nsStringBuilder sFilePathOld(sOutputFolder);
-      sFilePathOld.AppendPath("Folder2", "RootFile2.txt");
+      sFilePathOld.AppendPath("Folder12", "RootFile2.txt");
       nsStringBuilder sFilePathNew(sOutputFolder);
-      sFilePathNew.AppendPath("FOLDER2", "RootFile2.txt");
+      sFilePathNew.AppendPath("FOLDER12", "RootFile2.txt");
 
       nsFileChangedEvent expected[] = {
         nsFileChangedEvent(MakePath(sFilePathNew), {}, nsFileChangedEvent::Type::FileAdded),
@@ -938,10 +942,10 @@ NS_CREATE_SIMPLE_TEST(FileSystem, FileSystemModel)
   NS_TEST_BLOCK(nsTestBlock::Enabled, "delete folder")
   {
     nsStringBuilder sFolderPath(sOutputFolder);
-    sFolderPath.AppendPath("FOLDER2");
+    sFolderPath.AppendPath("FOLDER12");
 
     nsStringBuilder sFilePath(sOutputFolder);
-    sFilePath.AppendPath("FOLDER2", "RootFile2.txt");
+    sFilePath.AppendPath("FOLDER12", "RootFile2.txt");
 
     NS_TEST_RESULT(nsOSFile::DeleteFolder(sFolderPath));
 

@@ -1,34 +1,25 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Containers/HashTable.h>
 #include <Foundation/Containers/IdTable.h>
 #include <Foundation/Logging/Log.h>
-#include <Foundation/Memory/Allocator.h>
-#include <Foundation/Memory/Policies/HeapAllocation.h>
+#include <Foundation/Memory/AllocatorWithPolicy.h>
+#include <Foundation/Memory/Policies/AllocPolicyHeap.h>
 #include <Foundation/Strings/String.h>
 #include <Foundation/System/StackTracer.h>
 #include <Foundation/Threading/Lock.h>
 #include <Foundation/Threading/Mutex.h>
 
-#if NS_ENABLED(NS_PLATFORM_WINDOWS)
-#  include <Foundation/Basics/Platform/Win/IncludeWindows.h>
-#endif
-
 namespace
 {
   // no tracking for the tracker data itself
-  using TrackerDataAllocator = nsAllocator<nsMemoryPolicies::nsHeapAllocation, 0>;
+  using TrackerDataAllocator = nsAllocatorWithPolicy<nsAllocPolicyHeap, nsAllocatorTrackingMode::Nothing>;
 
   static TrackerDataAllocator* s_pTrackerDataAllocator;
 
   struct TrackerDataAllocatorWrapper
   {
-    NS_ALWAYS_INLINE static nsAllocatorBase* GetAllocator() { return s_pTrackerDataAllocator; }
+    NS_ALWAYS_INLINE static nsAllocator* GetAllocator() { return s_pTrackerDataAllocator; }
   };
 
 
@@ -37,11 +28,11 @@ namespace
     NS_ALWAYS_INLINE AllocatorData() = default;
 
     nsHybridString<32, TrackerDataAllocatorWrapper> m_sName;
-    nsBitflags<nsMemoryTrackingFlags> m_Flags;
+    nsAllocatorTrackingMode m_TrackingMode;
 
     nsAllocatorId m_ParentId;
 
-    nsAllocatorBase::Stats m_Stats;
+    nsAllocator::Stats m_Stats;
 
     nsHashTable<const void*, nsMemoryTracker::AllocationInfo, nsHashHelper<const void*>, TrackerDataAllocatorWrapper> m_Allocations;
   };
@@ -55,8 +46,6 @@ namespace
 
     using AllocatorTable = nsIdTable<nsAllocatorId, AllocatorData, TrackerDataAllocatorWrapper>;
     AllocatorTable m_AllocatorData;
-
-    nsAllocatorId m_StaticAllocatorId;
   };
 
   static TrackerData* s_pTrackerData;
@@ -124,7 +113,7 @@ nsAllocatorId nsMemoryTracker::Iterator::ParentId() const
   return CAST_ITER(m_pData)->Value().m_ParentId;
 }
 
-const nsAllocatorBase::Stats& nsMemoryTracker::Iterator::Stats() const
+const nsAllocator::Stats& nsMemoryTracker::Iterator::Stats() const
 {
   return CAST_ITER(m_pData)->Value().m_Stats;
 }
@@ -148,7 +137,7 @@ nsMemoryTracker::Iterator::~Iterator()
 
 
 // static
-nsAllocatorId nsMemoryTracker::RegisterAllocator(nsStringView sName, nsBitflags<nsMemoryTrackingFlags> flags, nsAllocatorId parentId)
+nsAllocatorId nsMemoryTracker::RegisterAllocator(nsStringView sName, nsAllocatorTrackingMode mode, nsAllocatorId parentId)
 {
   Initialize();
 
@@ -156,17 +145,10 @@ nsAllocatorId nsMemoryTracker::RegisterAllocator(nsStringView sName, nsBitflags<
 
   AllocatorData data;
   data.m_sName = sName;
-  data.m_Flags = flags;
+  data.m_TrackingMode = mode;
   data.m_ParentId = parentId;
 
-  nsAllocatorId id = s_pTrackerData->m_AllocatorData.Insert(data);
-
-  if (data.m_sName == NS_STATIC_ALLOCATOR_NAME)
-  {
-    s_pTrackerData->m_StaticAllocatorId = id;
-  }
-
-  return id;
+  return s_pTrackerData->m_AllocatorData.Insert(data);
 }
 
 // static
@@ -191,14 +173,12 @@ void nsMemoryTracker::DeregisterAllocator(nsAllocatorId allocatorId)
 }
 
 // static
-void nsMemoryTracker::AddAllocation(nsAllocatorId allocatorId, nsBitflags<nsMemoryTrackingFlags> flags, const void* pPtr, size_t uiSize, size_t uiAlign, nsTime allocationTime)
+void nsMemoryTracker::AddAllocation(nsAllocatorId allocatorId, nsAllocatorTrackingMode mode, const void* pPtr, size_t uiSize, size_t uiAlign, nsTime allocationTime)
 {
-  NS_ASSERT_DEV((flags & nsMemoryTrackingFlags::EnableAllocationTracking) != 0, "Allocation tracking is turned off, but nsMemoryTracker::AddAllocation() is called anyway.");
-
   NS_ASSERT_DEV(uiAlign < 0xFFFF, "Alignment too big");
 
   nsArrayPtr<void*> stackTrace;
-  if (flags.IsSet(nsMemoryTrackingFlags::EnableStackTrace))
+  if (mode >= nsAllocatorTrackingMode::AllocationStatsAndStacktraces)
   {
     void* pBuffer[64];
     nsArrayPtr<void*> tempTrace(pBuffer);
@@ -217,7 +197,6 @@ void nsMemoryTracker::AddAllocation(nsAllocatorId allocatorId, nsBitflags<nsMemo
     data.m_Stats.m_uiPerFrameAllocationSize += uiSize;
     data.m_Stats.m_PerFrameAllocationTime += allocationTime;
 
-    NS_ASSERT_DEBUG(data.m_Flags == flags, "Given flags have to be identical to allocator flags");
     auto pInfo = &data.m_Allocations[pPtr];
     pInfo->m_uiSize = uiSize;
     pInfo->m_uiAlignment = (nsUInt16)uiAlign;
@@ -269,7 +248,7 @@ void nsMemoryTracker::RemoveAllAllocations(nsAllocatorId allocatorId)
 }
 
 // static
-void nsMemoryTracker::SetAllocatorStats(nsAllocatorId allocatorId, const nsAllocatorBase::Stats& stats)
+void nsMemoryTracker::SetAllocatorStats(nsAllocatorId allocatorId, const nsAllocator::Stats& stats)
 {
   NS_LOCK(*s_pTrackerData);
 
@@ -298,7 +277,7 @@ nsStringView nsMemoryTracker::GetAllocatorName(nsAllocatorId allocatorId)
 }
 
 // static
-const nsAllocatorBase::Stats& nsMemoryTracker::GetAllocatorStats(nsAllocatorId allocatorId)
+const nsAllocator::Stats& nsMemoryTracker::GetAllocatorStats(nsAllocatorId allocatorId)
 {
   NS_LOCK(*s_pTrackerData);
 
@@ -331,27 +310,24 @@ const nsMemoryTracker::AllocationInfo& nsMemoryTracker::GetAllocationInfo(nsAllo
   return invalidInfo;
 }
 
-
 struct LeakInfo
 {
   NS_DECLARE_POD_TYPE();
 
   nsAllocatorId m_AllocatorId;
   size_t m_uiSize = 0;
-  const void* m_pParentLeak = nullptr;
-
-  NS_ALWAYS_INLINE bool IsRootLeak() const { return m_pParentLeak == nullptr && m_AllocatorId != s_pTrackerData->m_StaticAllocatorId; }
+  bool m_bIsRootLeak = true;
 };
 
 // static
-void nsMemoryTracker::DumpMemoryLeaks()
+nsUInt32 nsMemoryTracker::PrintMemoryLeaks(PrintFunc printfunc)
 {
   if (s_pTrackerData == nullptr) // if both tracking and tracing is disabled there is no tracker data
-    return;
+    return 0;
+
   NS_LOCK(*s_pTrackerData);
 
-  static nsHashTable<const void*, LeakInfo, nsHashHelper<const void*>, TrackerDataAllocatorWrapper> leakTable;
-  leakTable.Clear();
+  nsHashTable<const void*, LeakInfo, nsHashHelper<const void*>, TrackerDataAllocatorWrapper> leakTable;
 
   // first collect all leaks
   for (auto it = s_pTrackerData->m_AllocatorData.GetIterator(); it.IsValid(); ++it)
@@ -362,7 +338,11 @@ void nsMemoryTracker::DumpMemoryLeaks()
       LeakInfo leak;
       leak.m_AllocatorId = it.Id();
       leak.m_uiSize = it2.Value().m_uiSize;
-      leak.m_pParentLeak = nullptr;
+
+      if (data.m_TrackingMode == nsAllocatorTrackingMode::AllocationStatsIgnoreLeaks)
+      {
+        leak.m_bIsRootLeak = false;
+      }
 
       leakTable.Insert(it2.Key(), leak);
     }
@@ -384,7 +364,7 @@ void nsMemoryTracker::DumpMemoryLeaks()
       LeakInfo* dependentLeak = nullptr;
       if (leakTable.TryGetValue(testPtr, dependentLeak))
       {
-        dependentLeak->m_pParentLeak = ptr;
+        dependentLeak->m_bIsRootLeak = false;
       }
 
       curPtr = nsMemoryUtils::AddByteOffset(curPtr, sizeof(void*));
@@ -392,40 +372,58 @@ void nsMemoryTracker::DumpMemoryLeaks()
   }
 
   // dump leaks
-  nsUInt64 uiNumLeaks = 0;
+  nsUInt32 uiNumLeaks = 0;
 
   for (auto it = leakTable.GetIterator(); it.IsValid(); ++it)
   {
     const void* ptr = it.Key();
     const LeakInfo& leak = it.Value();
 
-    if (leak.IsRootLeak())
+    if (leak.m_bIsRootLeak)
     {
-      if (uiNumLeaks == 0)
-      {
-        nsLog::Print("\n\n--------------------------------------------------------------------\n"
-                     "Memory Leak Report:"
-                     "\n--------------------------------------------------------------------\n\n");
-      }
-
       const AllocatorData& data = s_pTrackerData->m_AllocatorData[leak.m_AllocatorId];
-      nsMemoryTracker::AllocationInfo info;
-      data.m_Allocations.TryGetValue(ptr, info);
 
-      DumpLeak(info, data.m_sName.GetData());
+      if (data.m_TrackingMode != nsAllocatorTrackingMode::AllocationStatsIgnoreLeaks)
+      {
+        if (uiNumLeaks == 0)
+        {
+          printfunc("\n\n--------------------------------------------------------------------\n"
+                    "Memory Leak Report:"
+                    "\n--------------------------------------------------------------------\n\n");
+        }
 
-      ++uiNumLeaks;
+        nsMemoryTracker::AllocationInfo info;
+        data.m_Allocations.TryGetValue(ptr, info);
+
+        DumpLeak(info, data.m_sName.GetData());
+
+        ++uiNumLeaks;
+      }
     }
   }
 
   if (uiNumLeaks > 0)
   {
-    nsLog::Printf("\n--------------------------------------------------------------------\n"
-                  "Found %llu root memory leak(s)."
-                  "\n--------------------------------------------------------------------\n\n",
+    char tmp[1024];
+    nsStringUtils::snprintf(tmp, 1024, "\n--------------------------------------------------------------------\n"
+                                       "Found %u root memory leak(s)."
+                                       "\n--------------------------------------------------------------------\n\n",
       uiNumLeaks);
 
-    NS_REPORT_FAILURE("Found {0} root memory leak(s).", uiNumLeaks);
+    printfunc(tmp);
+  }
+
+  return uiNumLeaks;
+}
+
+// static
+void nsMemoryTracker::DumpMemoryLeaks()
+{
+  const nsUInt32 uiNumLeaks = PrintMemoryLeaks(nsLog::Print);
+
+  if (uiNumLeaks > 0)
+  {
+    NS_REPORT_FAILURE("Found {0} root memory leak(s). See console output for details.", uiNumLeaks);
   }
 }
 
@@ -435,6 +433,3 @@ nsMemoryTracker::Iterator nsMemoryTracker::GetIterator()
   auto pInnerIt = NS_NEW(s_pTrackerDataAllocator, TrackerData::AllocatorTable::Iterator, s_pTrackerData->m_AllocatorData.GetIterator());
   return Iterator(pInnerIt);
 }
-
-
-NS_STATICLINK_FILE(Foundation, Foundation_Memory_Implementation_MemoryTracker);

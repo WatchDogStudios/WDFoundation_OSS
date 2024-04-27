@@ -1,13 +1,12 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Strings/Implementation/StringIterator.h>
 
 #include <type_traits>
+
+#if NS_ENABLED(NS_INTEROP_STL_STRINGS)
+#  include <string_view>
+#endif
 
 /// Base class which marks a class as containing string data
 struct nsThisIsAString
@@ -85,7 +84,7 @@ public:
   /// \brief Returns the number of bytes from the start position up to its end.
   ///
   /// \note Note that the element count (bytes) may be larger than the number of characters in that string, due to Utf8 encoding.
-  nsUInt32 GetElementCount() const { return (nsUInt32)(m_pEnd - m_pStart); } // [tested]
+  nsUInt32 GetElementCount() const { return m_uiElementCount; } // [tested]
 
   /// \brief Allows to set the start position to a different value.
   ///
@@ -100,7 +99,7 @@ public:
   ///
   /// That means it might point to the '\0' terminator, UNLESS the view only represents a sub-string of a larger string.
   /// Accessing the value at 'GetEnd' has therefore no real use.
-  const char* GetEndPointer() const { return m_pEnd; } // [tested]
+  const char* GetEndPointer() const { return m_pStart + m_uiElementCount; } // [tested]
 
   /// Returns whether the string is an empty string.
   bool IsEmpty() const; // [tested]
@@ -181,7 +180,14 @@ public:
   void Shrink(nsUInt32 uiShrinkCharsFront, nsUInt32 uiShrinkCharsBack); // [tested]
 
   /// \brief Returns a sub-string that is shrunk at the start and front by the given amount of characters (not bytes!).
-  nsStringView GetShrunk(nsUInt32 uiShrinkCharsFront, nsUInt32 uiShrinkCharsBack = 0) const;
+  nsStringView GetShrunk(nsUInt32 uiShrinkCharsFront, nsUInt32 uiShrinkCharsBack = 0) const; // [tested]
+
+  /// \brief Returns a sub-string starting at a given character (not byte offset!) and including a number of characters (not bytes).
+  ///
+  /// If this is a Utf-8 string, the correct number of bytes are skipped to reach the given character.
+  /// If you instead want to construct a sub-string from byte offsets, use the nsStringView constructor that takes a start pointer like so:
+  ///   nsStringView subString(this->GetStartPointer() + byteOffset, byteCount);
+  nsStringView GetSubString(nsUInt32 uiFirstCharacter, nsUInt32 uiNumCharacters) const; // [tested]
 
   /// \brief Identical to 'Shrink(1, 0)' in functionality, but slightly more efficient.
   void ChopAwayFirstCharacterUtf8(); // [tested]
@@ -272,9 +278,23 @@ public:
   /// Returns an empty string, if the path is not rooted.
   nsStringView GetRootedPathRootName() const; // [tested]
 
+#if NS_ENABLED(NS_INTEROP_STL_STRINGS)
+  /// \brief Makes the nsStringView reference the same memory as the const std::string_view&.
+  nsStringView(const std::string_view& rhs);
+
+  /// \brief Makes the nsStringView reference the same memory as the const std::string_view&.
+  nsStringView(const std::string& rhs);
+
+  /// \brief Returns a std::string_view to this string.
+  operator std::string_view() const;
+
+  /// \brief Returns a std::string_view to this string.
+  std::string_view GetAsStdView() const;
+#endif
+
 private:
   const char* m_pStart = nullptr;
-  const char* m_pEnd = nullptr;
+  nsUInt32 m_uiElementCount = 0;
 };
 
 /// \brief String literal suffix to create a nsStringView.

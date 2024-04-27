@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 // This file includes everything from Foundation to ensure that all template code is looked at when building the Foundation library.
@@ -113,7 +108,7 @@
 #include <Foundation/Math/Vec4.h>
 
 #include <Foundation/Memory/Allocator.h>
-#include <Foundation/Memory/AllocatorBase.h>
+#include <Foundation/Memory/AllocatorWithPolicy.h>
 #include <Foundation/Memory/AllocatorWrapper.h>
 #include <Foundation/Memory/BlockStorage.h>
 #include <Foundation/Memory/CommonAllocators.h>
@@ -123,10 +118,11 @@
 #include <Foundation/Memory/MemoryTracker.h>
 #include <Foundation/Memory/MemoryUtils.h>
 #include <Foundation/Memory/PageAllocator.h>
-#include <Foundation/Memory/Policies/AlignedAllocation.h>
-#include <Foundation/Memory/Policies/AlignedHeapAllocation.h>
-#include <Foundation/Memory/Policies/HeapAllocation.h>
-#include <Foundation/Memory/Policies/ProxyAllocation.h>
+#include <Foundation/Memory/Policies/AllocPolicyAlignedHeap.h>
+#include <Foundation/Memory/Policies/AllocPolicyGuarding.h>
+#include <Foundation/Memory/Policies/AllocPolicyHeap.h>
+#include <Foundation/Memory/Policies/AllocPolicyProxy.h>
+#include <Foundation/Memory/Policies/AllocPolicyStack.h>
 
 #include <Foundation/Profiling/Profiling.h>
 
@@ -176,7 +172,3 @@
 #include <Foundation/Utilities/EnumerableClass.h>
 #include <Foundation/Utilities/GraphicsUtils.h>
 #include <Foundation/Utilities/Stats.h>
-
-
-
-NS_STATICLINK_FILE(Foundation, Foundation_Basics_IncludeAll);

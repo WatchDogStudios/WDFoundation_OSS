@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 
 #pragma once
 
@@ -55,7 +50,10 @@ namespace nsApplicationDetails
   alignas(NS_ALIGNMENT_OF(AppClass)) static char appBuffer[sizeof(AppClass)]; /* Not on the stack to cope with smaller stacks */ \
                                                                                                                                  \
   NS_APPLICATION_ENTRY_POINT_CODE_INJECTION                                                                                      \
-  int main(int argc, const char** argv) { return ::nsApplicationDetails::EntryFunc<AppClass>(__VA_ARGS__); }
+  int main(int argc, const char** argv)                                                                                          \
+  {                                                                                                                              \
+    return ::nsApplicationDetails::EntryFunc<AppClass>(__VA_ARGS__);                                                             \
+  }
 
 /// \brief This macro allows for easy creation of application entry points (since they can't be placed in DLLs)
 ///

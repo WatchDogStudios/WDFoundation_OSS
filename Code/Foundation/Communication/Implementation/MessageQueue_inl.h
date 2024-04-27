@@ -1,17 +1,12 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 
 template <typename MetaDataType>
-nsMessageQueueBase<MetaDataType>::nsMessageQueueBase(nsAllocatorBase* pAllocator)
+nsMessageQueueBase<MetaDataType>::nsMessageQueueBase(nsAllocator* pAllocator)
   : m_Queue(pAllocator)
 {
 }
 
 template <typename MetaDataType>
-nsMessageQueueBase<MetaDataType>::nsMessageQueueBase(const nsMessageQueueBase& rhs, nsAllocatorBase* pAllocator)
+nsMessageQueueBase<MetaDataType>::nsMessageQueueBase(const nsMessageQueueBase& rhs, nsAllocator* pAllocator)
   : m_Queue(pAllocator)
 {
   m_Queue = rhs.m_Queue;
@@ -159,7 +154,7 @@ nsMessageQueue<MD, A>::nsMessageQueue()
 }
 
 template <typename MD, typename A>
-nsMessageQueue<MD, A>::nsMessageQueue(nsAllocatorBase* pQueueAllocator)
+nsMessageQueue<MD, A>::nsMessageQueue(nsAllocator* pQueueAllocator)
   : nsMessageQueueBase<MD>(pQueueAllocator)
 {
 }

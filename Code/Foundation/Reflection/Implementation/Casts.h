@@ -1,13 +1,12 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 /// \file
 
 #include <Foundation/Reflection/Implementation/DynamicRTTI.h>
+
+NS_WARNING_PUSH()
+NS_WARNING_DISABLE_CLANG("-Wunused-local-typedef")
+NS_WARNING_DISABLE_GCC("-Wunused-local-typedefs")
 
 /// \brief Casts the given object to the given type with no runtime cost (like C++ static_cast).
 /// This function will assert when the object is not an instance of the given type.
@@ -90,3 +89,5 @@ NS_ALWAYS_INLINE T nsDynamicCast(const nsReflectedClass* pObject)
   }
   return nullptr;
 }
+
+NS_WARNING_POP()

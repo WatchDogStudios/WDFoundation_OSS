@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/Threading/ThreadUtils.h>
@@ -20,7 +15,7 @@ NS_CREATE_SIMPLE_TEST(Time, Clock)
 {
   NS_TEST_BLOCK(nsTestBlock::Enabled, "Constructor / Reset")
   {
-    nsClock c("Test"); // calls 'Reset' internally
+    nsClock c("Test");                                 // calls 'Reset' internally
 
     NS_TEST_BOOL(c.GetTimeStepSmoothing() == nullptr); // after constructor
 

@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/Containers/HybridArray.h>
 
 template <typename T, nsUInt32 Size, typename AllocatorWrapper /*= nsDefaultAllocatorWrapper*/>
@@ -12,7 +7,7 @@ nsHybridArray<T, Size, AllocatorWrapper>::nsHybridArray()
 }
 
 template <typename T, nsUInt32 Size, typename AllocatorWrapper /*= nsDefaultAllocatorWrapper*/>
-nsHybridArray<T, Size, AllocatorWrapper>::nsHybridArray(nsAllocatorBase* pAllocator)
+nsHybridArray<T, Size, AllocatorWrapper>::nsHybridArray(nsAllocator* pAllocator)
   : nsDynamicArray<T, AllocatorWrapper>(GetStaticArray(), Size, pAllocator)
 {
 }

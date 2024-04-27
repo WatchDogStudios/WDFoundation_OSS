@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/SimdMath/SimdVec4u.h>
@@ -11,7 +6,7 @@ NS_CREATE_SIMPLE_TEST(SimdMath, SimdVec4u)
 {
   NS_TEST_BLOCK(nsTestBlock::Enabled, "Constructor")
   {
-#if NS_ENABLED(NS_COMPILE_FOR_DEBUG)
+#if NS_ENABLED(NS_MATH_CHECK_FOR_NAN)
     // In debug the default constructor initializes everything with 0xCDCDCDCD.
     nsSimdVec4u vDefCtor;
     NS_TEST_BOOL(vDefCtor.x() == 0xCDCDCDCD && vDefCtor.y() == 0xCDCDCDCD && vDefCtor.z() == 0xCDCDCDCD && vDefCtor.w() == 0xCDCDCDCD);

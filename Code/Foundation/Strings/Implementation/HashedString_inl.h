@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Algorithm/HashingUtils.h>
@@ -92,19 +87,9 @@ inline bool nsHashedString::operator==(const nsHashedString& rhs) const
   return m_Data == rhs.m_Data;
 }
 
-inline bool nsHashedString::operator!=(const nsHashedString& rhs) const
-{
-  return !(*this == rhs);
-}
-
 inline bool nsHashedString::operator==(const nsTempHashedString& rhs) const
 {
   return m_Data.Key() == rhs.m_uiHash;
-}
-
-inline bool nsHashedString::operator!=(const nsTempHashedString& rhs) const
-{
-  return !(*this == rhs);
 }
 
 inline bool nsHashedString::operator<(const nsHashedString& rhs) const
@@ -198,11 +183,6 @@ NS_ALWAYS_INLINE void nsTempHashedString::operator=(const nsHashedString& rhs)
 NS_ALWAYS_INLINE bool nsTempHashedString::operator==(const nsTempHashedString& rhs) const
 {
   return m_uiHash == rhs.m_uiHash;
-}
-
-NS_ALWAYS_INLINE bool nsTempHashedString::operator!=(const nsTempHashedString& rhs) const
-{
-  return !(m_uiHash == rhs.m_uiHash);
 }
 
 NS_ALWAYS_INLINE bool nsTempHashedString::operator<(const nsTempHashedString& rhs) const

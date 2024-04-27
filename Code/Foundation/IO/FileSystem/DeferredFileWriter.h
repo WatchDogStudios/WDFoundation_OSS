@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/IO/FileSystem/FileWriter.h>
@@ -21,7 +16,7 @@ public:
   ~nsDeferredFileWriter() { Close().IgnoreResult(); }
 
   /// \brief This must be configured before anything is written to the file.
-  void SetOutput(nsStringView sFileToWriteTo, bool bOnlyWriteIfDifferent = false); // [tested]
+  void SetOutput(nsStringView sFileToWriteTo, bool bOnlyWriteIfDifferent = false);         // [tested]
 
   virtual nsResult WriteBytes(const void* pWriteBuffer, nsUInt64 uiBytesToWrite) override; // [tested]
 

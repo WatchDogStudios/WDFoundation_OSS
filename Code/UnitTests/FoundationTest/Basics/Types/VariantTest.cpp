@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/Reflection/Reflection.h>
@@ -765,6 +760,9 @@ NS_CREATE_SIMPLE_TEST(Basics, Variant)
 
     NS_TEST_BOOL(v.IsNumber() == false);
     NS_TEST_BOOL(v.IsString());
+    NS_TEST_BOOL(v.CanConvertTo<nsStringView>());
+    nsStringView view = v.ConvertTo<nsStringView>();
+    NS_TEST_BOOL(view == v.Get<nsString>());
     NS_TEST_BOOL(v.IsFloatingPoint() == false);
   }
 
@@ -776,6 +774,7 @@ NS_CREATE_SIMPLE_TEST(Basics, Variant)
     NS_TEST_BOOL(v.Get<nsString>() == nsString("This is an nsString"));
 
     NS_TEST_BOOL(v == nsVariant(nsString("This is an nsString")));
+    NS_TEST_BOOL(v == nsVariant(nsStringView("This is an nsString"), false));
     NS_TEST_BOOL(v != nsVariant(nsString("This is something else")));
 
     NS_TEST_BOOL(v == nsString("This is an nsString"));
@@ -789,6 +788,9 @@ NS_CREATE_SIMPLE_TEST(Basics, Variant)
 
     NS_TEST_BOOL(v.IsNumber() == false);
     NS_TEST_BOOL(v.IsString());
+    NS_TEST_BOOL(v.CanConvertTo<nsStringView>());
+    nsStringView view = v.ConvertTo<nsStringView>();
+    NS_TEST_BOOL(view == v.Get<nsString>());
     NS_TEST_BOOL(v.IsFloatingPoint() == false);
   }
 
@@ -803,6 +805,7 @@ NS_CREATE_SIMPLE_TEST(Basics, Variant)
     NS_TEST_BOOL(v.Get<nsStringView>() == sCopy);
 
     NS_TEST_BOOL(v == nsVariant(nsStringView(sCopy.GetData()), false));
+    NS_TEST_BOOL(v == nsVariant(nsString("This is an nsStringView")));
     NS_TEST_BOOL(v != nsVariant(nsStringView("This is something else"), false));
 
     NS_TEST_BOOL(v == nsStringView(sCopy.GetData()));
@@ -813,6 +816,9 @@ NS_CREATE_SIMPLE_TEST(Basics, Variant)
 
     NS_TEST_BOOL(v.IsNumber() == false);
     NS_TEST_BOOL(v.IsString());
+    NS_TEST_BOOL(v.CanConvertTo<nsString>());
+    nsString sString = v.ConvertTo<nsString>();
+    NS_TEST_BOOL(sString == v.Get<nsStringView>());
     NS_TEST_BOOL(v.IsFloatingPoint() == false);
   }
 

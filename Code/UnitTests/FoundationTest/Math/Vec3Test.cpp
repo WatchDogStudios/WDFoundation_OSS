@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/Math/Random.h>
@@ -82,7 +77,10 @@ NS_CREATE_SIMPLE_TEST(Math, Vec3)
     const nsVec3T vOp1(-4.0, 4.0f, -2.0f);
     const nsVec3T compArray[3] = {nsVec3T(1.0f, 0.0f, 0.0f), nsVec3T(0.0f, 1.0f, 0.0f), nsVec3T(0.0f, 0.0f, 1.0f)};
 
-    NS_TEST_BLOCK(nsTestBlock::Enabled, "GetLength") { NS_TEST_FLOAT(vOp1.GetLength(), 6.0f, nsMath::SmallEpsilon<nsMathTestType>()); }
+    NS_TEST_BLOCK(nsTestBlock::Enabled, "GetLength")
+    {
+      NS_TEST_FLOAT(vOp1.GetLength(), 6.0f, nsMath::SmallEpsilon<nsMathTestType>());
+    }
 
     NS_TEST_BLOCK(nsTestBlock::Enabled, "SetLength")
     {
@@ -94,7 +92,10 @@ NS_CREATE_SIMPLE_TEST(Math, Vec3)
       NS_TEST_FLOAT(vSetLength.GetLength(), 4.0f, nsMath::SmallEpsilon<nsMathTestType>());
     }
 
-    NS_TEST_BLOCK(nsTestBlock::Enabled, "GetLengthSquared") { NS_TEST_FLOAT(vOp1.GetLengthSquared(), 36.0f, nsMath::SmallEpsilon<nsMathTestType>()); }
+    NS_TEST_BLOCK(nsTestBlock::Enabled, "GetLengthSquared")
+    {
+      NS_TEST_FLOAT(vOp1.GetLengthSquared(), 36.0f, nsMath::SmallEpsilon<nsMathTestType>());
+    }
 
     NS_TEST_BLOCK(nsTestBlock::Enabled, "GetLengthAndNormalize")
     {

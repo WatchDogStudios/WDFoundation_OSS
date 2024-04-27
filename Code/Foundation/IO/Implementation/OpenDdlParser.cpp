@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/IO/OpenDdlParser.h>
@@ -657,7 +652,7 @@ void nsOpenDdlParser::ReadString()
         default:
         {
           nsStringBuilder s;
-          s.Format("Unknown escape-sequence '\\{0}'", nsArgC(m_uiCurByte));
+          s.SetFormat("Unknown escape-sequence '\\{0}'", nsArgC(m_uiCurByte));
           ParsingError(s, false);
         }
         break;
@@ -871,7 +866,7 @@ void nsOpenDdlParser::ContinueBool()
       if (nsConversionUtils::StringToBool((const char*)&m_TempString[0], bRes) == NS_FAILURE)
       {
         nsStringBuilder s;
-        s.Format("Parsing value: Expected 'true' or 'false', Got '{0}' instead.", (const char*)&m_TempString[0]);
+        s.SetFormat("Parsing value: Expected 'true' or 'false', Got '{0}' instead.", (const char*)&m_TempString[0]);
         ParsingError(s.GetData(), false);
       }
 
@@ -1113,7 +1108,7 @@ void nsOpenDdlParser::ContinueFloat()
     if (nsConversionUtils::StringToFloat((const char*)&m_TempString[0], dValue) == NS_FAILURE)
     {
       nsStringBuilder s;
-      s.Format("Reading number failed: Could not convert '{0}' to a floating point value.", (const char*)&m_TempString[0]);
+      s.SetFormat("Reading number failed: Could not convert '{0}' to a floating point value.", (const char*)&m_TempString[0]);
       ParsingError(s.GetData(), true);
     }
 
@@ -1224,7 +1219,3 @@ nsUInt64 nsOpenDdlParser::ReadDecimalLiteral()
 
   return value;
 }
-
-
-
-NS_STATICLINK_FILE(Foundation, Foundation_IO_Implementation_OpenDdlParser);

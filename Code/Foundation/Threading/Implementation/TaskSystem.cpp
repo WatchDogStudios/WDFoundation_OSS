@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Configuration/Startup.h>
@@ -25,6 +20,9 @@ NS_BEGIN_SUBSYSTEM_DECLARATION(Foundation, TaskSystem)
 
   ON_CORESYSTEMS_STARTUP
   {
+    if (nsStartup::HasApplicationTag("NoTaskSystem"))
+      return;
+
     nsTaskSystem::Startup();
   }
 
@@ -50,6 +48,9 @@ void nsTaskSystem::Startup()
 
 void nsTaskSystem::Shutdown()
 {
+  if (s_pThreadState == nullptr)
+    return;
+
   StopWorkerThreads();
 
   s_pState.Clear();

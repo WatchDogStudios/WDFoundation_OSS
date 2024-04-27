@@ -1,14 +1,14 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Algorithm/HashStream.h>
 
+NS_WARNING_PUSH()
+NS_WARNING_DISABLE_CLANG("-Wunused-function")
+
 #define XXH_INLINE_ALL
 #include <Foundation/ThirdParty/xxHash/xxhash.h>
+
+NS_WARNING_POP()
 
 nsHashStreamWriter32::nsHashStreamWriter32(nsUInt32 uiSeed)
 {
@@ -64,5 +64,3 @@ nsUInt64 nsHashStreamWriter64::GetHashValue() const
 {
   return XXH64_digest((XXH64_state_t*)m_pState);
 }
-
-NS_STATICLINK_FILE(Foundation, Foundation_Algorithm_Implementation_HashStream);

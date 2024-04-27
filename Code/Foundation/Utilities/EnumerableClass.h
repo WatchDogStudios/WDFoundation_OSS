@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 /// \file
@@ -82,19 +77,28 @@ protected:
 /// \brief Insert this macro in a class that is supposed to be enumerable, and pass the class name as the parameter.
 ///
 /// See class nsEnumerable for more details.
-#define NS_DECLARE_ENUMERABLE_CLASS_WITH_BASE(self, base)                      \
-private:                                                                       \
-  using nsEnumerableBase = base;                                               \
-  friend class nsEnumerable<self, base>;                                       \
-  static nsEnumerable<self, base>* s_pFirstInstance;                           \
-  static nsEnumerable<self, base>* s_pLastInstance;                            \
-  static nsUInt32 s_uiInstances;                                               \
-                                                                               \
-public:                                                                        \
-  static self* GetFirstInstance() { return (self*)s_pFirstInstance; }          \
-  self* GetNextInstance() { return (self*)m_pNextInstance; }                   \
-  const self* GetNextInstance() const { return (const self*)m_pNextInstance; } \
-                                                                               \
+#define NS_DECLARE_ENUMERABLE_CLASS_WITH_BASE(self, base) \
+private:                                                  \
+  using nsEnumerableBase = base;                          \
+  friend class nsEnumerable<self, base>;                  \
+  static nsEnumerable<self, base>* s_pFirstInstance;      \
+  static nsEnumerable<self, base>* s_pLastInstance;       \
+  static nsUInt32 s_uiInstances;                          \
+                                                          \
+public:                                                   \
+  static self* GetFirstInstance()                         \
+  {                                                       \
+    return (self*)s_pFirstInstance;                       \
+  }                                                       \
+  self* GetNextInstance()                                 \
+  {                                                       \
+    return (self*)m_pNextInstance;                        \
+  }                                                       \
+  const self* GetNextInstance() const                     \
+  {                                                       \
+    return (const self*)m_pNextInstance;                  \
+  }                                                       \
+                                                          \
 private:
 
 /// \brief Insert this macro in a cpp file and pass the class name of the to-be-enumerable class as the parameter.

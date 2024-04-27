@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/IO/JSONParser.h>
@@ -96,7 +91,7 @@ void nsJSONParser::StartParsing()
       // document is malformed
 
       nsStringBuilder s;
-      s.Format("Start of document: Expected a { or [ or an empty document. Got '{0}' instead.", nsArgC(m_uiCurByte));
+      s.SetFormat("Start of document: Expected a { or [ or an empty document. Got '{0}' instead.", nsArgC(m_uiCurByte));
       ParsingError(s.GetData(), true);
 
       return;
@@ -237,7 +232,7 @@ void nsJSONParser::ContinueObject()
     default:
     {
       nsStringBuilder s;
-      s.Format("While parsing object: Expected \" to begin a new variable, or } to close the object. Got '{0}' instead.", nsArgC(m_uiCurByte));
+      s.SetFormat("While parsing object: Expected \" to begin a new variable, or } to close the object. Got '{0}' instead.", nsArgC(m_uiCurByte));
       ParsingError(s.GetData(), true);
     }
       return;
@@ -285,7 +280,7 @@ void nsJSONParser::ContinueVariable()
   if (m_uiCurByte != ':')
   {
     nsStringBuilder s;
-    s.Format("After parsing variable name: Expected : to separate variable and value, Got '{0}' instead.", nsArgC(m_uiCurByte));
+    s.SetFormat("After parsing variable name: Expected : to separate variable and value, Got '{0}' instead.", nsArgC(m_uiCurByte));
     ParsingError(s.GetData(), false);
   }
   else
@@ -370,7 +365,7 @@ void nsJSONParser::ContinueValue()
       if (nsConversionUtils::StringToBool((const char*)&m_TempString[0], bRes) == NS_FAILURE)
       {
         nsStringBuilder s;
-        s.Format("Parsing value: Expected 'true' or 'false', Got '{0}' instead.", (const char*)&m_TempString[0]);
+        s.SetFormat("Parsing value: Expected 'true' or 'false', Got '{0}' instead.", (const char*)&m_TempString[0]);
         ParsingError(s.GetData(), false);
       }
 
@@ -396,7 +391,7 @@ void nsJSONParser::ContinueValue()
       if (!nsStringUtils::IsEqual((const char*)&m_TempString[0], "null"))
       {
         nsStringBuilder s;
-        s.Format("Parsing value: Expected 'null', Got '{0}' instead.", (const char*)&m_TempString[0]);
+        s.SetFormat("Parsing value: Expected 'null', Got '{0}' instead.", (const char*)&m_TempString[0]);
         ParsingError(s.GetData(), !bIsNull);
       }
 
@@ -440,7 +435,7 @@ void nsJSONParser::ContinueValue()
     default:
     {
       nsStringBuilder s;
-      s.Format("Parsing value: Expected [, {, f, t, \", 0-1, ., +, -, or even 'e'. Got '{0}' instead", nsArgC(m_uiCurByte));
+      s.SetFormat("Parsing value: Expected [, {, f, t, \", 0-1, ., +, -, or even 'e'. Got '{0}' instead", nsArgC(m_uiCurByte));
       ParsingError(s.GetData(), true);
     }
       return;
@@ -471,7 +466,7 @@ void nsJSONParser::ContinueSeparator()
     default:
     {
       nsStringBuilder s;
-      s.Format("After parsing value: Expected a comma or closing brackets/braces (], }). Got '{0}' instead.", nsArgC(m_uiCurByte));
+      s.SetFormat("After parsing value: Expected a comma or closing brackets/braces (], }). Got '{0}' instead.", nsArgC(m_uiCurByte));
       ParsingError(s.GetData(), true);
     }
       return;
@@ -629,7 +624,8 @@ void nsJSONParser::ReadString()
         case 'u':
         {
           nsUInt16 cpt[2];
-          auto ReadUtf16CodePoint = [&](nsUInt16& ref_uiCodePoint) -> bool {
+          auto ReadUtf16CodePoint = [&](nsUInt16& ref_uiCodePoint) -> bool
+          {
             ref_uiCodePoint = 0;
 
             // Unicode literal are utf16 in the format \uFFFF. The hex number FFFF can be upper or lower case but must be 4 characters long.
@@ -693,7 +689,7 @@ void nsJSONParser::ReadString()
         default:
         {
           nsStringBuilder s;
-          s.Format("Unknown escape-sequence '\\{0}'", nsArgC(m_uiCurByte));
+          s.SetFormat("Unknown escape-sequence '\\{0}'", nsArgC(m_uiCurByte));
           ParsingError(s, false);
         }
         break;
@@ -750,13 +746,9 @@ double nsJSONParser::ReadNumber()
   if (nsConversionUtils::StringToFloat((const char*)&m_TempString[0], fResult) == NS_FAILURE)
   {
     nsStringBuilder s;
-    s.Format("Reading number failed: Could not convert '{0}' to a floating point value.", (const char*)&m_TempString[0]);
+    s.SetFormat("Reading number failed: Could not convert '{0}' to a floating point value.", (const char*)&m_TempString[0]);
     ParsingError(s.GetData(), true);
   }
 
   return fResult;
 }
-
-
-
-NS_STATICLINK_FILE(Foundation, Foundation_IO_Implementation_JSONParser);

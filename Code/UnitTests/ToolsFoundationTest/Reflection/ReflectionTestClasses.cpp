@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <ToolsFoundationTest/ToolsFoundationTestPCH.h>
 
 #include <Foundation/Reflection/Reflection.h>
@@ -50,7 +45,9 @@ NS_BEGIN_DYNAMIC_REFLECTED_TYPE(nsPODClass, 1, nsRTTIDefaultAllocator<nsPODClass
     NS_ACCESSOR_PROPERTY("Bool", GetBool, SetBool),
     NS_ACCESSOR_PROPERTY("Color", GetColor, SetColor),
     NS_MEMBER_PROPERTY("ColorUB", m_Color2),
+    NS_ACCESSOR_PROPERTY("CharPtr", GetCharPtr, SetCharPtr),
     NS_ACCESSOR_PROPERTY("String", GetString, SetString),
+    NS_ACCESSOR_PROPERTY("StringView", GetStringView, SetStringView),
     NS_ACCESSOR_PROPERTY("Buffer", GetBuffer, SetBuffer),
     NS_ACCESSOR_PROPERTY("VarianceAngle", GetCustom, SetCustom),
   }

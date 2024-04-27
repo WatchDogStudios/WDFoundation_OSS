@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <algorithm>
@@ -18,7 +13,8 @@ namespace nsMath
   template <typename T>
   constexpr NS_ALWAYS_INLINE T Sign(T f)
   {
-    return (f < 0 ? T(-1) : f > 0 ? T(1) : 0);
+    return (f < 0 ? T(-1) : f > 0 ? T(1)
+                                  : 0);
   }
 
   template <typename T>
@@ -66,6 +62,8 @@ namespace nsMath
   template <typename Type>
   constexpr Type Invert(Type f)
   {
+    static_assert(std::is_floating_point_v<Type>);
+
     return ((Type)1) / f;
   }
 
@@ -105,7 +103,7 @@ namespace nsMath
       returnCode = _BitScanForward(&uiIndex, upper);
       if (returnCode > 0) // Only can happen in Release build when NS_ASSERT_DEBUG(value != 0) would fail.
       {
-        uiIndex += 32; // Add length of lower to index.
+        uiIndex += 32;    // Add length of lower to index.
       }
     }
 #  endif
@@ -246,6 +244,12 @@ namespace nsMath
     return (T)(f1 + (fFactor * (f2 - f1)));
   }
 
+  template <typename T>
+  NS_FORCE_INLINE constexpr float Unlerp(T fMin, T fMax, T fValue)
+  {
+    return static_cast<float>(fValue - fMin) / static_cast<float>(fMax - fMin);
+  }
+
   ///  Returns 0, if value < edge, and 1, if value >= edge.
   template <typename T>
   constexpr NS_FORCE_INLINE T Step(T value, T edge)
@@ -259,6 +263,11 @@ namespace nsMath
   }
 
   constexpr NS_FORCE_INLINE bool IsPowerOf2(nsUInt32 value)
+  {
+    return (value < 1) ? false : ((value & (value - 1)) == 0);
+  }
+
+  constexpr NS_FORCE_INLINE bool IsPowerOf2(nsUInt64 value)
   {
     return (value < 1) ? false : ((value & (value - 1)) == 0);
   }
@@ -305,19 +314,27 @@ namespace nsMath
 
     if (divider == (Type)0)
     {
-      if (x >= edge2)
-        return (Type)1;
-      return (Type)0;
+      return (x >= edge2) ? 1 : 0;
     }
 
-    x = (x - edge1) / divider;
-
-    if (x <= (Type)0)
-      return (Type)0;
-    if (x >= (Type)1)
-      return (Type)1;
+    x = Saturate((x - edge1) / divider);
 
     return (x * x * ((Type)3 - ((Type)2 * x)));
+  }
+
+  template <typename Type>
+  inline Type SmootherStep(Type x, Type edge1, Type edge2)
+  {
+    const Type divider = edge2 - edge1;
+
+    if (divider == (Type)0)
+    {
+      return (x >= edge2) ? 1 : 0;
+    }
+
+    x = Saturate((x - edge1) / divider);
+
+    return (x * x * x * (x * ((Type)6 * x - (Type)15) + (Type)10));
   }
 
   inline nsUInt8 ColorFloatToByte(float value)
@@ -423,7 +440,7 @@ namespace nsMath
   }
 
   template <typename T, typename T2>
-  T EvaluateBnsierCurve(T2 t, const T& startPoint, const T& controlPoint1, const T& controlPoint2, const T& endPoint)
+  T EvaluateBeziserCurve(T2 t, const T& startPoint, const T& controlPoint1, const T& controlPoint2, const T& endPoint)
   {
     const T2 mt = 1 - t;
 

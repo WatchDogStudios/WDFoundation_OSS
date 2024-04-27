@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 namespace nsInternal
@@ -19,8 +14,14 @@ namespace nsInternal
   constexpr nsUInt64 PRIME64_4 = 0x85EBCA77C2B2AE63ULL;
   constexpr nsUInt64 PRIME64_5 = 0x27D4EB2F165667C5ULL;
 
-  constexpr nsUInt32 nsRotLeft(nsUInt32 value, nsUInt32 uiAmount) { return (value << uiAmount) | (value >> (32 - uiAmount)); }
-  constexpr nsUInt64 nsRotLeft(nsUInt64 value, nsUInt64 uiAmount) { return (value << uiAmount) | (value >> (64 - uiAmount)); }
+  constexpr nsUInt32 nsRotLeft(nsUInt32 value, nsUInt32 uiAmount)
+  {
+    return (value << uiAmount) | (value >> (32 - uiAmount));
+  }
+  constexpr nsUInt64 nsRotLeft(nsUInt64 value, nsUInt64 uiAmount)
+  {
+    return (value << uiAmount) | (value >> (64 - uiAmount));
+  }
 
   template <size_t N>
   constexpr nsUInt32 CompileTimeXxHash32(const char (&str)[N], nsUInt32 uiSeed)

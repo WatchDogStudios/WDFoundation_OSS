@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <TestFramework/TestFrameworkPCH.h>
 
 #include <TestFramework/Framework/TestFramework.h>
@@ -11,13 +6,15 @@ NS_ENUMERABLE_CLASS_IMPLEMENTATION(nsTestBaseClass);
 
 const char* nsTestBaseClass::GetSubTestName(nsInt32 iIdentifier) const
 {
-  if (iIdentifier < 0 || static_cast<std::size_t>(iIdentifier) > m_Entries.size())
+  const nsInt32 entryIndex = FindEntryForIdentifier(iIdentifier);
+
+  if (entryIndex < 0)
   {
     nsLog::Error("Tried to access retrieve sub-test name using invalid identifier.");
     return "";
   }
 
-  return m_Entries[iIdentifier].m_szName;
+  return m_Entries[entryIndex].m_szName;
 }
 
 void nsTestBaseClass::UpdateConfiguration(nsTestConfiguration& ref_config) const
@@ -45,7 +42,7 @@ void nsTestBaseClass::UpdateConfiguration(nsTestConfiguration& ref_config) const
 
 void nsTestBaseClass::MapImageNumberToString(const char* szTestName, const nsSubTestEntry& subTest, nsUInt32 uiImageNumber, nsStringBuilder& out_sString) const
 {
-  out_sString.Format("{0}_{1}_{2}", szTestName, subTest.m_szSubTestName, nsArgI(uiImageNumber, 3, true));
+  out_sString.SetFormat("{0}_{1}_{2}", szTestName, subTest.m_szSubTestName, nsArgI(uiImageNumber, 3, true));
   out_sString.ReplaceAll(" ", "_");
 }
 
@@ -146,16 +143,7 @@ nsTestAppRun nsTestBaseClass::DoSubTestRun(nsInt32 iIdentifier, double& fDuratio
   }
   catch (...)
   {
-    nsInt32 iEntry = -1;
-
-    for (nsInt32 i = 0; i < (nsInt32)m_Entries.size(); ++i)
-    {
-      if (m_Entries[i].m_iIdentifier == iIdentifier)
-      {
-        iEntry = i;
-        break;
-      }
-    }
+    const nsInt32 iEntry = FindEntryForIdentifier(iIdentifier);
 
     if (iEntry >= 0)
       nsTestFramework::Output(nsTestOutput::Error, "Exception during sub-test '%s'.", m_Entries[iEntry].m_szName);
@@ -166,5 +154,15 @@ nsTestAppRun nsTestBaseClass::DoSubTestRun(nsInt32 iIdentifier, double& fDuratio
   return ret;
 }
 
+nsInt32 nsTestBaseClass::FindEntryForIdentifier(nsInt32 iIdentifier) const
+{
+  for (nsInt32 i = 0; i < (nsInt32)m_Entries.size(); ++i)
+  {
+    if (m_Entries[i].m_iIdentifier == iIdentifier)
+    {
+      return i;
+    }
+  }
 
-NS_STATICLINK_FILE(TestFramework, TestFramework_Framework_TestBaseClass);
+  return -1;
+}

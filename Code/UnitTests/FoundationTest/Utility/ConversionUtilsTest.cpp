@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/Math/Random.h>
@@ -684,7 +679,8 @@ NS_CREATE_SIMPLE_TEST(Utility, ConversionUtils)
     }
 
     nsStringBuilder sHex;
-    nsConversionUtils::ConvertBinaryToHex(binary.GetData(), binary.GetCount(), [&sHex](const char* s) { sHex.Append(s); });
+    nsConversionUtils::ConvertBinaryToHex(binary.GetData(), binary.GetCount(), [&sHex](const char* s)
+      { sHex.Append(s); });
 
     nsDynamicArray<nsUInt8> binary2;
     binary2.SetCountUninitialized(1024);

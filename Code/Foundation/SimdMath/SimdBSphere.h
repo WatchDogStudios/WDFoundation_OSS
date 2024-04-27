@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/SimdMath/SimdTransform.h>
@@ -94,8 +89,8 @@ public:
   /// closest distance to the original point.
   [[nodiscard]] nsSimdVec4f GetClampedPoint(const nsSimdVec4f& vPoint); // [tested]
 
-  [[nodiscard]] bool operator==(const nsSimdBSphere& rhs) const; // [tested]
-  [[nodiscard]] bool operator!=(const nsSimdBSphere& rhs) const; // [tested]
+  [[nodiscard]] bool operator==(const nsSimdBSphere& rhs) const;        // [tested]
+  [[nodiscard]] bool operator!=(const nsSimdBSphere& rhs) const;        // [tested]
 
 public:
   nsSimdVec4f m_CenterAndRadius;

@@ -1,13 +1,12 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 /// If set to 1, the POSIX file implementation will be used. Otherwise a platform specific implementation must be available.
 #undef NS_USE_POSIX_FILE_API
 #define NS_USE_POSIX_FILE_API NS_ON
+
+/// If set to one linux posix extensions such as pipe2, dup3, etc are used.
+#undef NS_USE_LINUX_POSIX_EXTENSIONS
+#define NS_USE_LINUX_POSIX_EXTENSIONS NS_ON
 
 /// Iterating through the file system is not supported
 #undef NS_SUPPORTS_FILE_ITERATORS
@@ -53,7 +52,11 @@
 #undef NS_SIMD_IMPLEMENTATION
 
 #if NS_ENABLED(NS_PLATFORM_ARCH_X86)
-#  define NS_SIMD_IMPLEMENTATION NS_SIMD_IMPLEMENTATION_SSE
+#  if __SSE4_1__ && __SSSE3__
+#    define NS_SIMD_IMPLEMENTATION NS_SIMD_IMPLEMENTATION_SSE
+#  else
+#    define NS_SIMD_IMPLEMENTATION NS_SIMD_IMPLEMENTATION_FPU
+#  endif
 #elif NS_ENABLED(NS_PLATFORM_ARCH_ARM)
 #  define NS_SIMD_IMPLEMENTATION NS_SIMD_IMPLEMENTATION_FPU
 #else

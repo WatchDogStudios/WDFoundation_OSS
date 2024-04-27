@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/CodeUtils/Expression/ExpressionDeclarations.h>
@@ -171,7 +166,7 @@ namespace
 
     while (pPosX < pPosXEnd)
     {
-      pOutput->f = s_PerlinNoise.NoisnseroToOne(pPosX->f, pPosY->f, pPosZ->f, uiNumOctaves);
+      pOutput->f = s_PerlinNoise.NoiseZeroToOne(pPosX->f, pPosY->f, pPosZ->f, uiNumOctaves);
 
       ++pPosX;
       ++pPosY;
@@ -190,6 +185,26 @@ nsExpressionFunction nsDefaultExpressionFunctions::s_PerlinNoiseFunc = {
   {nsMakeHashedString("PerlinNoise"), nsMakeArrayPtr(s_PerlinNoiseInputTypes), 3, RegisterType::Float},
   &PerlinNoise,
 };
+
+//////////////////////////////////////////////////////////////////////////
+
+// clang-format off
+NS_BEGIN_DYNAMIC_REFLECTED_TYPE(nsExpressionWidgetAttribute, 1, nsRTTIDefaultAllocator<nsExpressionWidgetAttribute>)
+{
+  NS_BEGIN_PROPERTIES
+  {
+    NS_MEMBER_PROPERTY("InputsProperty", m_sInputsProperty),
+    NS_MEMBER_PROPERTY("OutputsProperty", m_sOutputsProperty),
+  }
+  NS_END_PROPERTIES;
+  NS_BEGIN_FUNCTIONS
+  {
+    NS_CONSTRUCTOR_PROPERTY(const char*, const char*),
+  }
+  NS_END_FUNCTIONS;
+}
+NS_END_DYNAMIC_REFLECTED_TYPE;
+// clang-format on
 
 
 NS_STATICLINK_FILE(Foundation, Foundation_CodeUtils_Expression_Implementation_ExpressionDeclarations);

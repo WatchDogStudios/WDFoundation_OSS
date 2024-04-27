@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Strings/String.h>
@@ -78,7 +73,7 @@ struct nsVariantType
     LastExtendedType,  ///< Number of values for nsVariant::Type.
 
     MAX_ENUM_VALUE = LastExtendedType,
-    Default = Invalid ///< Default value used by nsEnum.
+    Default = Invalid  ///< Default value used by nsEnum.
   };
 };
 
@@ -100,13 +95,10 @@ struct nsVariantClass
 template <typename T>
 struct nsVariantTypeDeduction
 {
-  enum
-  {
-    value = nsVariantType::Invalid,
-    forceSharing = false,
-    hasReflectedMembers = false,
-    classification = nsVariantClass::Invalid
-  };
+  static constexpr nsVariantType::Enum value = nsVariantType::Invalid;
+  static constexpr bool forceSharing = false;
+  static constexpr bool hasReflectedMembers = false;
+  static constexpr nsVariantClass::Enum classification = nsVariantClass::Invalid;
 
   using StorageType = T;
 };
@@ -115,18 +107,16 @@ struct nsVariantTypeDeduction
 ///
 /// Needs to be called from the same header that defines the type.
 /// \sa NS_DEFINE_CUSTOM_VARIANT_TYPE
-#define NS_DECLARE_CUSTOM_VARIANT_TYPE(TYPE)          \
-  template <>                                         \
-  struct nsVariantTypeDeduction<TYPE>                 \
-  {                                                   \
-    enum                                              \
-    {                                                 \
-      value = nsVariantType::TypedObject,             \
-      forceSharing = false,                           \
-      hasReflectedMembers = true,                     \
-      classification = nsVariantClass::CustomTypeCast \
-    };                                                \
-    using StorageType = TYPE;                         \
+#define NS_DECLARE_CUSTOM_VARIANT_TYPE(TYPE)                                               \
+  template <>                                                                              \
+  struct nsVariantTypeDeduction<TYPE>                                                      \
+  {                                                                                        \
+    static constexpr nsVariantType::Enum value = nsVariantType::TypedObject;               \
+    static constexpr bool forceSharing = false;                                            \
+    static constexpr bool hasReflectedMembers = true;                                      \
+    static constexpr nsVariantClass::Enum classification = nsVariantClass::CustomTypeCast; \
+                                                                                           \
+    using StorageType = TYPE;                                                              \
   };
 
 #include <Foundation/Types/Implementation/VariantTypeDeduction_inl.h>

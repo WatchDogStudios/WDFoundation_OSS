@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Configuration/Startup.h>
@@ -10,7 +5,7 @@
 #include <Foundation/Profiling/Profiling.h>
 #include <Foundation/Strings/StringBuilder.h>
 
-nsDoubleBufferedStackAllocator::nsDoubleBufferedStackAllocator(nsStringView sName0, nsAllocatorBase* pParent)
+nsDoubleBufferedLinearAllocator::nsDoubleBufferedLinearAllocator(nsStringView sName0, nsAllocator* pParent)
 {
   nsStringBuilder sName = sName0;
   sName.Append("0");
@@ -23,20 +18,20 @@ nsDoubleBufferedStackAllocator::nsDoubleBufferedStackAllocator(nsStringView sNam
   m_pOtherAllocator = NS_DEFAULT_NEW(StackAllocatorType, sName, pParent);
 }
 
-nsDoubleBufferedStackAllocator::~nsDoubleBufferedStackAllocator()
+nsDoubleBufferedLinearAllocator::~nsDoubleBufferedLinearAllocator()
 {
   NS_DEFAULT_DELETE(m_pCurrentAllocator);
   NS_DEFAULT_DELETE(m_pOtherAllocator);
 }
 
-void nsDoubleBufferedStackAllocator::Swap()
+void nsDoubleBufferedLinearAllocator::Swap()
 {
   nsMath::Swap(m_pCurrentAllocator, m_pOtherAllocator);
 
   m_pCurrentAllocator->Reset();
 }
 
-void nsDoubleBufferedStackAllocator::Reset()
+void nsDoubleBufferedLinearAllocator::Reset()
 {
   m_pCurrentAllocator->Reset();
   m_pOtherAllocator->Reset();
@@ -59,7 +54,7 @@ NS_BEGIN_SUBSYSTEM_DECLARATION(Foundation, FrameAllocator)
 NS_END_SUBSYSTEM_DECLARATION;
 // clang-format on
 
-nsDoubleBufferedStackAllocator* nsFrameAllocator::s_pAllocator;
+nsDoubleBufferedLinearAllocator* nsFrameAllocator::s_pAllocator;
 
 // static
 void nsFrameAllocator::Swap()
@@ -81,7 +76,7 @@ void nsFrameAllocator::Reset()
 // static
 void nsFrameAllocator::Startup()
 {
-  s_pAllocator = NS_DEFAULT_NEW(nsDoubleBufferedStackAllocator, "FrameAllocator", nsFoundation::GetAlignedAllocator());
+  s_pAllocator = NS_DEFAULT_NEW(nsDoubleBufferedLinearAllocator, "FrameAllocator", nsFoundation::GetAlignedAllocator());
 }
 
 // static

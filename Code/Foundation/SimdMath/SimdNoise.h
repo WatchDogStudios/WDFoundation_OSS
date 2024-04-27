@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/SimdMath/SimdVec4i.h>
@@ -12,7 +7,7 @@ class NS_FOUNDATION_DLL nsSimdPerlinNoise
 public:
   nsSimdPerlinNoise(nsUInt32 uiSeed);
 
-  nsSimdVec4f NoisnseroToOne(const nsSimdVec4f& x, const nsSimdVec4f& y, const nsSimdVec4f& z, nsUInt32 uiNumOctaves = 1);
+  nsSimdVec4f NoiseZeroToOne(const nsSimdVec4f& x, const nsSimdVec4f& y, const nsSimdVec4f& z, nsUInt32 uiNumOctaves = 1);
 
 private:
   nsSimdVec4f Noise(const nsSimdVec4f& x, const nsSimdVec4f& y, const nsSimdVec4f& z);

@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 
 template <typename T>
 NS_ALWAYS_INLINE nsUniquePtr<T>::nsUniquePtr() = default;
@@ -17,7 +12,7 @@ NS_ALWAYS_INLINE nsUniquePtr<T>::nsUniquePtr(const nsInternal::NewInstance<U>& i
 
 template <typename T>
 template <typename U>
-NS_ALWAYS_INLINE nsUniquePtr<T>::nsUniquePtr(U* pInstance, nsAllocatorBase* pAllocator)
+NS_ALWAYS_INLINE nsUniquePtr<T>::nsUniquePtr(U* pInstance, nsAllocator* pAllocator)
 {
   m_pInstance = pInstance;
   m_pAllocator = pAllocator;
@@ -92,7 +87,7 @@ NS_ALWAYS_INLINE T* nsUniquePtr<T>::Release()
 }
 
 template <typename T>
-NS_ALWAYS_INLINE T* nsUniquePtr<T>::Release(nsAllocatorBase*& out_pAllocator)
+NS_ALWAYS_INLINE T* nsUniquePtr<T>::Release(nsAllocator*& out_pAllocator)
 {
   T* pInstance = m_pInstance;
   out_pAllocator = m_pAllocator;

@@ -1,14 +1,9 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 template <typename Type>
 NS_FORCE_INLINE nsBoundingBoxSphereTemplate<Type>::nsBoundingBoxSphereTemplate()
 {
-#if NS_ENABLED(NS_COMPILE_FOR_DEBUG)
+#if NS_ENABLED(NS_MATH_CHECK_FOR_NAN)
   // Initialize all data to NaN in debug mode to find problems with uninitialized data easier.
   // m_vOrigin and m_vBoxHalfExtends are already initialized to NaN by their own constructor.
   const Type TypeNaN = nsMath::NaN<Type>();

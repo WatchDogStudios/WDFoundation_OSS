@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 // NOTE: always save as Unicode UTF-8 with signature
@@ -114,7 +109,7 @@ namespace JSONReaderTestDetail
       case nsVariant::Type::Int8:
       {
         nsStringBuilder sTemp;
-        sTemp.Format("int8 {0}", var.Get<nsInt8>());
+        sTemp.SetFormat("int8 {0}", var.Get<nsInt8>());
         // nsLog::Printf("Expect: %s - Is: %s\n", sTemp.GetData(), Compare.PeekFront().GetData());
         NS_TEST_STRING(ref_compare.PeekFront().GetData(), sTemp.GetData());
         ref_compare.PopFront();
@@ -124,7 +119,7 @@ namespace JSONReaderTestDetail
       case nsVariant::Type::UInt8:
       {
         nsStringBuilder sTemp;
-        sTemp.Format("uint8 {0}", var.Get<nsUInt8>());
+        sTemp.SetFormat("uint8 {0}", var.Get<nsUInt8>());
         // nsLog::Printf("Expect: %s - Is: %s\n", sTemp.GetData(), Compare.PeekFront().GetData());
         NS_TEST_STRING(ref_compare.PeekFront().GetData(), sTemp.GetData());
         ref_compare.PopFront();
@@ -134,7 +129,7 @@ namespace JSONReaderTestDetail
       case nsVariant::Type::Int16:
       {
         nsStringBuilder sTemp;
-        sTemp.Format("int16 {0}", var.Get<nsInt16>());
+        sTemp.SetFormat("int16 {0}", var.Get<nsInt16>());
         // nsLog::Printf("Expect: %s - Is: %s\n", sTemp.GetData(), Compare.PeekFront().GetData());
         NS_TEST_STRING(ref_compare.PeekFront().GetData(), sTemp.GetData());
         ref_compare.PopFront();
@@ -144,7 +139,7 @@ namespace JSONReaderTestDetail
       case nsVariant::Type::UInt16:
       {
         nsStringBuilder sTemp;
-        sTemp.Format("uint16 {0}", var.Get<nsUInt16>());
+        sTemp.SetFormat("uint16 {0}", var.Get<nsUInt16>());
         // nsLog::Printf("Expect: %s - Is: %s\n", sTemp.GetData(), Compare.PeekFront().GetData());
         NS_TEST_STRING(ref_compare.PeekFront().GetData(), sTemp.GetData());
         ref_compare.PopFront();
@@ -154,7 +149,7 @@ namespace JSONReaderTestDetail
       case nsVariant::Type::Int32:
       {
         nsStringBuilder sTemp;
-        sTemp.Format("int32 {0}", var.Get<nsInt32>());
+        sTemp.SetFormat("int32 {0}", var.Get<nsInt32>());
         // nsLog::Printf("Expect: %s - Is: %s\n", sTemp.GetData(), Compare.PeekFront().GetData());
         NS_TEST_STRING(ref_compare.PeekFront().GetData(), sTemp.GetData());
         ref_compare.PopFront();
@@ -164,7 +159,7 @@ namespace JSONReaderTestDetail
       case nsVariant::Type::UInt32:
       {
         nsStringBuilder sTemp;
-        sTemp.Format("uint32 {0}", var.Get<nsUInt32>());
+        sTemp.SetFormat("uint32 {0}", var.Get<nsUInt32>());
         // nsLog::Printf("Expect: %s - Is: %s\n", sTemp.GetData(), Compare.PeekFront().GetData());
         NS_TEST_STRING(ref_compare.PeekFront().GetData(), sTemp.GetData());
         ref_compare.PopFront();
@@ -174,7 +169,7 @@ namespace JSONReaderTestDetail
       case nsVariant::Type::Int64:
       {
         nsStringBuilder sTemp;
-        sTemp.Format("int64 {0}", var.Get<nsInt64>());
+        sTemp.SetFormat("int64 {0}", var.Get<nsInt64>());
         // nsLog::Printf("Expect: %s - Is: %s\n", sTemp.GetData(), Compare.PeekFront().GetData());
         NS_TEST_STRING(ref_compare.PeekFront().GetData(), sTemp.GetData());
         ref_compare.PopFront();
@@ -184,7 +179,7 @@ namespace JSONReaderTestDetail
       case nsVariant::Type::UInt64:
       {
         nsStringBuilder sTemp;
-        sTemp.Format("uint64 {0}", var.Get<nsUInt64>());
+        sTemp.SetFormat("uint64 {0}", var.Get<nsUInt64>());
         // nsLog::Printf("Expect: %s - Is: %s\n", sTemp.GetData(), Compare.PeekFront().GetData());
         NS_TEST_STRING(ref_compare.PeekFront().GetData(), sTemp.GetData());
         ref_compare.PopFront();
@@ -194,7 +189,7 @@ namespace JSONReaderTestDetail
       case nsVariant::Type::Float:
       {
         nsStringBuilder sTemp;
-        sTemp.Format("float {0}", nsArgF(var.Get<float>(), 4));
+        sTemp.SetFormat("float {0}", nsArgF(var.Get<float>(), 4));
         // nsLog::Printf("Expect: %s - Is: %s\n", sTemp.GetData(), Compare.PeekFront().GetData());
         NS_TEST_STRING(ref_compare.PeekFront().GetData(), sTemp.GetData());
         ref_compare.PopFront();
@@ -204,7 +199,7 @@ namespace JSONReaderTestDetail
       case nsVariant::Type::Double:
       {
         nsStringBuilder sTemp;
-        sTemp.Format("double {0}", nsArgF(var.Get<double>(), 4));
+        sTemp.SetFormat("double {0}", nsArgF(var.Get<double>(), 4));
         // nsLog::Printf("Expect: %s - Is: %s\n", sTemp.GetData(), Compare.PeekFront().GetData());
         NS_TEST_STRING(ref_compare.PeekFront().GetData(), sTemp.GetData());
         ref_compare.PopFront();
@@ -214,7 +209,7 @@ namespace JSONReaderTestDetail
       case nsVariant::Type::Time:
       {
         nsStringBuilder sTemp;
-        sTemp.Format("time {0}", nsArgF(var.Get<nsTime>().GetSeconds(), 4));
+        sTemp.SetFormat("time {0}", nsArgF(var.Get<nsTime>().GetSeconds(), 4));
         // nsLog::Printf("Expect: %s - Is: %s\n", sTemp.GetData(), Compare.PeekFront().GetData());
         NS_TEST_STRING(ref_compare.PeekFront().GetData(), sTemp.GetData());
         ref_compare.PopFront();
@@ -224,7 +219,7 @@ namespace JSONReaderTestDetail
       case nsVariant::Type::Angle:
       {
         nsStringBuilder sTemp;
-        sTemp.Format("angle {0}", nsArgF(var.Get<nsAngle>().GetDegree(), 4));
+        sTemp.SetFormat("angle {0}", nsArgF(var.Get<nsAngle>().GetDegree(), 4));
         // nsLog::Printf("Expect: %s - Is: %s\n", sTemp.GetData(), Compare.PeekFront().GetData());
         NS_TEST_STRING(ref_compare.PeekFront().GetData(), sTemp.GetData());
         ref_compare.PopFront();
@@ -246,7 +241,7 @@ namespace JSONReaderTestDetail
       case nsVariant::Type::Vector2:
       {
         nsStringBuilder sTemp;
-        sTemp.Format("vec2 ({0}, {1})", nsArgF(var.Get<nsVec2>().x, 4), nsArgF(var.Get<nsVec2>().y, 4));
+        sTemp.SetFormat("vec2 ({0}, {1})", nsArgF(var.Get<nsVec2>().x, 4), nsArgF(var.Get<nsVec2>().y, 4));
         // nsLog::Printf("Expect: %s - Is: %s\n", sTemp.GetData(), Compare.PeekFront().GetData());
         NS_TEST_STRING(ref_compare.PeekFront().GetData(), sTemp.GetData());
         ref_compare.PopFront();
@@ -256,7 +251,7 @@ namespace JSONReaderTestDetail
       case nsVariant::Type::Vector3:
       {
         nsStringBuilder sTemp;
-        sTemp.Format("vec3 ({0}, {1}, {2})", nsArgF(var.Get<nsVec3>().x, 4), nsArgF(var.Get<nsVec3>().y, 4), nsArgF(var.Get<nsVec3>().z, 4));
+        sTemp.SetFormat("vec3 ({0}, {1}, {2})", nsArgF(var.Get<nsVec3>().x, 4), nsArgF(var.Get<nsVec3>().y, 4), nsArgF(var.Get<nsVec3>().z, 4));
         // nsLog::Printf("Expect: %s - Is: %s\n", sTemp.GetData(), Compare.PeekFront().GetData());
         NS_TEST_STRING(ref_compare.PeekFront().GetData(), sTemp.GetData());
         ref_compare.PopFront();
@@ -266,7 +261,7 @@ namespace JSONReaderTestDetail
       case nsVariant::Type::Vector4:
       {
         nsStringBuilder sTemp;
-        sTemp.Format("vec4 ({0}, {1}, {2}, {3})", nsArgF(var.Get<nsVec4>().x, 4), nsArgF(var.Get<nsVec4>().y, 4), nsArgF(var.Get<nsVec4>().z, 4), nsArgF(var.Get<nsVec4>().w, 4));
+        sTemp.SetFormat("vec4 ({0}, {1}, {2}, {3})", nsArgF(var.Get<nsVec4>().x, 4), nsArgF(var.Get<nsVec4>().y, 4), nsArgF(var.Get<nsVec4>().z, 4), nsArgF(var.Get<nsVec4>().w, 4));
         // nsLog::Printf("Expect: %s - Is: %s\n", sTemp.GetData(), Compare.PeekFront().GetData());
         NS_TEST_STRING(ref_compare.PeekFront().GetData(), sTemp.GetData());
         ref_compare.PopFront();
@@ -276,7 +271,7 @@ namespace JSONReaderTestDetail
       case nsVariant::Type::Vector2I:
       {
         nsStringBuilder sTemp;
-        sTemp.Format("vec2i ({0}, {1})", var.Get<nsVec2I32>().x, var.Get<nsVec2I32>().y);
+        sTemp.SetFormat("vec2i ({0}, {1})", var.Get<nsVec2I32>().x, var.Get<nsVec2I32>().y);
         // nsLog::Printf("Expect: %s - Is: %s\n", sTemp.GetData(), Compare.PeekFront().GetData());
         NS_TEST_STRING(ref_compare.PeekFront().GetData(), sTemp.GetData());
         ref_compare.PopFront();
@@ -286,7 +281,7 @@ namespace JSONReaderTestDetail
       case nsVariant::Type::Vector3I:
       {
         nsStringBuilder sTemp;
-        sTemp.Format("vec3i ({0}, {1}, {2})", var.Get<nsVec3I32>().x, var.Get<nsVec3I32>().y, var.Get<nsVec3I32>().z);
+        sTemp.SetFormat("vec3i ({0}, {1}, {2})", var.Get<nsVec3I32>().x, var.Get<nsVec3I32>().y, var.Get<nsVec3I32>().z);
         // nsLog::Printf("Expect: %s - Is: %s\n", sTemp.GetData(), Compare.PeekFront().GetData());
         NS_TEST_STRING(ref_compare.PeekFront().GetData(), sTemp.GetData());
         ref_compare.PopFront();
@@ -296,7 +291,7 @@ namespace JSONReaderTestDetail
       case nsVariant::Type::Vector4I:
       {
         nsStringBuilder sTemp;
-        sTemp.Format("vec4i ({0}, {1}, {2}, {3})", var.Get<nsVec4I32>().x, var.Get<nsVec4I32>().y, var.Get<nsVec4I32>().z, var.Get<nsVec4I32>().w);
+        sTemp.SetFormat("vec4i ({0}, {1}, {2}, {3})", var.Get<nsVec4I32>().x, var.Get<nsVec4I32>().y, var.Get<nsVec4I32>().z, var.Get<nsVec4I32>().w);
         // nsLog::Printf("Expect: %s - Is: %s\n", sTemp.GetData(), Compare.PeekFront().GetData());
         NS_TEST_STRING(ref_compare.PeekFront().GetData(), sTemp.GetData());
         ref_compare.PopFront();
@@ -306,7 +301,7 @@ namespace JSONReaderTestDetail
       case nsVariant::Type::Color:
       {
         nsStringBuilder sTemp;
-        sTemp.Format("color ({0}, {1}, {2}, {3})", nsArgF(var.Get<nsColor>().r, 4), nsArgF(var.Get<nsColor>().g, 4), nsArgF(var.Get<nsColor>().b, 4), nsArgF(var.Get<nsColor>().a, 4));
+        sTemp.SetFormat("color ({0}, {1}, {2}, {3})", nsArgF(var.Get<nsColor>().r, 4), nsArgF(var.Get<nsColor>().g, 4), nsArgF(var.Get<nsColor>().b, 4), nsArgF(var.Get<nsColor>().a, 4));
         // nsLog::Printf("Expect: %s - Is: %s\n", sTemp.GetData(), Compare.PeekFront().GetData());
         NS_TEST_STRING(ref_compare.PeekFront().GetData(), sTemp.GetData());
         ref_compare.PopFront();
@@ -318,7 +313,7 @@ namespace JSONReaderTestDetail
         nsStringBuilder sTemp;
         const nsColorGammaUB c = var.ConvertTo<nsColorGammaUB>();
 
-        sTemp.Format("gamma ({0}, {1}, {2}, {3})", c.r, c.g, c.b, c.a);
+        sTemp.SetFormat("gamma ({0}, {1}, {2}, {3})", c.r, c.g, c.b, c.a);
         // nsLog::Printf("Expect: %s - Is: %s\n", sTemp.GetData(), Compare.PeekFront().GetData());
         NS_TEST_STRING(ref_compare.PeekFront().GetData(), sTemp.GetData());
         ref_compare.PopFront();
@@ -328,7 +323,7 @@ namespace JSONReaderTestDetail
       case nsVariant::Type::Quaternion:
       {
         nsStringBuilder sTemp;
-        sTemp.Format("quat ({0}, {1}, {2}, {3})", nsArgF(var.Get<nsQuat>().x, 4), nsArgF(var.Get<nsQuat>().y, 4), nsArgF(var.Get<nsQuat>().z, 4), nsArgF(var.Get<nsQuat>().w, 4));
+        sTemp.SetFormat("quat ({0}, {1}, {2}, {3})", nsArgF(var.Get<nsQuat>().x, 4), nsArgF(var.Get<nsQuat>().y, 4), nsArgF(var.Get<nsQuat>().z, 4), nsArgF(var.Get<nsQuat>().w, 4));
         // nsLog::Printf("Expect: %s - Is: %s\n", sTemp.GetData(), Compare.PeekFront().GetData());
         NS_TEST_STRING(ref_compare.PeekFront().GetData(), sTemp.GetData());
         ref_compare.PopFront();
@@ -340,7 +335,7 @@ namespace JSONReaderTestDetail
         nsMat3 m = var.Get<nsMat3>();
 
         nsStringBuilder sTemp;
-        sTemp.Format("mat3 ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8})", nsArgF(m.m_fElementsCM[0], 4), nsArgF(m.m_fElementsCM[1], 4), nsArgF(m.m_fElementsCM[2], 4), nsArgF(m.m_fElementsCM[3], 4), nsArgF(m.m_fElementsCM[4], 4), nsArgF(m.m_fElementsCM[5], 4), nsArgF(m.m_fElementsCM[6], 4), nsArgF(m.m_fElementsCM[7], 4), nsArgF(m.m_fElementsCM[8], 4));
+        sTemp.SetFormat("mat3 ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8})", nsArgF(m.m_fElementsCM[0], 4), nsArgF(m.m_fElementsCM[1], 4), nsArgF(m.m_fElementsCM[2], 4), nsArgF(m.m_fElementsCM[3], 4), nsArgF(m.m_fElementsCM[4], 4), nsArgF(m.m_fElementsCM[5], 4), nsArgF(m.m_fElementsCM[6], 4), nsArgF(m.m_fElementsCM[7], 4), nsArgF(m.m_fElementsCM[8], 4));
         // nsLog::Printf("Expect: %s - Is: %s\n", sTemp.GetData(), Compare.PeekFront().GetData());
         NS_TEST_STRING(ref_compare.PeekFront().GetData(), sTemp.GetData());
         ref_compare.PopFront();
@@ -352,7 +347,7 @@ namespace JSONReaderTestDetail
         nsMat4 m = var.Get<nsMat4>();
 
         nsStringBuilder sTemp;
-        sTemp.Printf("mat4 (%.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f)", m.m_fElementsCM[0], m.m_fElementsCM[1], m.m_fElementsCM[2], m.m_fElementsCM[3], m.m_fElementsCM[4], m.m_fElementsCM[5], m.m_fElementsCM[6], m.m_fElementsCM[7], m.m_fElementsCM[8], m.m_fElementsCM[9], m.m_fElementsCM[10], m.m_fElementsCM[11], m.m_fElementsCM[12], m.m_fElementsCM[13], m.m_fElementsCM[14], m.m_fElementsCM[15]);
+        sTemp.SetPrintf("mat4 (%.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f, %.4f)", m.m_fElementsCM[0], m.m_fElementsCM[1], m.m_fElementsCM[2], m.m_fElementsCM[3], m.m_fElementsCM[4], m.m_fElementsCM[5], m.m_fElementsCM[6], m.m_fElementsCM[7], m.m_fElementsCM[8], m.m_fElementsCM[9], m.m_fElementsCM[10], m.m_fElementsCM[11], m.m_fElementsCM[12], m.m_fElementsCM[13], m.m_fElementsCM[14], m.m_fElementsCM[15]);
         // nsLog::Printf("Expect: %s - Is: %s\n", sTemp.GetData(), Compare.PeekFront().GetData());
         NS_TEST_STRING(ref_compare.PeekFront().GetData(), sTemp.GetData());
         ref_compare.PopFront();

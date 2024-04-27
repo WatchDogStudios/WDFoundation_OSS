@@ -1,22 +1,17 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
-#include <Foundation/Memory/StackAllocator.h>
+#include <Foundation/Memory/LinearAllocator.h>
 
 /// \brief A double buffered stack allocator
-class NS_FOUNDATION_DLL nsDoubleBufferedStackAllocator
+class NS_FOUNDATION_DLL nsDoubleBufferedLinearAllocator
 {
 public:
-  using StackAllocatorType = nsStackAllocator<nsMemoryTrackingFlags::RegisterAllocator>;
+  using StackAllocatorType = nsLinearAllocator<nsAllocatorTrackingMode::Basics>;
 
-  nsDoubleBufferedStackAllocator(nsStringView sName, nsAllocatorBase* pParent);
-  ~nsDoubleBufferedStackAllocator();
+  nsDoubleBufferedLinearAllocator(nsStringView sName, nsAllocator* pParent);
+  ~nsDoubleBufferedLinearAllocator();
 
-  NS_ALWAYS_INLINE nsAllocatorBase* GetCurrentAllocator() const { return m_pCurrentAllocator; }
+  NS_ALWAYS_INLINE nsAllocator* GetCurrentAllocator() const { return m_pCurrentAllocator; }
 
   void Swap();
   void Reset();
@@ -29,7 +24,7 @@ private:
 class NS_FOUNDATION_DLL nsFrameAllocator
 {
 public:
-  NS_ALWAYS_INLINE static nsAllocatorBase* GetCurrentAllocator() { return s_pAllocator->GetCurrentAllocator(); }
+  NS_ALWAYS_INLINE static nsAllocator* GetCurrentAllocator() { return s_pAllocator->GetCurrentAllocator(); }
 
   static void Swap();
   static void Reset();
@@ -40,5 +35,5 @@ private:
   static void Startup();
   static void Shutdown();
 
-  static nsDoubleBufferedStackAllocator* s_pAllocator;
+  static nsDoubleBufferedLinearAllocator* s_pAllocator;
 };

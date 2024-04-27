@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Containers/DynamicArray.h>
@@ -13,7 +8,6 @@
 
 nsStringBuilder::nsStringBuilder(nsStringView sData1, nsStringView sData2, nsStringView sData3, nsStringView sData4, nsStringView sData5, nsStringView sData6)
 {
-  m_uiCharacterCount = 0;
   AppendTerminator();
 
   Append(sData1, sData2, sData3, sData4, sData5, sData6);
@@ -23,6 +17,12 @@ void nsStringBuilder::Set(nsStringView sData1, nsStringView sData2, nsStringView
 {
   Clear();
   Append(sData1, sData2, sData3, sData4, sData5, sData6);
+}
+
+void nsStringBuilder::SetPath(nsStringView sData1, nsStringView sData2, nsStringView sData3, nsStringView sData4)
+{
+  Clear();
+  AppendPath(sData1, sData2, sData3, sData4);
 }
 
 void nsStringBuilder::SetSubString_FromTo(const char* pStart, const char* pEnd)
@@ -45,7 +45,7 @@ void nsStringBuilder::SetSubString_ElementCount(const char* pStart, nsUInt32 uiE
 void nsStringBuilder::SetSubString_CharacterCount(const char* pStart, nsUInt32 uiCharacterCount)
 {
   const char* pEnd = pStart;
-  nsUnicodeUtils::MoveToNextUtf8(pEnd, uiCharacterCount);
+  nsUnicodeUtils::MoveToNextUtf8(pEnd, uiCharacterCount).IgnoreResult(); // fine to fail, will just copy as much as possible
 
   nsStringView view(pStart, pEnd);
   *this = view;
@@ -72,10 +72,8 @@ void nsStringBuilder::Append(nsStringView sData1, nsStringView sData2, nsStringV
     NS_ASSERT_DEBUG(pStrings[i].GetStartPointer() < m_Data.GetData() || pStrings[i].GetStartPointer() >= m_Data.GetData() + m_Data.GetCapacity(),
       "Parameter {0} comes from the string builders own storage. This type assignment is not allowed.", i);
 
-    nsUInt32 uiCharacters = 0;
-    nsStringUtils::GetCharacterAndElementCount(pStrings[i].GetStartPointer(), uiCharacters, uiStrLen[i], pStrings[i].GetEndPointer());
+    uiStrLen[i] = pStrings[i].GetElementCount();
     uiMoreBytes += uiStrLen[i];
-    m_uiCharacterCount += uiCharacters;
 
     NS_ASSERT_DEBUG(nsUnicodeUtils::IsValidUtf8(pStrings[i].GetStartPointer(), pStrings[i].GetEndPointer()), "Parameter {0} is not a valid Utf8 sequence.", i + 1);
   }
@@ -117,10 +115,8 @@ void nsStringBuilder::Prepend(nsStringView sData1, nsStringView sData2, nsString
     if (pStrings[i].IsEmpty())
       continue;
 
-    nsUInt32 uiCharacters = 0;
-    nsStringUtils::GetCharacterAndElementCount(pStrings[i].GetStartPointer(), uiCharacters, uiStrLen[i], pStrings[i].GetEndPointer());
+    uiStrLen[i] = pStrings[i].GetElementCount();
     uiMoreBytes += uiStrLen[i];
-    m_uiCharacterCount += uiCharacters;
 
     NS_ASSERT_DEBUG(nsUnicodeUtils::IsValidUtf8(pStrings[i].GetStartPointer(), pStrings[i].GetEndPointer()), "Parameter {0} is not a valid Utf8 sequence.", i + 1);
   }
@@ -149,7 +145,7 @@ void nsStringBuilder::Prepend(nsStringView sData1, nsStringView sData2, nsString
   }
 }
 
-void nsStringBuilder::PrintfArgs(const char* szUtf8Format, va_list szArgs0)
+void nsStringBuilder::SetPrintfArgs(const char* szUtf8Format, va_list szArgs0)
 {
   va_list args;
   va_copy(args, szArgs0);
@@ -250,39 +246,27 @@ void nsStringBuilder::ChangeCharacterNonASCII(iterator& it, nsUInt32 uiCharacter
 
 void nsStringBuilder::Shrink(nsUInt32 uiShrinkCharsFront, nsUInt32 uiShrinkCharsBack)
 {
-  if (uiShrinkCharsFront + uiShrinkCharsBack >= m_uiCharacterCount)
+  if (uiShrinkCharsBack > 0)
   {
-    Clear();
-    return;
+    const char* szEnd = GetData() + GetElementCount();
+    const char* szNewEnd = szEnd;
+    if (nsUnicodeUtils::MoveToPriorUtf8(szNewEnd, GetData(), uiShrinkCharsBack).Failed())
+    {
+      Clear();
+      return;
+    }
+
+    const nsUInt32 uiLessBytes = (nsUInt32)(szEnd - szNewEnd);
+
+    m_Data.PopBack(uiLessBytes + 1);
+    AppendTerminator();
   }
 
   const char* szNewStart = &m_Data[0];
-
-  if (IsPureASCII())
+  if (nsUnicodeUtils::MoveToNextUtf8(szNewStart, uiShrinkCharsFront).Failed())
   {
-    if (uiShrinkCharsBack > 0)
-    {
-      m_Data.PopBack(uiShrinkCharsBack + 1);
-      AppendTerminator();
-    }
-
-    szNewStart = &m_Data[uiShrinkCharsFront];
-  }
-  else
-  {
-    if (uiShrinkCharsBack > 0)
-    {
-      const char* szEnd = GetData() + GetElementCount();
-      const char* szNewEnd = szEnd;
-      nsUnicodeUtils::MoveToPriorUtf8(szNewEnd, uiShrinkCharsBack);
-
-      const nsUInt32 uiLessBytes = (nsUInt32)(szEnd - szNewEnd);
-
-      m_Data.PopBack(uiLessBytes + 1);
-      AppendTerminator();
-    }
-
-    nsUnicodeUtils::MoveToNextUtf8(szNewStart, uiShrinkCharsFront);
+    Clear();
+    return;
   }
 
   if (szNewStart > &m_Data[0])
@@ -292,9 +276,6 @@ void nsStringBuilder::Shrink(nsUInt32 uiShrinkCharsFront, nsUInt32 uiShrinkChars
     nsMemoryUtils::CopyOverlapped(&m_Data[0], szNewStart, m_Data.GetCount() - uiLessBytes);
     m_Data.PopBack(uiLessBytes);
   }
-
-  m_uiCharacterCount -= uiShrinkCharsFront;
-  m_uiCharacterCount -= uiShrinkCharsBack;
 }
 
 void nsStringBuilder::ReplaceSubString(const char* szStartPos, const char* szEndPos, nsStringView sReplaceWith)
@@ -303,9 +284,7 @@ void nsStringBuilder::ReplaceSubString(const char* szStartPos, const char* szEnd
   NS_ASSERT_DEV(nsMath::IsInRange(szEndPos, GetData(), GetData() + m_Data.GetCount()), "szEndPos is not inside this string.");
   NS_ASSERT_DEV(szStartPos <= szEndPos, "nsStartPos must be before nsEndPos");
 
-  nsUInt32 uiWordChars = 0;
-  nsUInt32 uiWordBytes = 0;
-  nsStringUtils::GetCharacterAndElementCount(sReplaceWith.GetStartPointer(), uiWordChars, uiWordBytes, sReplaceWith.GetEndPointer());
+  const nsUInt32 uiWordBytes = sReplaceWith.GetElementCount();
 
   const nsUInt32 uiSubStringBytes = (nsUInt32)(szEndPos - szStartPos);
 
@@ -317,27 +296,17 @@ void nsStringBuilder::ReplaceSubString(const char* szStartPos, const char* szEnd
   {
     while (szWritePos < szEndPos)
     {
-      if (!nsUnicodeUtils::IsUtf8ContinuationByte(*szWritePos))
-        --m_uiCharacterCount;
-
       *szWritePos = *szReadPos;
       ++szWritePos;
       ++szReadPos;
     }
 
-    // the number of bytes might be identical, but that does not mean that the number of characters is also identical
-    // therefore we subtract the number of characters that were found in the old substring
-    // and add the number of characters for the new substring
-    m_uiCharacterCount += uiWordChars;
     return;
   }
 
   // the replacement is shorter than the existing stuff -> move characters to the left, no reallocation needed
   if (uiWordBytes < uiSubStringBytes)
   {
-    m_uiCharacterCount -= nsStringUtils::GetCharacterCount(szStartPos, szEndPos);
-    m_uiCharacterCount += uiWordChars;
-
     // first copy the replacement to the correct position
     nsMemoryUtils::Copy(szWritePos, sReplaceWith.GetStartPointer(), uiWordBytes);
 
@@ -355,9 +324,6 @@ void nsStringBuilder::ReplaceSubString(const char* szStartPos, const char* szEnd
 
   // else the replacement is longer than the existing word
   {
-    m_uiCharacterCount -= nsStringUtils::GetCharacterCount(szStartPos, szEndPos);
-    m_uiCharacterCount += uiWordChars;
-
     const nsUInt32 uiDifference = uiWordBytes - uiSubStringBytes;
     const nsUInt64 uiRelativeWritePosition = szWritePos - GetData();
     const nsUInt64 uiDataByteCountBefore = m_Data.GetCount();
@@ -610,10 +576,7 @@ nsUInt32 nsStringBuilder::ReplaceWholeWordAll_NoCase(const char* szSearchFor, ns
 
 void nsStringBuilder::operator=(nsStringView rhs)
 {
-  nsUInt32 uiBytes;
-  nsUInt32 uiCharacters;
-
-  nsStringUtils::GetCharacterAndElementCount(rhs.GetStartPointer(), uiCharacters, uiBytes, rhs.GetEndPointer());
+  nsUInt32 uiBytes = rhs.GetElementCount();
 
   // if we need more room, allocate up front (rhs cannot use our own data in this case)
   if (uiBytes + 1 > m_Data.GetCount())
@@ -627,8 +590,6 @@ void nsStringBuilder::operator=(nsStringView rhs)
 
   m_Data.SetCountUninitialized(uiBytes + 1);
   m_Data[uiBytes] = '\0';
-
-  m_uiCharacterCount = uiCharacters;
 }
 
 enum PathUpState
@@ -737,12 +698,9 @@ void nsStringBuilder::MakeCleanPath()
   const nsUInt32 uiPrevByteCount = m_Data.GetCount();
   const nsUInt32 uiNewByteCount = (nsUInt32)(writeOffset) + 1;
 
+  NS_IGNORE_UNUSED(uiPrevByteCount);
   NS_ASSERT_DEBUG(uiPrevByteCount >= uiNewByteCount, "It should not be possible that a path grows during cleanup. Old: {0} Bytes, New: {1} Bytes",
     uiPrevByteCount, uiNewByteCount);
-
-  // we will only remove characters and only ASCII ones (slash, backslash, dot)
-  // so the number of characters shrinks equally to the number of bytes
-  m_uiCharacterCount -= (uiPrevByteCount - uiNewByteCount);
 
   // make sure to write the terminating \0 and reset the count
   szCurWritePos[writeOffset] = '\0';
@@ -803,7 +761,6 @@ void nsStringBuilder::AppendWithSeparator(nsStringView sOptional, nsStringView s
   const nsStringView pStrings[uiMaxParams] = {sOptional, sText1, sText2, sText3, sText4, sText5, sText6};
   nsUInt32 uiStrLen[uiMaxParams] = {0};
   nsUInt32 uiMoreBytes = 0;
-  nsUInt32 uiMoreChars = 0;
 
   // first figure out how much the string has to grow
   for (nsUInt32 i = 0; i < uiMaxParams; ++i)
@@ -814,10 +771,8 @@ void nsStringBuilder::AppendWithSeparator(nsStringView sOptional, nsStringView s
     NS_ASSERT_DEBUG(pStrings[i].GetStartPointer() < m_Data.GetData() || pStrings[i].GetStartPointer() >= m_Data.GetData() + m_Data.GetCapacity(),
       "Parameter {0} comes from the string builders own storage. This type assignment is not allowed.", i);
 
-    nsUInt32 uiCharacters = 0;
-    nsStringUtils::GetCharacterAndElementCount(pStrings[i].GetStartPointer(), uiCharacters, uiStrLen[i], pStrings[i].GetEndPointer());
+    uiStrLen[i] = pStrings[i].GetElementCount();
     uiMoreBytes += uiStrLen[i];
-    uiMoreChars += uiCharacters;
 
     NS_ASSERT_DEV(nsUnicodeUtils::IsValidUtf8(pStrings[i].GetStartPointer(), pStrings[i].GetEndPointer()), "Parameter {0} is not a valid Utf8 sequence.", i + 1);
   }
@@ -833,7 +788,6 @@ void nsStringBuilder::AppendWithSeparator(nsStringView sOptional, nsStringView s
 
   // now resize
   m_Data.SetCountUninitialized(uiPrevCount + uiMoreBytes);
-  m_uiCharacterCount += uiMoreChars;
 
   // and then append all the strings
   for (nsUInt32 i = 0; i < uiMaxParams; ++i)
@@ -871,10 +825,21 @@ void nsStringBuilder::ChangeFileExtension(nsStringView sNewExtension)
 
   const nsStringView it = nsPathUtils::GetFileExtension(GetView());
 
-  if (it.IsEmpty() && !EndsWith("."))
-    Append(".", sNewExtension);
+  if (it.IsEmpty())
+  {
+    if (!EndsWith("."))
+    {
+      Append(".", sNewExtension);
+    }
+    else
+    {
+      Append(sNewExtension);
+    }
+  }
   else
+  {
     ReplaceSubString(it.GetStartPointer(), it.GetEndPointer(), sNewExtension);
+  }
 }
 
 void nsStringBuilder::RemoveFileExtension()
@@ -1033,12 +998,9 @@ void nsStringBuilder::RemoveDoubleSlashesInPath()
   const nsUInt32 uiPrevByteCount = m_Data.GetCount();
   const nsUInt32 uiNewByteCount = (nsUInt32)(szCurWritePos - &m_Data[0]) + 1;
 
+  NS_IGNORE_UNUSED(uiPrevByteCount);
   NS_ASSERT_DEBUG(uiPrevByteCount >= uiNewByteCount, "It should not be possible that a path grows during cleanup. Old: {0} Bytes, New: {1} Bytes",
     uiPrevByteCount, uiNewByteCount);
-
-  // we will only remove characters and only ASCII ones (slash, backslash)
-  // so the number of characters shrinks equally to the number of bytes
-  m_uiCharacterCount -= (uiPrevByteCount - uiNewByteCount);
 
   // make sure to write the terminating \0 and reset the count
   *szCurWritePos = '\0';
@@ -1070,7 +1032,7 @@ void nsStringBuilder::ReadAll(nsStreamReader& inout_stream)
 
 void nsStringBuilder::Trim(const char* szTrimChars)
 {
-  return Trim(szTrimChars, szTrimChars);
+  Trim(szTrimChars, szTrimChars);
 }
 
 void nsStringBuilder::Trim(const char* szTrimCharsStart, const char* szTrimCharsEnd)
@@ -1079,6 +1041,16 @@ void nsStringBuilder::Trim(const char* szTrimCharsStart, const char* szTrimChars
   const char* szNewEnd = GetData() + GetElementCount();
   nsStringUtils::Trim(szNewStart, szNewEnd, szTrimCharsStart, szTrimCharsEnd);
   Shrink(nsStringUtils::GetCharacterCount(GetData(), szNewStart), nsStringUtils::GetCharacterCount(szNewEnd, GetData() + GetElementCount()));
+}
+
+void nsStringBuilder::TrimLeft(const char* szTrimChars /*= " \f\n\r\t\v"*/)
+{
+  Trim(szTrimChars, "");
+}
+
+void nsStringBuilder::TrimRight(const char* szTrimChars /*= " \f\n\r\t\v"*/)
+{
+  Trim("", szTrimChars);
 }
 
 bool nsStringBuilder::TrimWordStart(nsStringView sWord)
@@ -1120,7 +1092,7 @@ bool nsStringBuilder::TrimWordEnd(nsStringView sWord)
   return trimmed;
 }
 
-void nsStringBuilder::Format(const nsFormatString& string)
+void nsStringBuilder::SetFormat(const nsFormatString& string)
 {
   Clear();
   nsStringView sText = string.GetText(*this);
@@ -1145,14 +1117,55 @@ void nsStringBuilder::PrependFormat(const nsFormatString& string)
   Prepend(string.GetText(tmp));
 }
 
-void nsStringBuilder::Printf(const char* szUtf8Format, ...)
+void nsStringBuilder::SetPrintf(const char* szUtf8Format, ...)
 {
   va_list args;
   va_start(args, szUtf8Format);
 
-  PrintfArgs(szUtf8Format, args);
+  SetPrintfArgs(szUtf8Format, args);
 
   va_end(args);
 }
 
-NS_STATICLINK_FILE(Foundation, Foundation_Strings_Implementation_StringBuilder);
+#if NS_ENABLED(NS_INTEROP_STL_STRINGS)
+nsStringBuilder::nsStringBuilder(const std::string_view& rhs, nsAllocator* pAllocator)
+  : m_Data(pAllocator)
+{
+  AppendTerminator();
+
+  *this = rhs;
+}
+
+nsStringBuilder::nsStringBuilder(const std::string& rhs, nsAllocator* pAllocator)
+  : m_Data(pAllocator)
+{
+  AppendTerminator();
+
+  *this = rhs;
+}
+
+void nsStringBuilder::operator=(const std::string_view& rhs)
+{
+  if (rhs.empty())
+  {
+    Clear();
+  }
+  else
+  {
+    *this = nsStringView(rhs.data(), rhs.data() + rhs.size());
+  }
+}
+
+void nsStringBuilder::operator=(const std::string& rhs)
+{
+  if (rhs.empty())
+  {
+    Clear();
+  }
+  else
+  {
+    *this = nsStringView(rhs.data(), rhs.data() + rhs.size());
+  }
+}
+
+#endif

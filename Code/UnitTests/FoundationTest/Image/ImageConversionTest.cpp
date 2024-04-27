@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 
@@ -115,9 +110,9 @@ private:
 
       NS_TEST_BOOL(m_Image.Convert(nsImageFormat::R32G32B32A32_FLOAT).Succeeded());
 
-      float posInf = +nsMath::Infinity<float>();
-      float negInf = -nsMath::Infinity<float>();
-      float NaN = nsMath::NaN<float>();
+      const float posInf = +nsMath::Infinity<float>();
+      const float negInf = -nsMath::Infinity<float>();
+      const float NaN = nsMath::NaN<float>();
 
       for (nsUInt32 y = 0; y < m_Image.GetHeight(); ++y)
       {

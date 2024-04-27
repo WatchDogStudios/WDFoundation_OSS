@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 
 template <typename T, nsUInt32 BlockSize, nsBlockStorageType::Enum StorageType>
 NS_FORCE_INLINE nsBlockStorage<T, BlockSize, StorageType>::ConstIterator::ConstIterator(
@@ -106,7 +101,7 @@ NS_ALWAYS_INLINE nsBlockStorage<T, BlockSize, StorageType>::Iterator::operator T
 
 template <typename T, nsUInt32 BlockSize, nsBlockStorageType::Enum StorageType>
 NS_FORCE_INLINE nsBlockStorage<T, BlockSize, StorageType>::nsBlockStorage(
-  nsLargeBlockAllocator<BlockSize>* pBlockAllocator, nsAllocatorBase* pAllocator)
+  nsLargeBlockAllocator<BlockSize>* pBlockAllocator, nsAllocator* pAllocator)
   : m_pBlockAllocator(pBlockAllocator)
   , m_Blocks(pAllocator)
 
@@ -186,7 +181,7 @@ T* nsBlockStorage<T, BlockSize, StorageType>::Create()
     ++m_uiCount;
   }
 
-  nsMemoryUtils::Construct(pNewObject, 1);
+  nsMemoryUtils::Construct<SkipTrivialTypes>(pNewObject, 1);
 
   if (StorageType == nsBlockStorageType::FreeList)
   {
@@ -261,7 +256,7 @@ NS_FORCE_INLINE void nsBlockStorage<T, BlockSize, StorageType>::Delete(T* pObjec
   nsUInt32 uiIndex = nsInvalidIndex;
   for (nsUInt32 uiBlockIndex = 0; uiBlockIndex < m_Blocks.GetCount(); ++uiBlockIndex)
   {
-    ptrdiff_t diff = pObject - m_Blocks[uiBlockIndex].m_pData;
+    std::ptrdiff_t diff = pObject - m_Blocks[uiBlockIndex].m_pData;
     if (diff >= 0 && diff < nsDataBlock<T, BlockSize>::CAPACITY)
     {
       uiIndex = uiBlockIndex * nsDataBlock<T, BlockSize>::CAPACITY + (nsInt32)diff;

@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 
 namespace nsInternal
 {
@@ -67,7 +62,10 @@ namespace nsInternal
     constexpr NS_ALWAYS_INLINE nsUInt32 operator()(nsUInt32 uiHash, const char (&str)[N], size_t i) const { return uiHash; }
   };
 
-  constexpr nsUInt32 rightShift_and_xorWithPrevSelf(nsUInt32 h, nsUInt32 uiShift) { return h ^ (h >> uiShift); }
+  constexpr nsUInt32 rightShift_and_xorWithPrevSelf(nsUInt32 h, nsUInt32 uiShift)
+  {
+    return h ^ (h >> uiShift);
+  }
 } // namespace nsInternal
 
 template <size_t N>

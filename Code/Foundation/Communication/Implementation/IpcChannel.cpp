@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Communication/Implementation/IpcChannelEnet.h>
@@ -12,9 +7,9 @@
 #include <Foundation/Logging/Log.h>
 
 #if NS_ENABLED(NS_PLATFORM_WINDOWS_DESKTOP)
-#  include <Foundation/Communication/Implementation/Win/PipeChannel_win.h>
+#  include <Foundation/Platform/Win/PipeChannel_Win.h>
 #elif NS_ENABLED(NS_PLATFORM_LINUX)
-#  include <Foundation/Communication/Implementation/Linux/PipeChannel_linux.h>
+#  include <Foundation/Platform/Linux/PipeChannel_Linux.h>
 #endif
 
 NS_CHECK_AT_COMPILETIME((nsInt32)nsIpcChannel::ConnectionState::Disconnected == (nsInt32)nsIpcChannelEvent::Disconnected);
@@ -95,21 +90,21 @@ bool nsIpcChannel::Send(nsArrayPtr<const nsUInt8> data)
   }
   if (IsConnected())
   {
+    NS_LOCK(m_pOwner->m_TasksMutex);
+    if (!m_pOwner->m_SendQueue.Contains(this))
+      m_pOwner->m_SendQueue.PushBack(this);
     if (NeedWakeup())
     {
-      NS_LOCK(m_pOwner->m_TasksMutex);
-      if (!m_pOwner->m_SendQueue.Contains(this))
-        m_pOwner->m_SendQueue.PushBack(this);
       m_pOwner->WakeUp();
-      return true;
     }
+    return true;
   }
   return false;
 }
 
 void nsIpcChannel::SetReceiveCallback(ReceiveCallback callback)
 {
-  NS_LOCK(m_IncomingQueueMutex);
+  NS_LOCK(m_ReceiveCallbackMutex);
   m_ReceiveCallback = callback;
 }
 
@@ -141,13 +136,9 @@ void nsIpcChannel::SetConnectionState(nsEnum<nsIpcChannel::ConnectionState> stat
 
 void nsIpcChannel::ReceiveData(nsArrayPtr<const nsUInt8> data)
 {
-  ReceiveCallback receiveCallback;
-  {
-    NS_LOCK(m_IncomingQueueMutex);
-    receiveCallback = m_ReceiveCallback;
-  }
+  NS_LOCK(m_ReceiveCallbackMutex);
 
-  if (!receiveCallback.IsValid())
+  if (!m_ReceiveCallback.IsValid())
   {
     m_MessageAccumulator.PushBackRange(data);
     return;
@@ -209,5 +200,3 @@ void nsIpcChannel::FlushPendingOperations()
 {
   m_pOwner->WaitForMessages(-1, this);
 }
-
-NS_STATICLINK_FILE(Foundation, Foundation_Communication_Implementation_IpcChannel);

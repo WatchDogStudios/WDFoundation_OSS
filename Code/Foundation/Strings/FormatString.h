@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Basics.h>
@@ -14,7 +9,7 @@ struct nsStringView;
 /// \brief Implements formating of strings with placeholders and formatting options.
 ///
 /// nsFormatString can be used anywhere where a string should be formatable when passing it into a function.
-/// Good examples are nsStringBuilder::Format() or nsLog::Info().
+/// Good examples are nsStringBuilder::SetFormat() or nsLog::Info().
 ///
 /// A function taking an nsFormatString can internally call nsFormatString::GetText() to retrieve he formatted result.
 /// When calling such a function, one must wrap the parameter into 'nsFmt' to enable formatting options, example:
@@ -49,7 +44,7 @@ struct nsStringView;
 ///   nsArgFileSize - for representing file sizes
 ///
 /// Example:
-///   nsStringBuilder::Format("HEX: {}", nsArgU(1337, 8 /*width*/, true /*pad with zeros*/, 16 /*base16*/, true/*upper case*/));
+///   nsStringBuilder::SetFormat("HEX: {}", nsArgU(1337, 8 /*width*/, true /*pad with zeros*/, 16 /*base16*/, true/*upper case*/));
 ///
 /// Arbitrary other types can support special formatting even without an nsArgXY call. E.g. nsTime and nsAngle do special formatting.
 /// nsArgXY calls are only necessary if formatting options are needed for a specific formatting should be enforced (e.g. nsArgErrorCode

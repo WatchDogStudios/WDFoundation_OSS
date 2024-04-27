@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Basics.h>
@@ -290,7 +285,7 @@ namespace nsConversionUtils
 
   /// \brief The inverse of GetColorByName
   NS_FOUNDATION_DLL nsString GetColorName(const nsColor& col); // [tested]
-};                                                             // namespace nsConversionUtils
+}; // namespace nsConversionUtils
 
 template <typename APPEND_CONTAINER_LAMBDA>
 inline void nsConversionUtils::ConvertBinaryToHex(const void* pBinaryData, nsUInt32 uiBytes, APPEND_CONTAINER_LAMBDA append) // [tested]

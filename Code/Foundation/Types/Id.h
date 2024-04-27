@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 /// \file
@@ -15,13 +10,34 @@
   static const StorageType INVALID_INSTANCE_INDEX = MAX_INSTANCES - 1;                                     \
   static const StorageType INDEX_AND_GENERATION_MASK = (1ULL << (instanceIndexBits + generationBits)) - 1; \
   NS_DECLARE_POD_TYPE();                                                                                   \
-  NS_ALWAYS_INLINE name() { m_Data = INVALID_INSTANCE_INDEX; }                                             \
-  NS_ALWAYS_INLINE explicit name(StorageType internalData) { m_Data = internalData; }                      \
-  NS_ALWAYS_INLINE bool operator==(const name other) const { return m_Data == other.m_Data; }              \
-  NS_ALWAYS_INLINE bool operator!=(const name other) const { return m_Data != other.m_Data; }              \
-  NS_ALWAYS_INLINE bool operator<(const name other) const { return m_Data < other.m_Data; }                \
-  NS_ALWAYS_INLINE void Invalidate() { m_Data = INVALID_INSTANCE_INDEX; }                                  \
-  NS_ALWAYS_INLINE bool IsInvalidated() const { return m_Data == INVALID_INSTANCE_INDEX; }                 \
+  NS_ALWAYS_INLINE name()                                                                                  \
+  {                                                                                                        \
+    m_Data = INVALID_INSTANCE_INDEX;                                                                       \
+  }                                                                                                        \
+  NS_ALWAYS_INLINE explicit name(StorageType internalData)                                                 \
+  {                                                                                                        \
+    m_Data = internalData;                                                                                 \
+  }                                                                                                        \
+  NS_ALWAYS_INLINE bool operator==(const name other) const                                                 \
+  {                                                                                                        \
+    return m_Data == other.m_Data;                                                                         \
+  }                                                                                                        \
+  NS_ALWAYS_INLINE bool operator!=(const name other) const                                                 \
+  {                                                                                                        \
+    return m_Data != other.m_Data;                                                                         \
+  }                                                                                                        \
+  NS_ALWAYS_INLINE bool operator<(const name other) const                                                  \
+  {                                                                                                        \
+    return m_Data < other.m_Data;                                                                          \
+  }                                                                                                        \
+  NS_ALWAYS_INLINE void Invalidate()                                                                       \
+  {                                                                                                        \
+    m_Data = INVALID_INSTANCE_INDEX;                                                                       \
+  }                                                                                                        \
+  NS_ALWAYS_INLINE bool IsInvalidated() const                                                              \
+  {                                                                                                        \
+    return m_Data == INVALID_INSTANCE_INDEX;                                                               \
+  }                                                                                                        \
   NS_ALWAYS_INLINE bool IsIndexAndGenerationEqual(const name other) const                                  \
   {                                                                                                        \
     return (m_Data & INDEX_AND_GENERATION_MASK) == (other.m_Data & INDEX_AND_GENERATION_MASK);             \
@@ -60,23 +76,47 @@ struct nsGenericId
   };
 };
 
-#define NS_DECLARE_HANDLE_TYPE(name, idType)                                                              \
-public:                                                                                                   \
-  NS_DECLARE_POD_TYPE();                                                                                  \
-  NS_ALWAYS_INLINE name() {}                                                                              \
-  NS_ALWAYS_INLINE explicit name(idType internalId)                                                       \
-    : m_InternalId(internalId)                                                                            \
-  {                                                                                                       \
-  }                                                                                                       \
-  NS_ALWAYS_INLINE bool operator==(const name other) const { return m_InternalId == other.m_InternalId; } \
-  NS_ALWAYS_INLINE bool operator!=(const name other) const { return m_InternalId != other.m_InternalId; } \
-  NS_ALWAYS_INLINE bool operator<(const name other) const { return m_InternalId < other.m_InternalId; }   \
-  NS_ALWAYS_INLINE void Invalidate() { m_InternalId.Invalidate(); }                                       \
-  NS_ALWAYS_INLINE bool IsInvalidated() const { return m_InternalId.IsInvalidated(); }                    \
-  NS_ALWAYS_INLINE idType GetInternalID() const { return m_InternalId; }                                  \
-  using IdType = idType;                                                                                  \
-                                                                                                          \
-protected:                                                                                                \
-  idType m_InternalId;                                                                                    \
-  operator idType() { return m_InternalId; }                                                              \
-  operator const idType() const { return m_InternalId; }
+#define NS_DECLARE_HANDLE_TYPE(name, idType)               \
+public:                                                    \
+  NS_DECLARE_POD_TYPE();                                   \
+  NS_ALWAYS_INLINE name() {}                               \
+  NS_ALWAYS_INLINE explicit name(idType internalId)        \
+    : m_InternalId(internalId)                             \
+  {                                                        \
+  }                                                        \
+  NS_ALWAYS_INLINE bool operator==(const name other) const \
+  {                                                        \
+    return m_InternalId == other.m_InternalId;             \
+  }                                                        \
+  NS_ALWAYS_INLINE bool operator!=(const name other) const \
+  {                                                        \
+    return m_InternalId != other.m_InternalId;             \
+  }                                                        \
+  NS_ALWAYS_INLINE bool operator<(const name other) const  \
+  {                                                        \
+    return m_InternalId < other.m_InternalId;              \
+  }                                                        \
+  NS_ALWAYS_INLINE void Invalidate()                       \
+  {                                                        \
+    m_InternalId.Invalidate();                             \
+  }                                                        \
+  NS_ALWAYS_INLINE bool IsInvalidated() const              \
+  {                                                        \
+    return m_InternalId.IsInvalidated();                   \
+  }                                                        \
+  NS_ALWAYS_INLINE idType GetInternalID() const            \
+  {                                                        \
+    return m_InternalId;                                   \
+  }                                                        \
+  using IdType = idType;                                   \
+                                                           \
+protected:                                                 \
+  idType m_InternalId;                                     \
+  operator idType()                                        \
+  {                                                        \
+    return m_InternalId;                                   \
+  }                                                        \
+  operator const idType() const                            \
+  {                                                        \
+    return m_InternalId;                                   \
+  }

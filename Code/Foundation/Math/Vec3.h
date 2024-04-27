@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Math/Math.h>
@@ -25,18 +20,20 @@ public:
   // *** Constructors ***
 public:
   /// \brief default-constructed vector is uninitialized (for speed)
-  nsVec3Template(); // [tested]
+  nsVec3Template<Type>(); // [tested]
 
   /// \brief Initializes the vector with x,y,z
-  nsVec3Template(Type x, Type y, Type z); // [tested]
+  nsVec3Template<Type>(Type x, Type y, Type z); // [tested]
 
   /// \brief Initializes all 3 components with xyz
-  explicit nsVec3Template(Type v); // [tested]
+  explicit nsVec3Template<Type>(Type v); // [tested]
 
   // no copy-constructor and operator= since the default-generated ones will be faster
 
   /// \brief Returns a vector with all components set to Not-a-Number (NaN).
-  [[nodiscard]] static nsVec3Template<Type> MakeNaN() { return nsVec3Template<Type>(nsMath::NaN<Type>()); }
+  NS_DECLARE_IF_FLOAT_TYPE
+  [[nodiscard]] static nsVec3Template<Type>
+  MakeNaN() { return nsVec3Template<Type>(nsMath::NaN<Type>()); }
 
   /// \brief Returns a vector with all components set to zero.
   [[nodiscard]] static nsVec3Template<Type> MakeZero() { return nsVec3Template<Type>(0); } // [tested]
@@ -92,10 +89,12 @@ public:
   // *** Functions dealing with length ***
 public:
   /// \brief Returns the length of the vector.
+  NS_DECLARE_IF_FLOAT_TYPE
   Type GetLength() const; // [tested]
 
   /// \brief Tries to rescale the vector to the given length. If the vector is too close to zero, NS_FAILURE is returned and the vector is
   /// set to zero.
+  NS_DECLARE_IF_FLOAT_TYPE
   nsResult SetLength(Type fNewLength, Type fEpsilon = nsMath::DefaultEpsilon<Type>()); // [tested]
 
   /// \brief Returns the squared length. Faster, since no square-root is taken. Useful, if one only wants to compare the lengths of two
@@ -104,17 +103,21 @@ public:
 
   /// \brief Normalizes this vector and returns its previous length in one operation. More efficient than calling GetLength and then
   /// Normalize.
+  NS_DECLARE_IF_FLOAT_TYPE
   Type GetLengthAndNormalize(); // [tested]
 
   /// \brief Returns a normalized version of this vector, leaves the vector itself unchanged.
+  NS_DECLARE_IF_FLOAT_TYPE
   const nsVec3Template<Type> GetNormalized() const; // [tested]
 
   /// \brief Normalizes this vector.
+  NS_DECLARE_IF_FLOAT_TYPE
   void Normalize(); // [tested]
 
   /// \brief Tries to normalize this vector. If the vector is too close to zero, NS_FAILURE is returned and the vector is set to the given
   /// fallback value.
-  nsResult NormalizeIfNotZero(const nsVec3Template<Type>& vFallback = nsVec3Template(1, 0, 0), Type fEpsilon = nsMath::SmallEpsilon<Type>()); // [tested]
+  NS_DECLARE_IF_FLOAT_TYPE
+  nsResult NormalizeIfNotZero(const nsVec3Template<Type>& vFallback = nsVec3Template<Type>(1, 0, 0), Type fEpsilon = nsMath::SmallEpsilon<Type>()); // [tested]
 
   /// \brief Returns, whether this vector is (0, 0, 0).
   bool IsZero() const; // [tested]
@@ -123,6 +126,7 @@ public:
   bool IsZero(Type fEpsilon) const; // [tested]
 
   /// \brief Returns, whether the squared length of this vector is between 0.999f and 1.001f.
+  NS_DECLARE_IF_FLOAT_TYPE
   bool IsNormalized(Type fEpsilon = nsMath::HugeEpsilon<Type>()) const; // [tested]
 
   /// \brief Returns true, if any of x, y or z is NaN
@@ -198,45 +202,62 @@ public:
   // *** Other common operations ***
 public:
   /// \brief Calculates the normal of the triangle defined by the three vertices. Vertices are assumed to be ordered counter-clockwise.
+  NS_DECLARE_IF_FLOAT_TYPE
   nsResult CalculateNormal(const nsVec3Template<Type>& v1, const nsVec3Template<Type>& v2, const nsVec3Template<Type>& v3); // [tested]
 
   /// \brief Modifies this direction vector to be orthogonal to the given (normalized) direction vector. The result is NOT normalized.
   ///
   /// \note This function may fail, e.g. create a vector that is zero, if the given normal is parallel to the vector itself.
   ///       If you need to handle such cases, you should manually check afterwards, whether the result is zero, or cannot be normalized.
+  NS_DECLARE_IF_FLOAT_TYPE
   void MakeOrthogonalTo(const nsVec3Template<Type>& vNormal); // [tested]
 
   /// \brief Returns some arbitrary vector orthogonal to this one. The vector is NOT normalized.
+  NS_DECLARE_IF_FLOAT_TYPE
   const nsVec3Template<Type> GetOrthogonalVector() const; // [tested]
 
   /// \brief Returns this vector reflected at vNormal.
+  NS_DECLARE_IF_FLOAT_TYPE
   const nsVec3Template<Type> GetReflectedVector(const nsVec3Template<Type>& vNormal) const; // [tested]
 
   /// \brief Returns this vector, refracted at vNormal, using the refraction index of the current medium and the medium it enters.
+  NS_DECLARE_IF_FLOAT_TYPE
   const nsVec3Template<Type> GetRefractedVector(const nsVec3Template<Type>& vNormal, Type fRefIndex1, Type fRefIndex2) const;
 
   /// \brief Returns a random point inside a unit sphere (radius 1).
-  [[nodiscard]] static nsVec3Template<Type> MakeRandomPointInSphere(nsRandom& inout_rng);                                                          // [tested]
+  NS_DECLARE_IF_FLOAT_TYPE
+  [[nodiscard]] static nsVec3Template<Type>
+  MakeRandomPointInSphere(nsRandom& inout_rng); // [tested]
 
   /// \brief Creates a random direction vector. The vector is normalized.
-  [[nodiscard]] static nsVec3Template<Type> MakeRandomDirection(nsRandom& inout_rng);                                                      // [tested]
+  NS_DECLARE_IF_FLOAT_TYPE
+  [[nodiscard]] static nsVec3Template<Type>
+  MakeRandomDirection(nsRandom& inout_rng); // [tested]
 
   /// \brief Creates a random vector around the x axis with a maximum deviation angle of \a maxDeviation. The vector is normalized.
   /// The deviation angle must be larger than zero.
-  [[nodiscard]] static nsVec3Template<Type> MakeRandomDeviationX(nsRandom& inout_rng, const nsAngle& maxDeviation);                                                       // [tested]
+  NS_DECLARE_IF_FLOAT_TYPE
+  [[nodiscard]] static nsVec3Template<Type>
+  MakeRandomDeviationX(nsRandom& inout_rng, const nsAngle& maxDeviation); // [tested]
 
   /// \brief Creates a random vector around the y axis with a maximum deviation angle of \a maxDeviation. The vector is normalized.
   /// The deviation angle must be larger than zero.
-  [[nodiscard]] static nsVec3Template<Type> MakeRandomDeviationY(nsRandom& inout_rng, const nsAngle& maxDeviation);                                                       // [tested]
+  NS_DECLARE_IF_FLOAT_TYPE
+  [[nodiscard]] static nsVec3Template<Type>
+  MakeRandomDeviationY(nsRandom& inout_rng, const nsAngle& maxDeviation); // [tested]
 
   /// \brief Creates a random vector around the z axis with a maximum deviation angle of \a maxDeviation. The vector is normalized.
   /// The deviation angle must be larger than zero.
-  [[nodiscard]] static nsVec3Template<Type> MakeRandomDeviationZ(nsRandom& inout_rng, const nsAngle& maxDeviation);                                                       // [tested]
+  NS_DECLARE_IF_FLOAT_TYPE
+  [[nodiscard]] static nsVec3Template<Type>
+  MakeRandomDeviationZ(nsRandom& inout_rng, const nsAngle& maxDeviation); // [tested]
 
   /// \brief Creates a random vector around the given normal with a maximum deviation.
   /// \note If you are going to do this many times with the same axis, rather than calling this function, instead manually
   /// do what this function does (see inline code) and only compute the quaternion once.
-  [[nodiscard]] static nsVec3Template<Type> MakeRandomDeviation(nsRandom& inout_rng, const nsAngle& maxDeviation, const nsVec3Template<Type>& vNormal);                                                      // [tested]
+  NS_DECLARE_IF_FLOAT_TYPE
+  [[nodiscard]] static nsVec3Template<Type>
+  MakeRandomDeviation(nsRandom& inout_rng, const nsAngle& maxDeviation, const nsVec3Template<Type>& vNormal); // [tested]
 };
 
 // *** Operators ***

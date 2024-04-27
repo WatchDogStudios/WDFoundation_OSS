@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/CodeUtils/Expression/ExpressionAST.h>
@@ -153,6 +148,8 @@ namespace
     "Clamp",
     "Select",
     "Lerp",
+    "SmoothStep",
+    "SmootherStep",
     "",
 
     "Constant",
@@ -267,15 +264,17 @@ namespace
     {SIG3(Float, Float, Float, Float), SIG3(Int, Int, Int, Int)},                               // Clamp,
     {SIG3(Float, Bool, Float, Float), SIG3(Int, Bool, Int, Int), SIG3(Bool, Bool, Bool, Bool)}, // Select,
     {SIG3(Float, Float, Float, Float)},                                                         // Lerp,
+    {SIG3(Float, Float, Float, Float)},                                                         // SmoothStep,
+    {SIG3(Float, Float, Float, Float)},                                                         // SmootherStep,
     {},                                                                                         // LastTernary,
 
-    {}, // Constant,
-    {}, // Swizzle,
-    {}, // Input,
-    {}, // Output,
+    {},                                                                                         // Constant,
+    {},                                                                                         // Swizzle,
+    {},                                                                                         // Input,
+    {},                                                                                         // Output,
 
-    {}, // FunctionCall,
-    {}, // ConstructorCall,
+    {},                                                                                         // FunctionCall,
+    {},                                                                                         // ConstructorCall,
   };
 
   static_assert(NS_ARRAY_SIZE(s_NodeTypeOverloads) == nsExpressionAST::NodeType::Count);
@@ -297,25 +296,25 @@ const char* nsExpressionAST::NodeType::GetName(Enum nodeType)
 namespace
 {
   static nsVariantType::Enum s_DataTypeVariantTypes[] = {
-    nsVariantType::Invalid, // Unknown,
-    nsVariantType::Invalid, // Unknown2,
-    nsVariantType::Invalid, // Unknown3,
-    nsVariantType::Invalid, // Unknown4,
+    nsVariantType::Invalid,  // Unknown,
+    nsVariantType::Invalid,  // Unknown2,
+    nsVariantType::Invalid,  // Unknown3,
+    nsVariantType::Invalid,  // Unknown4,
 
-    nsVariantType::Bool,    // Bool,
-    nsVariantType::Invalid, // Bool2,
-    nsVariantType::Invalid, // Bool3,
-    nsVariantType::Invalid, // Bool4,
+    nsVariantType::Bool,     // Bool,
+    nsVariantType::Invalid,  // Bool2,
+    nsVariantType::Invalid,  // Bool3,
+    nsVariantType::Invalid,  // Bool4,
 
     nsVariantType::Int32,    // Int,
     nsVariantType::Vector2I, // Int2,
     nsVariantType::Vector3I, // Int3,
     nsVariantType::Vector4I, // Int4,
 
-    nsVariantType::Float,   // Float,
-    nsVariantType::Vector2, // Float2,
-    nsVariantType::Vector3, // Float3,
-    nsVariantType::Vector4, // Float4,
+    nsVariantType::Float,    // Float,
+    nsVariantType::Vector2,  // Float2,
+    nsVariantType::Vector3,  // Float3,
+    nsVariantType::Vector4,  // Float4,
   };
   static_assert(NS_ARRAY_SIZE(s_DataTypeVariantTypes) == (size_t)nsExpressionAST::DataType::Count);
 
@@ -330,20 +329,20 @@ namespace
     nsExpressionAST::DataType::Float3, // Float3,
     nsExpressionAST::DataType::Float4, // Float4,
 
-    nsExpressionAST::DataType::Int,  // Byte,
-    nsExpressionAST::DataType::Int2, // Byte2,
-    nsExpressionAST::DataType::Int3, // Byte3,
-    nsExpressionAST::DataType::Int4, // Byte4,
+    nsExpressionAST::DataType::Int,    // Byte,
+    nsExpressionAST::DataType::Int2,   // Byte2,
+    nsExpressionAST::DataType::Int3,   // Byte3,
+    nsExpressionAST::DataType::Int4,   // Byte4,
 
-    nsExpressionAST::DataType::Int,  // Short,
-    nsExpressionAST::DataType::Int2, // Short2,
-    nsExpressionAST::DataType::Int3, // Short3,
-    nsExpressionAST::DataType::Int4, // Short4,
+    nsExpressionAST::DataType::Int,    // Short,
+    nsExpressionAST::DataType::Int2,   // Short2,
+    nsExpressionAST::DataType::Int3,   // Short3,
+    nsExpressionAST::DataType::Int4,   // Short4,
 
-    nsExpressionAST::DataType::Int,  // Int,
-    nsExpressionAST::DataType::Int2, // Int2,
-    nsExpressionAST::DataType::Int3, // Int3,
-    nsExpressionAST::DataType::Int4, // Int4,
+    nsExpressionAST::DataType::Int,    // Int,
+    nsExpressionAST::DataType::Int2,   // Int2,
+    nsExpressionAST::DataType::Int3,   // Int3,
+    nsExpressionAST::DataType::Int4,   // Int4,
   };
   static_assert(NS_ARRAY_SIZE(s_DataTypeFromStreamType) == (size_t)nsProcessingStream::DataType::Count);
 
@@ -358,20 +357,20 @@ namespace
     "Unknown3", // Unknown3,
     "Unknown4", // Unknown4,
 
-    "Bool",  // Bool,
-    "Bool2", // Bool2,
-    "Bool3", // Bool3,
-    "Bool4", // Bool4,
+    "Bool",     // Bool,
+    "Bool2",    // Bool2,
+    "Bool3",    // Bool3,
+    "Bool4",    // Bool4,
 
-    "Int",  // Int,
-    "Int2", // Int2,
-    "Int3", // Int3,
-    "Int4", // Int4,
+    "Int",      // Int,
+    "Int2",     // Int2,
+    "Int3",     // Int3,
+    "Int4",     // Int4,
 
-    "Float",  // Float,
-    "Float2", // Float2,
-    "Float3", // Float3,
-    "Float4", // Float4,
+    "Float",    // Float,
+    "Float2",   // Float2,
+    "Float3",   // Float3,
+    "Float4",   // Float4,
   };
 
   static_assert(NS_ARRAY_SIZE(s_szDataTypeNames) == nsExpressionAST::DataType::Count);
@@ -510,6 +509,7 @@ nsExpressionAST::TernaryOperator* nsExpressionAST::CreateTernaryOperator(NodeTyp
 nsExpressionAST::Constant* nsExpressionAST::CreateConstant(const nsVariant& value, DataType::Enum dataType /*= DataType::Float*/)
 {
   nsVariantType::Enum variantType = DataType::GetVariantType(dataType);
+  NS_IGNORE_UNUSED(variantType);
   NS_ASSERT_DEV(variantType != nsVariantType::Invalid, "Invalid constant type '{}'", DataType::GetName(dataType));
 
   auto pConstant = NS_NEW(&m_Allocator, Constant);
@@ -569,6 +569,7 @@ nsExpressionAST::Input* nsExpressionAST::CreateInput(const nsExpression::StreamD
   auto pInput = NS_NEW(&m_Allocator, Input);
   pInput->m_Type = NodeType::Input;
   pInput->m_ReturnType = DataType::FromStreamType(desc.m_DataType);
+  pInput->m_uiNumInputElements = static_cast<nsUInt8>(DataType::GetElementCount(pInput->m_ReturnType));
   pInput->m_Desc = desc;
 
   return pInput;
@@ -919,7 +920,8 @@ void nsExpressionAST::ResolveOverloads(Node* pNode)
     return;
   }
 
-  auto CalculateMatchDistance = [](nsArrayPtr<Node*> children, nsArrayPtr<const nsEnum<nsExpression::RegisterType>> expectedTypes, nsUInt32 uiNumRequiredArgs, nsUInt32& ref_uiMaxNumElements) {
+  auto CalculateMatchDistance = [](nsArrayPtr<Node*> children, nsArrayPtr<const nsEnum<nsExpression::RegisterType>> expectedTypes, nsUInt32 uiNumRequiredArgs, nsUInt32& ref_uiMaxNumElements)
+  {
     if (children.GetCount() < uiNumRequiredArgs)
     {
       return nsInvalidIndex;
@@ -1265,6 +1267,3 @@ bool nsExpressionAST::IsEqual(const Node* pNodeA, const Node* pNodeB)
   NS_ASSERT_NOT_IMPLEMENTED;
   return false;
 }
-
-
-NS_STATICLINK_FILE(Foundation, Foundation_CodeUtils_Expression_Implementation_ExpressionAST);

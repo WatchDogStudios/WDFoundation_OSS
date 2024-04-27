@@ -1,14 +1,9 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Communication/IpcProcessMessageProtocol.h>
-//#include <Foundation/Communication/Implementation/MessageLoop.h>
+// #include <Foundation/Communication/Implementation/MessageLoop.h>
 #include <Foundation/Communication/IpcChannel.h>
-//#include <Foundation/Communication/RemoteMessage.h>
+// #include <Foundation/Communication/RemoteMessage.h>
 #include <Foundation/Logging/Log.h>
 #include <Foundation/Serialization/ReflectionSerializer.h>
 
@@ -96,5 +91,3 @@ void nsIpcProcessMessageProtocol::SwapWorkQueue(nsDeque<nsUniquePtr<nsProcessMes
     return;
   messages.Swap(m_IncomingQueue);
 }
-
-NS_STATICLINK_FILE(Foundation, Foundation_Communication_Implementation_IpcProcessMessageProtocol);

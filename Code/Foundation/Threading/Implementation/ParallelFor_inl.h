@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Memory/FrameAllocator.h>
@@ -63,7 +58,7 @@ void nsTaskSystem::ParallelForInternal(nsArrayPtr<ElemType> taskItems, nsParalle
     nsUInt64 uiItemsPerInvocation;
     params.DetermineThreading(taskItems.GetCount(), uiMultiplicity, uiItemsPerInvocation);
 
-    nsAllocatorBase* pAllocator = (params.m_pTaskAllocator != nullptr) ? params.m_pTaskAllocator : nsFoundation::GetDefaultAllocator();
+    nsAllocator* pAllocator = (params.m_pTaskAllocator != nullptr) ? params.m_pTaskAllocator : nsFoundation::GetDefaultAllocator();
 
     nsSharedPtr<ArrayPtrTask<ElemType>> pArrayPtrTask = NS_NEW(pAllocator, ArrayPtrTask<ElemType>, taskItems, std::move(taskCallback), static_cast<nsUInt32>(uiItemsPerInvocation));
     pArrayPtrTask->ConfigureTask(taskName ? taskName : "Generic ArrayPtr Task", params.m_NestingMode);
@@ -78,7 +73,8 @@ template <typename ElemType, typename Callback>
 void nsTaskSystem::ParallelFor(nsArrayPtr<ElemType> taskItems, Callback taskCallback, const char* szTaskName, const nsParallelForParams& params)
 {
   auto wrappedCallback = [taskCallback = std::move(taskCallback)](
-                           nsUInt32 /*uiBaseIndex*/, nsArrayPtr<ElemType> taskSlice) { taskCallback(taskSlice); };
+                           nsUInt32 /*uiBaseIndex*/, nsArrayPtr<ElemType> taskSlice)
+  { taskCallback(taskSlice); };
 
   ParallelForInternal<ElemType>(
     taskItems, nsParallelForFunction<ElemType>(std::move(wrappedCallback), nsFrameAllocator::GetCurrentAllocator()), szTaskName, params);
@@ -87,7 +83,8 @@ void nsTaskSystem::ParallelFor(nsArrayPtr<ElemType> taskItems, Callback taskCall
 template <typename ElemType, typename Callback>
 void nsTaskSystem::ParallelForSingle(nsArrayPtr<ElemType> taskItems, Callback taskCallback, const char* szTaskName, const nsParallelForParams& params)
 {
-  auto wrappedCallback = [taskCallback = std::move(taskCallback)](nsUInt32 /*uiBaseIndex*/, nsArrayPtr<ElemType> taskSlice) {
+  auto wrappedCallback = [taskCallback = std::move(taskCallback)](nsUInt32 /*uiBaseIndex*/, nsArrayPtr<ElemType> taskSlice)
+  {
     // Handing in by non-const& allows to use callbacks with (non-)const& as well as value parameters.
     for (ElemType& taskItem : taskSlice)
     {
@@ -103,7 +100,8 @@ template <typename ElemType, typename Callback>
 void nsTaskSystem::ParallelForSingleIndex(
   nsArrayPtr<ElemType> taskItems, Callback taskCallback, const char* szTaskName, const nsParallelForParams& params)
 {
-  auto wrappedCallback = [taskCallback = std::move(taskCallback)](nsUInt32 uiBaseIndex, nsArrayPtr<ElemType> taskSlice) {
+  auto wrappedCallback = [taskCallback = std::move(taskCallback)](nsUInt32 uiBaseIndex, nsArrayPtr<ElemType> taskSlice)
+  {
     for (nsUInt32 uiIndex = 0; uiIndex < taskSlice.GetCount(); ++uiIndex)
     {
       // Handing in by dereferenced pointer allows to use callbacks with (non-)const& as well as value parameters.

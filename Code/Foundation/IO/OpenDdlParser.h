@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Basics.h>
@@ -189,7 +184,7 @@ private:
   nsStreamReader* m_pInput;
   nsDynamicArray<nsUInt8> m_Cache;
 
-  static const nsUInt32 s_uiMaxIdentifierLength = 64;
+  static constexpr nsUInt32 s_uiMaxIdentifierLength = 64;
 
   nsUInt8 m_uiCurByte;
   nsUInt8 m_uiNextByte;

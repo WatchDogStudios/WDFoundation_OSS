@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 
 #pragma once
 
@@ -14,5 +9,6 @@
 // These use the __pragma version to control the warnings so that they can be used within other macros etc.
 #define NS_MSVC_ANALYSIS_WARNING_PUSH __pragma(warning(push))
 #define NS_MSVC_ANALYSIS_WARNING_POP __pragma(warning(pop))
-#define NS_MSVC_ANALYSIS_WARNING_DISABLE(warningNumber) __pragma(warning(disable : warningNumber))
+#define NS_MSVC_ANALYSIS_WARNING_DISABLE(warningNumber) __pragma(warning(disable \
+                                                                         : warningNumber))
 #define NS_MSVC_ANALYSIS_ASSUME(expression) __assume(expression)

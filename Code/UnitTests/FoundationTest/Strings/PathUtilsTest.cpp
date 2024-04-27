@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/Strings/String.h>
@@ -42,11 +37,45 @@ NS_CREATE_SIMPLE_TEST(Strings, PathUtils)
     NS_TEST_BOOL(nsPathUtils::FindPreviousSeparator(nullptr, nullptr) == nullptr);
   }
 
+  NS_TEST_BLOCK(nsTestBlock::Enabled, "GetFileExtension")
+  {
+    NS_TEST_BOOL(nsPathUtils::GetFileExtension("This/Is\\My//Path.dot\\file.extension") == "extension");
+    NS_TEST_BOOL(nsPathUtils::GetFileExtension("This/Is\\My//Path.dot\\file") == "");
+    NS_TEST_BOOL(nsPathUtils::GetFileExtension("") == "");
+
+    NS_TEST_BOOL(nsPathUtils::GetFileExtension("/foo/bar.txt") == "txt");
+    NS_TEST_BOOL(nsPathUtils::GetFileExtension("/foo/bar.") == "");
+    NS_TEST_BOOL(nsPathUtils::GetFileExtension("/foo/bar") == "");
+    NS_TEST_BOOL(nsPathUtils::GetFileExtension("/foo/bar.txt/bar.cc") == "cc");
+    NS_TEST_BOOL(nsPathUtils::GetFileExtension("/foo/bar.txt/bar.") == "");
+    NS_TEST_BOOL(nsPathUtils::GetFileExtension("/foo/bar.txt/bar") == "");
+    NS_TEST_BOOL(nsPathUtils::GetFileExtension("/foo/.") == "");
+    NS_TEST_BOOL(nsPathUtils::GetFileExtension("/foo/..") == "");
+    NS_TEST_BOOL(nsPathUtils::GetFileExtension("/foo/.hidden") == "");
+    NS_TEST_BOOL(nsPathUtils::GetFileExtension("/foo/..bar") == "");
+
+    NS_TEST_BOOL(nsPathUtils::GetFileExtension("foo.bar.baz.tar") == "tar");
+    NS_TEST_BOOL(nsPathUtils::GetFileExtension("foo.bar.baz") == "baz");
+  }
+
   NS_TEST_BLOCK(nsTestBlock::Enabled, "HasAnyExtension")
   {
     NS_TEST_BOOL(nsPathUtils::HasAnyExtension("This/Is\\My//Path.dot\\file.extension"));
     NS_TEST_BOOL(!nsPathUtils::HasAnyExtension("This/Is\\My//Path.dot\\file_no_extension"));
     NS_TEST_BOOL(!nsPathUtils::HasAnyExtension(""));
+
+    NS_TEST_BOOL(nsPathUtils::HasAnyExtension("/foo/bar.txt"));
+    NS_TEST_BOOL(!nsPathUtils::HasAnyExtension("/foo/bar."));
+    NS_TEST_BOOL(!nsPathUtils::HasAnyExtension("/foo/bar"));
+    NS_TEST_BOOL(nsPathUtils::HasAnyExtension("/foo/bar.txt/bar.cc"));
+    NS_TEST_BOOL(!nsPathUtils::HasAnyExtension("/foo/bar.txt/bar."));
+    NS_TEST_BOOL(!nsPathUtils::HasAnyExtension("/foo/bar.txt/bar"));
+    NS_TEST_BOOL(!nsPathUtils::HasAnyExtension("."));
+    NS_TEST_BOOL(!nsPathUtils::HasAnyExtension(".."));
+    NS_TEST_BOOL(!nsPathUtils::HasAnyExtension("/foo/."));
+    NS_TEST_BOOL(!nsPathUtils::HasAnyExtension("/foo/.."));
+    NS_TEST_BOOL(!nsPathUtils::HasAnyExtension("/foo/.hidden"));
+    NS_TEST_BOOL(!nsPathUtils::HasAnyExtension("/foo/..bar"));
   }
 
   NS_TEST_BLOCK(nsTestBlock::Enabled, "HasExtension")
@@ -57,13 +86,31 @@ NS_CREATE_SIMPLE_TEST(Strings, PathUtils)
     NS_TEST_BOOL(!nsPathUtils::HasExtension("This/Is\\My//Path.dot\\file.extension", ".Ext"));
     NS_TEST_BOOL(!nsPathUtils::HasExtension("This/Is\\My//Path.dot\\file.extension", "sion"));
     NS_TEST_BOOL(!nsPathUtils::HasExtension("", "ext"));
-  }
 
-  NS_TEST_BLOCK(nsTestBlock::Enabled, "GetFileExtension")
-  {
-    NS_TEST_BOOL(nsPathUtils::GetFileExtension("This/Is\\My//Path.dot\\file.extension") == "extension");
-    NS_TEST_BOOL(nsPathUtils::GetFileExtension("This/Is\\My//Path.dot\\file") == "");
-    NS_TEST_BOOL(nsPathUtils::GetFileExtension("") == "");
+    NS_TEST_BOOL(nsPathUtils::HasExtension("/foo/bar.txt", "txt"));
+    NS_TEST_BOOL(nsPathUtils::HasExtension("/foo/bar.", ""));
+    NS_TEST_BOOL(nsPathUtils::HasExtension("/foo/bar", ""));
+    NS_TEST_BOOL(nsPathUtils::HasExtension("/foo/bar.txt/bar.cc", "cc"));
+    NS_TEST_BOOL(nsPathUtils::HasExtension("/foo/bar.txt/bar.", ""));
+    NS_TEST_BOOL(nsPathUtils::HasExtension("/foo/bar.txt/bar", ""));
+    NS_TEST_BOOL(nsPathUtils::HasExtension("/foo/.", ""));
+    NS_TEST_BOOL(nsPathUtils::HasExtension("/foo/..", ""));
+    NS_TEST_BOOL(nsPathUtils::HasExtension("/foo/.hidden", ""));
+    NS_TEST_BOOL(nsPathUtils::HasExtension("/foo/..bar", ""));
+    NS_TEST_BOOL(!nsPathUtils::HasExtension(".file", ".file"));
+    NS_TEST_BOOL(!nsPathUtils::HasExtension(".file", "file"));
+    NS_TEST_BOOL(!nsPathUtils::HasExtension("folder/.file", ".file"));
+    NS_TEST_BOOL(!nsPathUtils::HasExtension("folder/.file", "file"));
+
+    NS_TEST_BOOL(nsPathUtils::HasExtension("foo.bar.baz.tar", "tar"));
+    NS_TEST_BOOL(nsPathUtils::HasExtension("foo.bar.baz", "baz"));
+
+    NS_TEST_BOOL(nsPathUtils::HasExtension("file.txt", "txt"));
+    NS_TEST_BOOL(nsPathUtils::HasExtension("file.txt", ".txt"));
+    NS_TEST_BOOL(nsPathUtils::HasExtension("file.a.b", ".b"));
+    NS_TEST_BOOL(nsPathUtils::HasExtension("file.a.b", "a.b"));
+    NS_TEST_BOOL(nsPathUtils::HasExtension("file.a.b", ".a.b"));
+    NS_TEST_BOOL(!nsPathUtils::HasExtension("file.a.b", "file.a.b"));
   }
 
   NS_TEST_BLOCK(nsTestBlock::Enabled, "GetFileNameAndExtension")
@@ -75,6 +122,13 @@ NS_CREATE_SIMPLE_TEST(Strings, PathUtils)
     NS_TEST_BOOL(nsPathUtils::GetFileNameAndExtension("") == "");
     NS_TEST_BOOL(nsPathUtils::GetFileNameAndExtension("/") == "");
     NS_TEST_BOOL(nsPathUtils::GetFileNameAndExtension("This/Is\\My//Path.dot\\") == "");
+    NS_TEST_BOOL(nsPathUtils::GetFileNameAndExtension("file") == "file");
+    NS_TEST_BOOL(nsPathUtils::GetFileNameAndExtension("file.ext") == "file.ext");
+    NS_TEST_BOOL(nsPathUtils::GetFileNameAndExtension(".stupidfile") == ".stupidfile");
+    NS_TEST_BOOL(nsPathUtils::GetFileNameAndExtension("folder/.") == ".");
+    NS_TEST_BOOL(nsPathUtils::GetFileNameAndExtension("folder/..") == "..");
+    NS_TEST_BOOL(nsPathUtils::GetFileNameAndExtension(".") == ".");
+    NS_TEST_BOOL(nsPathUtils::GetFileNameAndExtension("..") == "..");
   }
 
   NS_TEST_BLOCK(nsTestBlock::Enabled, "GetFileName")
@@ -86,8 +140,17 @@ NS_CREATE_SIMPLE_TEST(Strings, PathUtils)
     NS_TEST_BOOL(nsPathUtils::GetFileName("/") == "");
     NS_TEST_BOOL(nsPathUtils::GetFileName("This/Is\\My//Path.dot\\") == "");
 
-    // so far we treat file and folders whose names start with a '.' as extensions
-    NS_TEST_BOOL(nsPathUtils::GetFileName("This/Is\\My//Path.dot\\.stupidfile") == "");
+    NS_TEST_BOOL(nsPathUtils::GetFileName("This/Is\\My//Path.dot\\.stupidfile") == ".stupidfile");
+    NS_TEST_BOOL(nsPathUtils::GetFileName(".stupidfile") == ".stupidfile");
+
+    NS_TEST_BOOL(nsPathUtils::GetFileName("File.ext") == "File");
+    NS_TEST_BOOL(nsPathUtils::GetFileName("File.") == "File.");
+    NS_TEST_BOOL(nsPathUtils::GetFileName("File.ext.") == "File.ext.");
+
+    NS_TEST_BOOL(nsPathUtils::GetFileName("folder/.") == ".");
+    NS_TEST_BOOL(nsPathUtils::GetFileName("folder/..") == "..");
+    NS_TEST_BOOL(nsPathUtils::GetFileName(".") == ".");
+    NS_TEST_BOOL(nsPathUtils::GetFileName("..") == "..");
   }
 
   NS_TEST_BLOCK(nsTestBlock::Enabled, "GetFileDirectory")
@@ -131,8 +194,60 @@ NS_CREATE_SIMPLE_TEST(Strings, PathUtils)
     NS_TEST_BOOL(nsPathUtils::GetRootedPathRootName(":MyRoot\\folder\\file.txt") == root);
     NS_TEST_BOOL(root == "MyRoot");
     NS_TEST_BOOL(relPath == "folder\\file.txt");
+
     nsPathUtils::GetRootedPathParts("folder\\file2.txt", root, relPath);
     NS_TEST_BOOL(root.IsEmpty());
     NS_TEST_BOOL(relPath == "folder\\file2.txt");
+
+    nsPathUtils::GetRootedPathParts(":root", root, relPath);
+    NS_TEST_BOOL(root == "root");
+    NS_TEST_BOOL(relPath == "");
+  }
+
+  NS_TEST_BLOCK(nsTestBlock::Enabled, "IsSubPath")
+  {
+    NS_TEST_BOOL(nsPathUtils::IsSubPath("C:/DataDir", "C:/DataDir/SomeFolder"));
+    NS_TEST_BOOL(nsPathUtils::IsSubPath("C:/DataDir/", "C:/DataDir/SomeFolder"));
+    NS_TEST_BOOL(nsPathUtils::IsSubPath("C:/DataDir", "C:/DataDir"));
+    NS_TEST_BOOL(nsPathUtils::IsSubPath("C:/DataDir", "C:/DataDir/"));
+    NS_TEST_BOOL(nsPathUtils::IsSubPath("C:/DataDir/", "C:/DataDir/"));
+    NS_TEST_BOOL(!nsPathUtils::IsSubPath("C:/DataDir", "C:/DataDir2"));
+
+    NS_TEST_BOOL(nsPathUtils::IsSubPath("C:\\DataDir", "C:/DataDir/SomeFolder"));
+    NS_TEST_BOOL(nsPathUtils::IsSubPath("C:\\DataDir", "C:/DataDir"));
+    NS_TEST_BOOL(nsPathUtils::IsSubPath("C:\\DataDir", "C:/DataDir/"));
+    NS_TEST_BOOL(nsPathUtils::IsSubPath("C:\\DataDir\\", "C:/DataDir/"));
+    NS_TEST_BOOL(!nsPathUtils::IsSubPath("C:\\DataDir", "C:/DataDir2"));
+
+    NS_TEST_BOOL(!nsPathUtils::IsSubPath("C:\\DataDiR", "C:/DataDir/SomeFolder"));
+    NS_TEST_BOOL(!nsPathUtils::IsSubPath("C:\\DataDiR", "C:/DataDir"));
+    NS_TEST_BOOL(!nsPathUtils::IsSubPath("C:\\DataDiR", "C:/DataDir/"));
+    NS_TEST_BOOL(!nsPathUtils::IsSubPath("C:\\DataDiR", "C:/DataDir2"));
+
+    NS_TEST_BOOL(!nsPathUtils::IsSubPath("C:/DataDir/SomeFolder", "C:/DataDir"));
+  }
+
+  NS_TEST_BLOCK(nsTestBlock::Enabled, "IsSubPath_NoCase")
+  {
+    NS_TEST_BOOL(nsPathUtils::IsSubPath_NoCase("C:/DataDir", "C:/DataDir/SomeFolder"));
+    NS_TEST_BOOL(nsPathUtils::IsSubPath_NoCase("C:/DataDir/", "C:/DataDir/SomeFolder"));
+    NS_TEST_BOOL(nsPathUtils::IsSubPath_NoCase("C:/DataDir", "C:/DataDir"));
+    NS_TEST_BOOL(nsPathUtils::IsSubPath_NoCase("C:/DataDir/", "C:/DataDir"));
+    NS_TEST_BOOL(nsPathUtils::IsSubPath_NoCase("C:/DataDir", "C:/DataDir/"));
+    NS_TEST_BOOL(nsPathUtils::IsSubPath_NoCase("C:/DataDir/", "C:/DataDir/"));
+    NS_TEST_BOOL(!nsPathUtils::IsSubPath_NoCase("C:/DataDir", "C:/DataDir2"));
+
+    NS_TEST_BOOL(nsPathUtils::IsSubPath_NoCase("C:\\DataDir", "C:/DataDir/SomeFolder"));
+    NS_TEST_BOOL(nsPathUtils::IsSubPath_NoCase("C:\\DataDir", "C:/DataDir"));
+    NS_TEST_BOOL(nsPathUtils::IsSubPath_NoCase("C:\\DataDir\\", "C:/DataDir"));
+    NS_TEST_BOOL(nsPathUtils::IsSubPath_NoCase("C:\\DataDir", "C:/DataDir/"));
+    NS_TEST_BOOL(!nsPathUtils::IsSubPath_NoCase("C:\\DataDir", "C:/DataDir2"));
+
+    NS_TEST_BOOL(nsPathUtils::IsSubPath_NoCase("C:\\DataDiR", "C:/DataDir/SomeFolder"));
+    NS_TEST_BOOL(nsPathUtils::IsSubPath_NoCase("C:\\DataDiR", "C:/DataDir"));
+    NS_TEST_BOOL(nsPathUtils::IsSubPath_NoCase("C:\\DataDiR", "C:/DataDir/"));
+    NS_TEST_BOOL(!nsPathUtils::IsSubPath_NoCase("C:\\DataDiR", "C:/DataDir2"));
+
+    NS_TEST_BOOL(!nsPathUtils::IsSubPath_NoCase("C:/DataDir/SomeFolder", "C:/DataDir"));
   }
 }

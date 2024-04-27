@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/IO/OpenDdlWriter.h>
@@ -500,12 +495,12 @@ void nsOpenDdlWriter::WriteInt8(const nsInt8* pValues, nsUInt32 uiCount /*= 1*/)
 
   WritePrimitiveType(State::PrimitivesInt8);
 
-  m_sTemp.Format("{0}", pValues[0]);
+  m_sTemp.SetFormat("{0}", pValues[0]);
   OutputString(m_sTemp.GetData());
 
   for (nsUInt32 i = 1; i < uiCount; ++i)
   {
-    m_sTemp.Format(",{0}", pValues[i]);
+    m_sTemp.SetFormat(",{0}", pValues[i]);
     OutputString(m_sTemp.GetData());
   }
 }
@@ -517,12 +512,12 @@ void nsOpenDdlWriter::WriteInt16(const nsInt16* pValues, nsUInt32 uiCount /*= 1*
 
   WritePrimitiveType(State::PrimitivesInt16);
 
-  m_sTemp.Format("{0}", pValues[0]);
+  m_sTemp.SetFormat("{0}", pValues[0]);
   OutputString(m_sTemp.GetData());
 
   for (nsUInt32 i = 1; i < uiCount; ++i)
   {
-    m_sTemp.Format(",{0}", pValues[i]);
+    m_sTemp.SetFormat(",{0}", pValues[i]);
     OutputString(m_sTemp.GetData());
   }
 }
@@ -534,12 +529,12 @@ void nsOpenDdlWriter::WriteInt32(const nsInt32* pValues, nsUInt32 uiCount /*= 1*
 
   WritePrimitiveType(State::PrimitivesInt32);
 
-  m_sTemp.Format("{0}", pValues[0]);
+  m_sTemp.SetFormat("{0}", pValues[0]);
   OutputString(m_sTemp.GetData());
 
   for (nsUInt32 i = 1; i < uiCount; ++i)
   {
-    m_sTemp.Format(",{0}", pValues[i]);
+    m_sTemp.SetFormat(",{0}", pValues[i]);
     OutputString(m_sTemp.GetData());
   }
 }
@@ -551,12 +546,12 @@ void nsOpenDdlWriter::WriteInt64(const nsInt64* pValues, nsUInt32 uiCount /*= 1*
 
   WritePrimitiveType(State::PrimitivesInt64);
 
-  m_sTemp.Format("{0}", pValues[0]);
+  m_sTemp.SetFormat("{0}", pValues[0]);
   OutputString(m_sTemp.GetData());
 
   for (nsUInt32 i = 1; i < uiCount; ++i)
   {
-    m_sTemp.Format(",{0}", pValues[i]);
+    m_sTemp.SetFormat(",{0}", pValues[i]);
     OutputString(m_sTemp.GetData());
   }
 }
@@ -569,12 +564,12 @@ void nsOpenDdlWriter::WriteUInt8(const nsUInt8* pValues, nsUInt32 uiCount /*= 1*
 
   WritePrimitiveType(State::PrimitivesUInt8);
 
-  m_sTemp.Format("{0}", pValues[0]);
+  m_sTemp.SetFormat("{0}", pValues[0]);
   OutputString(m_sTemp.GetData());
 
   for (nsUInt32 i = 1; i < uiCount; ++i)
   {
-    m_sTemp.Format(",{0}", pValues[i]);
+    m_sTemp.SetFormat(",{0}", pValues[i]);
     OutputString(m_sTemp.GetData());
   }
 }
@@ -586,12 +581,12 @@ void nsOpenDdlWriter::WriteUInt16(const nsUInt16* pValues, nsUInt32 uiCount /*= 
 
   WritePrimitiveType(State::PrimitivesUInt16);
 
-  m_sTemp.Format("{0}", pValues[0]);
+  m_sTemp.SetFormat("{0}", pValues[0]);
   OutputString(m_sTemp.GetData());
 
   for (nsUInt32 i = 1; i < uiCount; ++i)
   {
-    m_sTemp.Format(",{0}", pValues[i]);
+    m_sTemp.SetFormat(",{0}", pValues[i]);
     OutputString(m_sTemp.GetData());
   }
 }
@@ -603,12 +598,12 @@ void nsOpenDdlWriter::WriteUInt32(const nsUInt32* pValues, nsUInt32 uiCount /*= 
 
   WritePrimitiveType(State::PrimitivesUInt32);
 
-  m_sTemp.Format("{0}", pValues[0]);
+  m_sTemp.SetFormat("{0}", pValues[0]);
   OutputString(m_sTemp.GetData());
 
   for (nsUInt32 i = 1; i < uiCount; ++i)
   {
-    m_sTemp.Format(",{0}", pValues[i]);
+    m_sTemp.SetFormat(",{0}", pValues[i]);
     OutputString(m_sTemp.GetData());
   }
 }
@@ -620,12 +615,12 @@ void nsOpenDdlWriter::WriteUInt64(const nsUInt64* pValues, nsUInt32 uiCount /*= 
 
   WritePrimitiveType(State::PrimitivesUInt64);
 
-  m_sTemp.Format("{0}", pValues[0]);
+  m_sTemp.SetFormat("{0}", pValues[0]);
   OutputString(m_sTemp.GetData());
 
   for (nsUInt32 i = 1; i < uiCount; ++i)
   {
-    m_sTemp.Format(",{0}", pValues[i]);
+    m_sTemp.SetFormat(",{0}", pValues[i]);
     OutputString(m_sTemp.GetData());
   }
 }
@@ -639,12 +634,12 @@ void nsOpenDdlWriter::WriteFloat(const float* pValues, nsUInt32 uiCount /*= 1*/)
 
   if (m_FloatPrecisionMode == FloatPrecisionMode::Readable)
   {
-    m_sTemp.Format("{0}", pValues[0]);
+    m_sTemp.SetFormat("{0}", pValues[0]);
     OutputString(m_sTemp.GetData());
 
     for (nsUInt32 i = 1; i < uiCount; ++i)
     {
-      m_sTemp.Format(",{0}", pValues[i]);
+      m_sTemp.SetFormat(",{0}", pValues[i]);
       OutputString(m_sTemp.GetData());
     }
   }
@@ -686,12 +681,12 @@ void nsOpenDdlWriter::WriteDouble(const double* pValues, nsUInt32 uiCount /*= 1*
 
   if (m_FloatPrecisionMode == FloatPrecisionMode::Readable)
   {
-    m_sTemp.Format("{0}", pValues[0]);
+    m_sTemp.SetFormat("{0}", pValues[0]);
     OutputString(m_sTemp.GetData());
 
     for (nsUInt32 i = 1; i < uiCount; ++i)
     {
-      m_sTemp.Format(",{0}", pValues[i]);
+      m_sTemp.SetFormat(",{0}", pValues[i]);
       OutputString(m_sTemp.GetData());
     }
   }
@@ -741,7 +736,3 @@ void nsOpenDdlWriter::WriteBinaryAsString(const void* pData, nsUInt32 uiBytes)
   WriteBinaryAsHex(pData, uiBytes);
   OutputString("\"", 1);
 }
-
-
-
-NS_STATICLINK_FILE(Foundation, Foundation_IO_Implementation_OpenDdlWriter);

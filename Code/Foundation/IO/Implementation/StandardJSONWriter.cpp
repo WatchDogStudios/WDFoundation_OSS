@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/IO/JSONWriter.h>
@@ -127,7 +122,7 @@ void nsStandardJSONWriter::OutputIndentation()
     iIndentation = m_iIndentation;
 
   nsStringBuilder s;
-  s.Printf("%*s", iIndentation, "");
+  s.SetPrintf("%*s", iIndentation, "");
 
   OutputString(s.GetData());
 }
@@ -147,7 +142,7 @@ void nsStandardJSONWriter::WriteInt32(nsInt32 value)
   CommaWriter cw(this);
 
   nsStringBuilder s;
-  s.Format("{0}", value);
+  s.SetFormat("{0}", value);
 
   OutputString(s.GetData());
 }
@@ -157,7 +152,7 @@ void nsStandardJSONWriter::WriteUInt32(nsUInt32 value)
   CommaWriter cw(this);
 
   nsStringBuilder s;
-  s.Format("{0}", value);
+  s.SetFormat("{0}", value);
 
   OutputString(s.GetData());
 }
@@ -167,7 +162,7 @@ void nsStandardJSONWriter::WriteInt64(nsInt64 value)
   CommaWriter cw(this);
 
   nsStringBuilder s;
-  s.Format("{0}", value);
+  s.SetFormat("{0}", value);
 
   OutputString(s.GetData());
 }
@@ -177,7 +172,7 @@ void nsStandardJSONWriter::WriteUInt64(nsUInt64 value)
   CommaWriter cw(this);
 
   nsStringBuilder s;
-  s.Format("{0}", value);
+  s.SetFormat("{0}", value);
 
   OutputString(s.GetData());
 }
@@ -187,7 +182,7 @@ void nsStandardJSONWriter::WriteFloat(float value)
   CommaWriter cw(this);
 
   nsStringBuilder s;
-  s.Format("{0}", value);
+  s.SetFormat("{0}", value);
 
   OutputString(s.GetData());
 }
@@ -197,7 +192,7 @@ void nsStandardJSONWriter::WriteDouble(double value)
   CommaWriter cw(this);
 
   nsStringBuilder s;
-  s.Format("{0}", value);
+  s.SetFormat("{0}", value);
 
   OutputString(s.GetData());
 }
@@ -230,9 +225,9 @@ void nsStandardJSONWriter::WriteColor(const nsColor& value)
   nsStringBuilder s;
 
   if (m_WhitespaceMode >= nsJSONWriter::WhitespaceMode::NewlinesOnly)
-    s.Format("({0},{1},{2},{3})", nsArgF(value.r, 4), nsArgF(value.g, 4), nsArgF(value.b, 4), nsArgF(value.a, 4));
+    s.SetFormat("({0},{1},{2},{3})", nsArgF(value.r, 4), nsArgF(value.g, 4), nsArgF(value.b, 4), nsArgF(value.a, 4));
   else
-    s.Format("({0}, {1}, {2}, {3})", nsArgF(value.r, 4), nsArgF(value.g, 4), nsArgF(value.b, 4), nsArgF(value.a, 4));
+    s.SetFormat("({0}, {1}, {2}, {3})", nsArgF(value.r, 4), nsArgF(value.g, 4), nsArgF(value.b, 4), nsArgF(value.a, 4));
 
   WriteBinaryData("color", &temp, sizeof(temp), s.GetData());
 }
@@ -242,9 +237,9 @@ void nsStandardJSONWriter::WriteColorGamma(const nsColorGammaUB& value)
   nsStringBuilder s;
 
   if (m_WhitespaceMode >= nsJSONWriter::WhitespaceMode::NewlinesOnly)
-    s.Format("({0},{1},{2},{3})", value.r, value.g, value.b, value.a);
+    s.SetFormat("({0},{1},{2},{3})", value.r, value.g, value.b, value.a);
   else
-    s.Format("({0}, {1}, {2}, {3})", value.r, value.g, value.b, value.a);
+    s.SetFormat("({0}, {1}, {2}, {3})", value.r, value.g, value.b, value.a);
 
   WriteBinaryData("gamma", value.GetData(), sizeof(nsColorGammaUB), s.GetData());
 }
@@ -258,9 +253,9 @@ void nsStandardJSONWriter::WriteVec2(const nsVec2& value)
   nsStringBuilder s;
 
   if (m_WhitespaceMode >= nsJSONWriter::WhitespaceMode::NewlinesOnly)
-    s.Format("({0},{1})", nsArgF(value.x, 4), nsArgF(value.y, 4));
+    s.SetFormat("({0},{1})", nsArgF(value.x, 4), nsArgF(value.y, 4));
   else
-    s.Format("({0}, {1})", nsArgF(value.x, 4), nsArgF(value.y, 4));
+    s.SetFormat("({0}, {1})", nsArgF(value.x, 4), nsArgF(value.y, 4));
 
   WriteBinaryData("vec2", &temp, sizeof(temp), s.GetData());
 }
@@ -274,9 +269,9 @@ void nsStandardJSONWriter::WriteVec3(const nsVec3& value)
   nsStringBuilder s;
 
   if (m_WhitespaceMode >= nsJSONWriter::WhitespaceMode::NewlinesOnly)
-    s.Format("({0},{1},{2})", nsArgF(value.x, 4), nsArgF(value.y, 4), nsArgF(value.z, 4));
+    s.SetFormat("({0},{1},{2})", nsArgF(value.x, 4), nsArgF(value.y, 4), nsArgF(value.z, 4));
   else
-    s.Format("({0}, {1}, {2})", nsArgF(value.x, 4), nsArgF(value.y, 4), nsArgF(value.z, 4));
+    s.SetFormat("({0}, {1}, {2})", nsArgF(value.x, 4), nsArgF(value.y, 4), nsArgF(value.z, 4));
 
   WriteBinaryData("vec3", &temp, sizeof(temp), s.GetData());
 }
@@ -290,9 +285,9 @@ void nsStandardJSONWriter::WriteVec4(const nsVec4& value)
   nsStringBuilder s;
 
   if (m_WhitespaceMode >= nsJSONWriter::WhitespaceMode::NewlinesOnly)
-    s.Format("({0},{1},{2},{3})", nsArgF(value.x, 4), nsArgF(value.y, 4), nsArgF(value.z, 4), nsArgF(value.w, 4));
+    s.SetFormat("({0},{1},{2},{3})", nsArgF(value.x, 4), nsArgF(value.y, 4), nsArgF(value.z, 4), nsArgF(value.w, 4));
   else
-    s.Format("({0}, {1}, {2}, {3})", nsArgF(value.x, 4), nsArgF(value.y, 4), nsArgF(value.z, 4), nsArgF(value.w, 4));
+    s.SetFormat("({0}, {1}, {2}, {3})", nsArgF(value.x, 4), nsArgF(value.y, 4), nsArgF(value.z, 4), nsArgF(value.w, 4));
 
   WriteBinaryData("vec4", &temp, sizeof(temp), s.GetData());
 }
@@ -308,9 +303,9 @@ void nsStandardJSONWriter::WriteVec2I32(const nsVec2I32& value)
   nsStringBuilder s;
 
   if (m_WhitespaceMode >= nsJSONWriter::WhitespaceMode::NewlinesOnly)
-    s.Format("({0},{1})", value.x, value.y);
+    s.SetFormat("({0},{1})", value.x, value.y);
   else
-    s.Format("({0}, {1})", value.x, value.y);
+    s.SetFormat("({0}, {1})", value.x, value.y);
 
   WriteBinaryData("vec2i", &temp, sizeof(temp), s.GetData());
 }
@@ -326,9 +321,9 @@ void nsStandardJSONWriter::WriteVec3I32(const nsVec3I32& value)
   nsStringBuilder s;
 
   if (m_WhitespaceMode >= nsJSONWriter::WhitespaceMode::NewlinesOnly)
-    s.Format("({0},{1},{2})", value.x, value.y, value.z);
+    s.SetFormat("({0},{1},{2})", value.x, value.y, value.z);
   else
-    s.Format("({0}, {1}, {2})", value.x, value.y, value.z);
+    s.SetFormat("({0}, {1}, {2})", value.x, value.y, value.z);
 
   WriteBinaryData("vec3i", &temp, sizeof(temp), s.GetData());
 }
@@ -344,9 +339,9 @@ void nsStandardJSONWriter::WriteVec4I32(const nsVec4I32& value)
   nsStringBuilder s;
 
   if (m_WhitespaceMode >= nsJSONWriter::WhitespaceMode::NewlinesOnly)
-    s.Format("({0},{1},{2},{3})", value.x, value.y, value.z, value.w);
+    s.SetFormat("({0},{1},{2},{3})", value.x, value.y, value.z, value.w);
   else
-    s.Format("({0}, {1}, {2}, {3})", value.x, value.y, value.z, value.w);
+    s.SetFormat("({0}, {1}, {2}, {3})", value.x, value.y, value.z, value.w);
 
   WriteBinaryData("vec4i", &temp, sizeof(temp), s.GetData());
 }
@@ -606,7 +601,7 @@ void nsStandardJSONWriter::WriteBinaryData(nsStringView sDataType, const void* p
 
   for (nsUInt32 i = 0; i < uiBytes; ++i)
   {
-    s.Format("{0}", nsArgU((nsUInt32)*pBytes, 2, true, 16, true));
+    s.SetFormat("{0}", nsArgU((nsUInt32)*pBytes, 2, true, 16, true));
     ++pBytes;
 
     OutputString(s.GetData());
@@ -617,5 +612,3 @@ void nsStandardJSONWriter::WriteBinaryData(nsStringView sDataType, const void* p
   else
     OutputString("\" }");
 }
-
-NS_STATICLINK_FILE(Foundation, Foundation_IO_Implementation_StandardJSONWriter);

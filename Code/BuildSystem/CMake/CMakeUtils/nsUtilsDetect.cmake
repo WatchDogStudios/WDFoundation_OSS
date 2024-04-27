@@ -25,131 +25,18 @@ function(ns_detect_project_name OUT_NAME)
 endfunction()
 
 # #####################################
-# ## ns_detect_platform()
-# #####################################
-function(ns_detect_platform)
-	get_property(PREFIX GLOBAL PROPERTY NS_CMAKE_PLATFORM_PREFIX)
-
-	if(PREFIX)
-		# has already run before and NS_CMAKE_PLATFORM_PREFIX is already set
-		# message (STATUS "Redundant call to ns_detect_platform()")
-		return()
-	endif()
-
-	set_property(GLOBAL PROPERTY NS_CMAKE_PLATFORM_PREFIX "")
-	set_property(GLOBAL PROPERTY NS_CMAKE_PLATFORM_WINDOWS OFF)
-	set_property(GLOBAL PROPERTY NS_CMAKE_PLATFORM_WINDOWS_DESKTOP OFF)
-	set_property(GLOBAL PROPERTY NS_CMAKE_PLATFORM_CONSOLE OFF)
-	set_property(GLOBAL PROPERTY NS_CMAKE_PLATFORM_PLAYSTATION_5 OFF)
-	set_property(GLOBAL PROPERTY NS_CMAKE_PLATFORM_PLAYSTATION_4 OFF)
-	set_property(GLOBAL PROPERTY NS_CMAKE_PLATFORM_WINDOWS_UWP OFF)
-	set_property(GLOBAL PROPERTY NS_CMAKE_PLATFORM_WINDOWS_7 OFF)
-	set_property(GLOBAL PROPERTY NS_CMAKE_PLATFORM_POSIX OFF)
-	set_property(GLOBAL PROPERTY NS_CMAKE_PLATFORM_OSX OFF)
-	set_property(GLOBAL PROPERTY NS_CMAKE_PLATFORM_LINUX OFF)
-	set_property(GLOBAL PROPERTY NS_CMAKE_PLATFORM_ANDROID OFF)
-	set_property(GLOBAL PROPERTY NS_CMAKE_PLATFORM_EMSCRIPTEN OFF)
-
-	message(STATUS "CMAKE_SYSTEM_NAME is '${CMAKE_SYSTEM_NAME}'")
-
-	if(EMSCRIPTEN)
-		message(STATUS "Platform is Emscripten (NS_CMAKE_PLATFORM_EMSCRIPTEN)")
-
-		set_property(GLOBAL PROPERTY NS_CMAKE_PLATFORM_EMSCRIPTEN ON)
-
-		set_property(GLOBAL PROPERTY NS_CMAKE_PLATFORM_PREFIX "Web")
-	elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows") # Desktop Windows
-		message(STATUS "Platform is Windows (NS_CMAKE_PLATFORM_WINDOWS, NS_CMAKE_PLATFORM_WINDOWS_DESKTOP)")
-		message(STATUS "CMAKE_SYSTEM_VERSION is ${CMAKE_SYSTEM_VERSION}")
-		message(STATUS "CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION is ${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION}")
-
-		set_property(GLOBAL PROPERTY NS_CMAKE_PLATFORM_WINDOWS ON)
-		set_property(GLOBAL PROPERTY NS_CMAKE_PLATFORM_WINDOWS_DESKTOP ON)
-
-		set_property(GLOBAL PROPERTY NS_CMAKE_PLATFORM_PREFIX "Win")
-
-		if(${CMAKE_SYSTEM_VERSION} EQUAL 6.1)
-			set_property(GLOBAL PROPERTY NS_CMAKE_PLATFORM_WINDOWS_7 ON)
-		endif()
-
-	elseif(CMAKE_SYSTEM_NAME STREQUAL "WindowsStore") # Windows Universal
-		message(STATUS "Platform is Windows Universal (NS_CMAKE_PLATFORM_WINDOWS, NS_CMAKE_PLATFORM_WINDOWS_UWP)")
-
-		set_property(GLOBAL PROPERTY NS_CMAKE_PLATFORM_WINDOWS ON)
-		set_property(GLOBAL PROPERTY NS_CMAKE_PLATFORM_WINDOWS_UWP ON)
-
-		set_property(GLOBAL PROPERTY NS_CMAKE_PLATFORM_PREFIX "WinUWP")
-
-	elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin" AND CURRENT_OSX_VERSION) # OS X
-		message(STATUS "Platform is OS X (NS_CMAKE_PLATFORM_OSX, NS_CMAKE_PLATFORM_POSIX)")
-
-		set_property(GLOBAL PROPERTY NS_CMAKE_PLATFORM_POSIX ON)
-		set_property(GLOBAL PROPERTY NS_CMAKE_PLATFORM_OSX ON)
-
-		set_property(GLOBAL PROPERTY NS_CMAKE_PLATFORM_PREFIX "Osx")
-
-	elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux") # Linux
-		message(STATUS "Platform is Linux (NS_CMAKE_PLATFORM_LINUX, NS_CMAKE_PLATFORM_POSIX)")
-
-		set_property(GLOBAL PROPERTY NS_CMAKE_PLATFORM_POSIX ON)
-		set_property(GLOBAL PROPERTY NS_CMAKE_PLATFORM_LINUX ON)
-
-		set_property(GLOBAL PROPERTY NS_CMAKE_PLATFORM_PREFIX "Linux")
-
-	elseif(CMAKE_SYSTEM_NAME STREQUAL "Android") # Android
-		message(STATUS "Platform is Android (NS_CMAKE_PLATFORM_ANDROID, NS_CMAKE_PLATFORM_POSIX)")
-
-		set_property(GLOBAL PROPERTY NS_CMAKE_PLATFORM_POSIX ON)
-		set_property(GLOBAL PROPERTY NS_CMAKE_PLATFORM_ANDROID ON)
-
-		set_property(GLOBAL PROPERTY NS_CMAKE_PLATFORM_PREFIX "Android")
-
-	else()
-		message(FATAL_ERROR "Platform '${CMAKE_SYSTEM_NAME}' is not supported! Please extend ns_detect_platform().")
-	endif()
-
-	get_property(NS_CMAKE_PLATFORM_WINDOWS GLOBAL PROPERTY NS_CMAKE_PLATFORM_WINDOWS)
-
-	if(NS_CMAKE_PLATFORM_WINDOWS)
-		if(CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION)
-			set(NS_CMAKE_WINDOWS_SDK_VERSION ${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION})
-		else()
-			set(NS_CMAKE_WINDOWS_SDK_VERSION ${CMAKE_SYSTEM_VERSION})
-			string(REGEX MATCHALL "\\." NUMBER_OF_DOTS "${NS_CMAKE_WINDOWS_SDK_VERSION}")
-			list(LENGTH NUMBER_OF_DOTS NUMBER_OF_DOTS)
-
-			if(NUMBER_OF_DOTS EQUAL 2)
-				set(NS_CMAKE_WINDOWS_SDK_VERSION "${NS_CMAKE_WINDOWS_SDK_VERSION}.0")
-			endif()
-		endif()
-
-		set_property(GLOBAL PROPERTY NS_CMAKE_WINDOWS_SDK_VERSION ${NS_CMAKE_WINDOWS_SDK_VERSION})
-	endif()
-endfunction()
-
-# #####################################
 # ## ns_pull_platform_vars()
 # #####################################
 macro(ns_pull_platform_vars)
-	ns_detect_platform()
 
+	get_property(NS_CMAKE_PLATFORM_NAME GLOBAL PROPERTY NS_CMAKE_PLATFORM_NAME)
 	get_property(NS_CMAKE_PLATFORM_PREFIX GLOBAL PROPERTY NS_CMAKE_PLATFORM_PREFIX)
-	get_property(NS_CMAKE_PLATFORM_CONSOLE GLOBAL PROPERTY NS_CMAKE_PLATFORM_CONSOLE)
-	get_property(NS_CMAKE_PLATFORM_PLAYSTATION_5 GLOBAL PROPERTY NS_CMAKE_PLATFORM_PLAYSTATION_5)
-	get_property(NS_CMAKE_PLATFORM_PLAYSTATION_4 GLOBAL PROPERTY NS_CMAKE_PLATFORM_PLAYSTATION_4)
-	get_property(NS_CMAKE_PLATFORM_WINDOWS GLOBAL PROPERTY NS_CMAKE_PLATFORM_WINDOWS)
-	get_property(NS_CMAKE_PLATFORM_WINDOWS_UWP GLOBAL PROPERTY NS_CMAKE_PLATFORM_WINDOWS_UWP)
-	get_property(NS_CMAKE_PLATFORM_WINDOWS_DESKTOP GLOBAL PROPERTY NS_CMAKE_PLATFORM_WINDOWS_DESKTOP)
-	get_property(NS_CMAKE_PLATFORM_WINDOWS_7 GLOBAL PROPERTY NS_CMAKE_PLATFORM_WINDOWS_7)
+	get_property(NS_CMAKE_PLATFORM_POSTFIX GLOBAL PROPERTY NS_CMAKE_PLATFORM_POSTFIX)
 	get_property(NS_CMAKE_PLATFORM_POSIX GLOBAL PROPERTY NS_CMAKE_PLATFORM_POSIX)
-	get_property(NS_CMAKE_PLATFORM_OSX GLOBAL PROPERTY NS_CMAKE_PLATFORM_OSX)
-	get_property(NS_CMAKE_PLATFORM_LINUX GLOBAL PROPERTY NS_CMAKE_PLATFORM_LINUX)
-	get_property(NS_CMAKE_PLATFORM_ANDROID GLOBAL PROPERTY NS_CMAKE_PLATFORM_ANDROID)
-	get_property(NS_CMAKE_PLATFORM_EMSCRIPTEN GLOBAL PROPERTY NS_CMAKE_PLATFORM_EMSCRIPTEN)
+	get_property(NS_CMAKE_PLATFORM_SUPPORTS_VULKAN GLOBAL PROPERTY NS_CMAKE_PLATFORM_SUPPORTS_VULKAN)
+	get_property(NS_CMAKE_PLATFORM_SUPPORTS_EDITOR GLOBAL PROPERTY NS_CMAKE_PLATFORM_SUPPORTS_EDITOR)
 
-	if(NS_CMAKE_PLATFORM_WINDOWS)
-		get_property(NS_CMAKE_WINDOWS_SDK_VERSION GLOBAL PROPERTY NS_CMAKE_WINDOWS_SDK_VERSION)
-	endif()
+	ns_platform_pull_properties()
 endmacro()
 
 # #####################################
@@ -176,96 +63,10 @@ function(ns_detect_generator)
 
 	message(STATUS "CMAKE_VERSION is '${CMAKE_VERSION}'")
 	message(STATUS "CMAKE_BUILD_TYPE is '${CMAKE_BUILD_TYPE}'")
-
-	string(FIND ${CMAKE_VERSION} "MSVC" VERSION_CONTAINS_MSVC)
-
-	if(${VERSION_CONTAINS_MSVC} GREATER -1)
-		message(STATUS "CMake was called from Visual Studio Open Folder workflow")
-		set_property(GLOBAL PROPERTY NS_CMAKE_INSIDE_VS ON)
-	endif()
-
 	message(STATUS "CMAKE_GENERATOR is '${CMAKE_GENERATOR}'")
 
-	if(NS_CMAKE_PLATFORM_WINDOWS) # Supported windows generators
-		if(CMAKE_GENERATOR MATCHES "Visual Studio")
-			# Visual Studio (All VS generators define MSVC)
-			message(STATUS "Generator is MSVC (NS_CMAKE_GENERATOR_MSVC)")
+	ns_platform_detect_generator()
 
-			set_property(GLOBAL PROPERTY NS_CMAKE_GENERATOR_MSVC ON)
-			set_property(GLOBAL PROPERTY NS_CMAKE_GENERATOR_PREFIX "Vs")
-			set_property(GLOBAL PROPERTY NS_CMAKE_GENERATOR_CONFIGURATION $<CONFIGURATION>)
-		elseif(CMAKE_GENERATOR MATCHES "Ninja") # Ninja makefiles. Only makefile format supported by Visual Studio Open Folder
-			message(STATUS "Buildsystem is Ninja (NS_CMAKE_GENERATOR_NINJA)")
-
-			set_property(GLOBAL PROPERTY NS_CMAKE_GENERATOR_NINJA ON)
-			set_property(GLOBAL PROPERTY NS_CMAKE_GENERATOR_PREFIX "Ninja")
-			set_property(GLOBAL PROPERTY NS_CMAKE_GENERATOR_CONFIGURATION ${CMAKE_BUILD_TYPE})
-		else()
-			message(FATAL_ERROR "Generator '${CMAKE_GENERATOR}' is not supported on Windows! Please extend ns_detect_generator()")
-		endif()
-	elseif(NS_CMAKE_PLATFORM_OSX) # Supported OSX generators
-		if(CMAKE_GENERATOR MATCHES "Xcode") # XCODE
-			message(STATUS "Buildsystem is Xcode (NS_CMAKE_GENERATOR_XCODE)")
-
-			set_property(GLOBAL PROPERTY NS_CMAKE_GENERATOR_XCODE ON)
-			set_property(GLOBAL PROPERTY NS_CMAKE_GENERATOR_PREFIX "Xcode")
-			set_property(GLOBAL PROPERTY NS_CMAKE_GENERATOR_CONFIGURATION $<CONFIGURATION>)
-
-		elseif(CMAKE_GENERATOR MATCHES "Unix Makefiles") # Unix Makefiles (for QtCreator etc.)
-			message(STATUS "Buildsystem is Make (NS_CMAKE_GENERATOR_MAKE)")
-
-			set_property(GLOBAL PROPERTY NS_CMAKE_GENERATOR_MAKE ON)
-			set_property(GLOBAL PROPERTY NS_CMAKE_GENERATOR_PREFIX "Make")
-			set_property(GLOBAL PROPERTY NS_CMAKE_GENERATOR_CONFIGURATION ${CMAKE_BUILD_TYPE})
-
-		else()
-			message(FATAL_ERROR "Generator '${CMAKE_GENERATOR}' is not supported on OS X! Please extend ns_detect_generator()")
-		endif()
-
-	elseif(NS_CMAKE_PLATFORM_LINUX)
-		if(CMAKE_GENERATOR MATCHES "Unix Makefiles") # Unix Makefiles (for QtCreator etc.)
-			message(STATUS "Buildsystem is Make (NS_CMAKE_GENERATOR_MAKE)")
-
-			set_property(GLOBAL PROPERTY NS_CMAKE_GENERATOR_MAKE ON)
-			set_property(GLOBAL PROPERTY NS_CMAKE_GENERATOR_PREFIX "Make")
-			set_property(GLOBAL PROPERTY NS_CMAKE_GENERATOR_CONFIGURATION ${CMAKE_BUILD_TYPE})
-
-		elseif(CMAKE_GENERATOR MATCHES "Ninja" OR CMAKE_GENERATOR MATCHES "Ninja Multi-Config")
-			message(STATUS "Buildsystem is Ninja (NS_CMAKE_GENERATOR_NINJA)")
-
-			set_property(GLOBAL PROPERTY NS_CMAKE_GENERATOR_NINJA ON)
-			set_property(GLOBAL PROPERTY NS_CMAKE_GENERATOR_PREFIX "Ninja")
-			set_property(GLOBAL PROPERTY NS_CMAKE_GENERATOR_CONFIGURATION ${CMAKE_BUILD_TYPE})
-		else()
-			message(FATAL_ERROR "Generator '${CMAKE_GENERATOR}' is not supported on Linux! Please extend ns_detect_generator()")
-		endif()
-
-	elseif(NS_CMAKE_PLATFORM_ANDROID)
-		if(CMAKE_GENERATOR MATCHES "Ninja" OR CMAKE_GENERATOR MATCHES "Ninja Multi-Config")
-			message(STATUS "Buildsystem is Ninja (NS_CMAKE_GENERATOR_NINJA)")
-
-			set_property(GLOBAL PROPERTY NS_CMAKE_GENERATOR_NINJA ON)
-			set_property(GLOBAL PROPERTY NS_CMAKE_GENERATOR_PREFIX "Ninja")
-			set_property(GLOBAL PROPERTY NS_CMAKE_GENERATOR_CONFIGURATION ${CMAKE_BUILD_TYPE})
-
-		else()
-			message(FATAL_ERROR "Generator '${CMAKE_GENERATOR}' is not supported on Android! Please extend ns_detect_generator()")
-		endif()
-
-	elseif(NS_CMAKE_PLATFORM_EMSCRIPTEN)
-		if(CMAKE_GENERATOR MATCHES "Ninja" OR CMAKE_GENERATOR MATCHES "Ninja Multi-Config")
-			message(STATUS "Buildsystem is Ninja (NS_CMAKE_GENERATOR_NINJA)")
-
-			set_property(GLOBAL PROPERTY NS_CMAKE_GENERATOR_NINJA ON)
-			set_property(GLOBAL PROPERTY NS_CMAKE_GENERATOR_PREFIX "Ninja")
-			set_property(GLOBAL PROPERTY NS_CMAKE_GENERATOR_CONFIGURATION ${CMAKE_BUILD_TYPE})
-
-		else()
-			message(FATAL_ERROR "Generator '${CMAKE_GENERATOR}' is not supported on Emscripten! Please extend ns_detect_generator()")
-		endif()
-	else()
-		message(FATAL_ERROR "Platform '${CMAKE_SYSTEM_NAME}' has not set up the supported generators. Please extend ns_detect_generator()")
-	endif()
 endfunction()
 
 # #####################################
@@ -309,7 +110,7 @@ function(ns_detect_compiler_and_architecture)
 	set_property(GLOBAL PROPERTY NS_CMAKE_COMPILER_CLANG OFF)
 	set_property(GLOBAL PROPERTY NS_CMAKE_COMPILER_GCC OFF)
 
-	set(FILE_TO_COMPILE "${CMAKE_SOURCE_DIR}/${NS_SUBMODULE_PREFIX_PATH}/${NS_CMAKE_RELPATH}/ProbingSrc/ArchitectureDetect.c")
+	set(FILE_TO_COMPILE "${NS_ROOT}/${NS_CMAKE_RELPATH}/ProbingSrc/ArchitectureDetect.c")
 	
 	if (NS_SDK_DIR)
 		set(FILE_TO_COMPILE "${NS_SDK_DIR}/${NS_CMAKE_RELPATH}/ProbingSrc/ArchitectureDetect.c")
@@ -352,26 +153,24 @@ function(ns_detect_compiler_and_architecture)
 	endif()
 
 	if(NS_DETECTED_COMPILER STREQUAL "msvc") # Visual Studio Compiler
-		# BUG: Again, we may need to check again, since CMake is falling back to MSVC.
-		# if(NOT NS_CMAKE_PLATFORM_PLAYSTATION_5)
-			message(STATUS "Compiler is MSVC (NS_CMAKE_COMPILER_MSVC) version ${NS_DETECTED_MSVC_VER}")
+		message(STATUS "Compiler is MSVC (NS_CMAKE_COMPILER_MSVC) version ${NS_DETECTED_MSVC_VER}")
 
-			set_property(GLOBAL PROPERTY NS_CMAKE_COMPILER_MSVC ON)
+		set_property(GLOBAL PROPERTY NS_CMAKE_COMPILER_MSVC ON)
 
-			if(NS_DETECTED_MSVC_VER GREATER_EQUAL 1930)
-				message(STATUS "Compiler is Visual Studio 2022 (NS_CMAKE_COMPILER_MSVC_143)")
-				set_property(GLOBAL PROPERTY NS_CMAKE_COMPILER_MSVC_143 ON)
-				set_property(GLOBAL PROPERTY NS_CMAKE_COMPILER_POSTFIX "2022")
+		if(NS_DETECTED_MSVC_VER GREATER_EQUAL 1930)
+			message(STATUS "Compiler is Visual Studio 2022 (NS_CMAKE_COMPILER_MSVC_143)")
+			set_property(GLOBAL PROPERTY NS_CMAKE_COMPILER_MSVC_143 ON)
+			set_property(GLOBAL PROPERTY NS_CMAKE_COMPILER_POSTFIX "2022")
 
-			elseif(NS_DETECTED_MSVC_VER GREATER_EQUAL 1920)
-				message(STATUS "Compiler is Visual Studio 2019 (NS_CMAKE_COMPILER_MSVC_142)")
-				set_property(GLOBAL PROPERTY NS_CMAKE_COMPILER_MSVC_142 ON)
-				set_property(GLOBAL PROPERTY NS_CMAKE_COMPILER_POSTFIX "2019")
+		elseif(NS_DETECTED_MSVC_VER GREATER_EQUAL 1920)
+			message(STATUS "Compiler is Visual Studio 2019 (NS_CMAKE_COMPILER_MSVC_142)")
+			set_property(GLOBAL PROPERTY NS_CMAKE_COMPILER_MSVC_142 ON)
+			set_property(GLOBAL PROPERTY NS_CMAKE_COMPILER_POSTFIX "2019")
 
-			elseif(NS_DETECTED_MSVC_VER GREATER_EQUAL 1910)
-				message(STATUS "Compiler is Visual Studio 2017 (NS_CMAKE_COMPILER_MSVC_141)")
-				set_property(GLOBAL PROPERTY NS_CMAKE_COMPILER_MSVC_141 ON)
-				set_property(GLOBAL PROPERTY NS_CMAKE_COMPILER_POSTFIX "2017")
+		elseif(NS_DETECTED_MSVC_VER GREATER_EQUAL 1910)
+			message(STATUS "Compiler is Visual Studio 2017 (NS_CMAKE_COMPILER_MSVC_141)")
+			set_property(GLOBAL PROPERTY NS_CMAKE_COMPILER_MSVC_141 ON)
+			set_property(GLOBAL PROPERTY NS_CMAKE_COMPILER_POSTFIX "2017")
 
 		elseif(MSVC_VERSION GREATER_EQUAL 1900)
 			message(STATUS "Compiler is Visual Studio 2015 (NS_CMAKE_COMPILER_MSVC_140)")
@@ -381,10 +180,12 @@ function(ns_detect_compiler_and_architecture)
 		else()
 			message(FATAL_ERROR "Compiler for generator '${CMAKE_GENERATOR}' is not supported on MSVC! Please extend ns_detect_compiler()")
 		endif()
+
 	elseif(NS_DETECTED_COMPILER STREQUAL "clang")
 		message(STATUS "Compiler is clang (NS_CMAKE_COMPILER_CLANG)")
 		set_property(GLOBAL PROPERTY NS_CMAKE_COMPILER_CLANG ON)
 		set_property(GLOBAL PROPERTY NS_CMAKE_COMPILER_POSTFIX "Clang")
+
 	elseif(NS_DETECTED_COMPILER STREQUAL "gcc")
 		message(STATUS "Compiler is gcc (NS_CMAKE_COMPILER_GCC)")
 		set_property(GLOBAL PROPERTY NS_CMAKE_COMPILER_GCC ON)
@@ -400,6 +201,7 @@ function(ns_detect_compiler_and_architecture)
 	set_property(GLOBAL PROPERTY NS_CMAKE_ARCHITECTURE_X86 OFF)
 	set_property(GLOBAL PROPERTY NS_CMAKE_ARCHITECTURE_ARM OFF)
 	set_property(GLOBAL PROPERTY NS_CMAKE_ARCHITECTURE_EMSCRIPTEN OFF)
+
 	if(NS_DETECTED_ARCH STREQUAL "x86")
 		message(STATUS "Architecture is X86 (NS_CMAKE_ARCHITECTURE_X86)")
 		set_property(GLOBAL PROPERTY NS_CMAKE_ARCHITECTURE_X86 ON)
@@ -477,7 +279,6 @@ macro(ns_pull_compiler_and_architecture_vars)
 	get_property(NS_CMAKE_COMPILER_CLANG GLOBAL PROPERTY NS_CMAKE_COMPILER_CLANG)
 	get_property(NS_CMAKE_COMPILER_GCC GLOBAL PROPERTY NS_CMAKE_COMPILER_GCC)
 
-
 	get_property(NS_CMAKE_ARCHITECTURE_POSTFIX GLOBAL PROPERTY NS_CMAKE_ARCHITECTURE_POSTFIX)
 	get_property(NS_CMAKE_ARCHITECTURE_32BIT GLOBAL PROPERTY NS_CMAKE_ARCHITECTURE_32BIT)
 	get_property(NS_CMAKE_ARCHITECTURE_64BIT GLOBAL PROPERTY NS_CMAKE_ARCHITECTURE_64BIT)
@@ -491,6 +292,7 @@ endmacro()
 # #####################################
 macro(ns_pull_all_vars)
 	get_property(NS_SUBMODULE_PREFIX_PATH GLOBAL PROPERTY NS_SUBMODULE_PREFIX_PATH)
+	get_property(NS_ROOT GLOBAL PROPERTY NS_ROOT)
 
 	ns_pull_version()
 	ns_pull_compiler_and_architecture_vars()
@@ -535,7 +337,7 @@ function(ns_detect_version)
 		return()
 	endif()
 
-	ns_get_version("${CMAKE_SOURCE_DIR}/${NS_SUBMODULE_PREFIX_PATH}/version.txt" VERSION_MAJOR VERSION_MINOR VERSION_PATCH)
+	ns_get_version("${NS_ROOT}/version.txt" VERSION_MAJOR VERSION_MINOR VERSION_PATCH)
 
 	set_property(GLOBAL PROPERTY NS_CMAKE_SDKVERSION_MAJOR "${VERSION_MAJOR}")
 	set_property(GLOBAL PROPERTY NS_CMAKE_SDKVERSION_MINOR "${VERSION_MINOR}")

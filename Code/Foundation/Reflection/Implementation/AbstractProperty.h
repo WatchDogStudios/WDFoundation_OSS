@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 /// \file
@@ -60,9 +55,9 @@ struct nsPropertyFlags
     Bitflags = NS_BIT(2),     ///< Bitflags property, cast to nsAbstractEnumerationProperty.
     Class = NS_BIT(3),        ///< A struct or class. All of the above are mutually exclusive.
 
-    Const = NS_BIT(4),     ///< Property value is const.
-    Reference = NS_BIT(5), ///< Property value is a reference.
-    Pointer = NS_BIT(6),   ///< Property value is a pointer.
+    Const = NS_BIT(4),        ///< Property value is const.
+    Reference = NS_BIT(5),    ///< Property value is a reference.
+    Pointer = NS_BIT(6),      ///< Property value is a pointer.
 
     PointerOwner = NS_BIT(7), ///< This pointer property takes ownership of the passed pointer.
     ReadOnly = NS_BIT(8),     ///< Can only be read but not modified.
@@ -70,8 +65,8 @@ struct nsPropertyFlags
     Phantom = NS_BIT(10),     ///< Phantom types are mirrored types on the editor side. Ie. they do not exist as actual classes in the process. Also used
                               ///< for data driven types, e.g. by the Visual Shader asset.
 
-    VarOut = NS_BIT(11),   ///< Tag for non-const-ref function parameters to indicate usage 'out'
-    VarInOut = NS_BIT(12), ///< Tag for non-const-ref function parameters to indicate usage 'inout'
+    VarOut = NS_BIT(11),      ///< Tag for non-const-ref function parameters to indicate usage 'out'
+    VarInOut = NS_BIT(12),    ///< Tag for non-const-ref function parameters to indicate usage 'inout'
 
     Default = 0,
     Void = 0
@@ -210,7 +205,7 @@ public:
 protected:
   nsBitflags<nsPropertyFlags> m_Flags;
   const char* m_szPropertyName;
-  nsHybridArray<const nsPropertyAttribute*, 2, nsStaticAllocatorWrapper> m_Attributes; // Do not track RTTI data.
+  nsHybridArray<const nsPropertyAttribute*, 2, nsStaticsAllocatorWrapper> m_Attributes; // Do not track RTTI data.
 };
 
 /// \brief This is the base class for all constant properties that are stored inside the RTTI data.

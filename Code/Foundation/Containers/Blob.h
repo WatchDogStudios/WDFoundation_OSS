@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 
 #pragma once
 
@@ -342,6 +337,9 @@ public:
 
   /// \brief Deallocates the memory allocated by this instance.
   void Clear();
+
+  /// \bried Is data blob empty
+  bool IsEmpty() const;
 
   /// \brief Allocates uiCount bytes for storage in this object. The bytes will have undefined content.
   void SetCountUninitialized(nsUInt64 uiCount);

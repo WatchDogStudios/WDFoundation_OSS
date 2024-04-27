@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Strings/StringView.h>
@@ -40,17 +35,28 @@ public:
   /// \brief Checks whether the given path has any file extension
   static bool HasAnyExtension(nsStringView sPath); // [tested]
 
-  /// \brief Checks whether the given path ends with the given extension. szExtension should start with a '.' for performance reasons, but
-  /// it will work without a '.' too.
+  /// \brief Checks whether the path ends with the given file extension.
+  /// szExtension may or may not start with a dot.
+  /// The check is case insensitive.
+  ///
+  ///   HasExtension("file.txt", "txt") -> true
+  ///   HasExtension("file.txt", ".txt") -> true
+  ///   HasExtension("file.a.b", ".b") -> true
+  ///   HasExtension("file.a.b", "a.b") -> true
+  ///   HasExtension("file.a.b", ".a.b") -> true
+  ///   HasExtension("file.a.b", "file.a.b") -> false
   static bool HasExtension(nsStringView sPath, nsStringView sExtension); // [tested]
 
   /// \brief Returns the file extension of the given path. Will be empty, if the path does not end with a proper extension. The dot (.) is not included.
-  static nsStringView GetFileExtension(nsStringView sPath); // [tested]
+  ///
+  /// If bFullExtension is false, a file named "file.a.b.c" will return "c".
+  /// If bFullExtension is true, a file named "file.a.b.c" will return "a.b.c".
+  static nsStringView GetFileExtension(nsStringView sPath, bool bFullExtension = false); // [tested]
 
   /// \brief Returns the file name of a path, excluding the path and extension.
   ///
   /// If the path already ends with a path separator, the result will be empty.
-  static nsStringView GetFileName(nsStringView sPath); // [tested]
+  static nsStringView GetFileName(nsStringView sPath, bool bRemoveFullExtension = false); // [tested]
 
   /// \brief Returns the substring that represents the file name including the file extension.
   ///
@@ -96,7 +102,9 @@ public:
   static void MakeValidFilename(nsStringView sFilename, nsUInt32 uiReplacementCharacter, nsStringBuilder& out_sFilename);
 
   /// \brief Checks whether \a sFullPath starts with \a sPrefixPath.
-  static bool IsSubPath(nsStringView sPrefixPath, nsStringView sFullPath);
+  static bool IsSubPath(nsStringView sPrefixPath, nsStringView sFullPath); // [tested]
+  /// \brief Checks whether \a sFullPath starts with \a sPrefixPath. Case insensitive.
+  static bool IsSubPath_NoCase(nsStringView sPrefixPath, nsStringView sFullPath); // [tested]
 };
 
 #include <Foundation/Strings/Implementation/PathUtils_inl.h>

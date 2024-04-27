@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 /// \file
@@ -14,6 +9,9 @@
 #else
 #  define NS_NAN_ASSERT(obj)
 #endif
+
+#define NS_DECLARE_IF_FLOAT_TYPE template <typename = typename std::enable_if<std::is_floating_point_v<Type> == true>>
+#define NS_IMPLEMENT_IF_FLOAT_TYPE template <typename ENABLE_IF_FLOAT>
 
 /// \brief Simple helper union to store ints and floats to modify their bit patterns.
 union nsIntFloatUnion
@@ -134,6 +132,8 @@ using nsVec2 = nsVec2Template<float>;
 using nsVec2d = nsVec2Template<double>;
 using nsVec2I32 = nsVec2Template<nsInt32>;
 using nsVec2U32 = nsVec2Template<nsUInt32>;
+using nsVec2I64 = nsVec2Template<nsInt64>;
+using nsVec2U64 = nsVec2Template<nsUInt64>;
 
 template <typename Type>
 class nsVec3Template;
@@ -142,15 +142,19 @@ using nsVec3 = nsVec3Template<float>;
 using nsVec3d = nsVec3Template<double>;
 using nsVec3I32 = nsVec3Template<nsInt32>;
 using nsVec3U32 = nsVec3Template<nsUInt32>;
+using nsVec3I64 = nsVec3Template<nsInt64>;
+using nsVec3U64 = nsVec3Template<nsUInt64>;
 
 template <typename Type>
 class nsVec4Template;
 
 using nsVec4 = nsVec4Template<float>;
 using nsVec4d = nsVec4Template<double>;
+using nsVec4I64 = nsVec4Template<nsInt64>;
 using nsVec4I32 = nsVec4Template<nsInt32>;
 using nsVec4I16 = nsVec4Template<nsInt16>;
 using nsVec4I8 = nsVec4Template<nsInt8>;
+using nsVec4U64 = nsVec4Template<nsUInt64>;
 using nsVec4U32 = nsVec4Template<nsUInt32>;
 using nsVec4U16 = nsVec4Template<nsUInt16>;
 using nsVec4U8 = nsVec4Template<nsUInt8>;
@@ -215,6 +219,18 @@ class nsColorGammaUB;
 
 class nsRandom;
 
+template <typename Type>
+class nsRectTemplate;
+
+using nsRectU32 = nsRectTemplate<nsUInt32>;
+using nsRectU16 = nsRectTemplate<nsUInt16>;
+using nsRectI32 = nsRectTemplate<nsInt32>;
+using nsRectI16 = nsRectTemplate<nsInt16>;
+using nsRectFloat = nsRectTemplate<float>;
+using nsRectDouble = nsRectTemplate<double>;
+
+class nsFrustum;
+
 
 /// \brief An enum that allows to select on of the six main axis (positive / negative)
 struct NS_FOUNDATION_DLL nsBasisAxis
@@ -226,10 +242,10 @@ struct NS_FOUNDATION_DLL nsBasisAxis
   {
     PositiveX,
     PositiveY,
-    Positivns,
+    PositiveZ,
     NegativeX,
     NegativeY,
-    Negativns,
+    NegativeZ,
 
     Default = PositiveX
   };
@@ -238,7 +254,7 @@ struct NS_FOUNDATION_DLL nsBasisAxis
   static nsVec3 GetBasisVector(nsBasisAxis::Enum basisAxis);
 
   /// \brief Computes a matrix representing the transformation. 'Forward' represents the X axis, 'Right' the Y axis and 'Up' the Z axis.
-  static nsMat3 CalculateTransformationMatrix(nsBasisAxis::Enum forwardDir, nsBasisAxis::Enum rightDir, nsBasisAxis::Enum dir, float fUniformScale = 1.0f, float fScaleX = 1.0f, float fScaleY = 1.0f, float fScalns = 1.0f);
+  static nsMat3 CalculateTransformationMatrix(nsBasisAxis::Enum forwardDir, nsBasisAxis::Enum rightDir, nsBasisAxis::Enum dir, float fUniformScale = 1.0f, float fScaleX = 1.0f, float fScaleY = 1.0f, float fScaleZ = 1.0f);
 
   /// \brief Returns a quaternion that rotates from 'identity' to 'axis'
   static nsQuat GetBasisRotation(nsBasisAxis::Enum identity, nsBasisAxis::Enum axis);

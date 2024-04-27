@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/SimdMath/SimdQuat.h>
@@ -54,7 +49,7 @@ public:
   nsSimdTransform GetInverse() const; // [tested]
 
   /// \brief Returns the transformation as a matrix.
-  nsSimdMat4f GetAsMat4() const; // [tested]
+  nsSimdMat4f GetAsMat4() const;                                            // [tested]
 
 public:
   [[nodiscard]] nsSimdVec4f TransformPosition(const nsSimdVec4f& v) const;  // [tested]
@@ -64,7 +59,7 @@ public:
   void operator*=(const nsSimdTransform& other); // [tested]
 
   /// \brief Multiplies \a q into the rotation component, thus rotating the entire transformation.
-  void operator*=(const nsSimdQuat& q); // [tested]
+  void operator*=(const nsSimdQuat& q);  // [tested]
 
   void operator+=(const nsSimdVec4f& v); // [tested]
   void operator-=(const nsSimdVec4f& v); // [tested]
@@ -95,8 +90,8 @@ NS_ALWAYS_INLINE const nsSimdTransform operator-(const nsSimdTransform& t, const
 /// \brief Concatenates the two transforms. This is the same as a matrix multiplication, thus not commutative.
 NS_ALWAYS_INLINE const nsSimdTransform operator*(const nsSimdTransform& lhs, const nsSimdTransform& rhs); // [tested]
 
-NS_ALWAYS_INLINE bool operator==(const nsSimdTransform& t1, const nsSimdTransform& t2); // [tested]
-NS_ALWAYS_INLINE bool operator!=(const nsSimdTransform& t1, const nsSimdTransform& t2); // [tested]
+NS_ALWAYS_INLINE bool operator==(const nsSimdTransform& t1, const nsSimdTransform& t2);                   // [tested]
+NS_ALWAYS_INLINE bool operator!=(const nsSimdTransform& t1, const nsSimdTransform& t2);                   // [tested]
 
 
 #include <Foundation/SimdMath/Implementation/SimdTransform_inl.h>

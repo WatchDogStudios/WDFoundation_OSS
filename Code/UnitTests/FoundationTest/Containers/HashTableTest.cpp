@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/Containers/HashTable.h>
@@ -503,10 +498,10 @@ NS_CREATE_SIMPLE_TEST(Containers, HashTable)
 
     for (nsUInt32 i = 0; i < 1000; ++i)
     {
-      tmp.Format("stuff{}bla", i);
+      tmp.SetFormat("stuff{}bla", i);
       map1[tmp] = i;
 
-      tmp.Format("{0}{0}{0}", i);
+      tmp.SetFormat("{0}{0}{0}", i);
       map2[tmp] = i;
     }
 
@@ -514,11 +509,11 @@ NS_CREATE_SIMPLE_TEST(Containers, HashTable)
 
     for (nsUInt32 i = 0; i < 1000; ++i)
     {
-      tmp.Format("stuff{}bla", i);
+      tmp.SetFormat("stuff{}bla", i);
       NS_TEST_BOOL(map2.Contains(tmp));
       NS_TEST_INT(map2[tmp], i);
 
-      tmp.Format("{0}{0}{0}", i);
+      tmp.SetFormat("{0}{0}{0}", i);
       NS_TEST_BOOL(map1.Contains(tmp));
       NS_TEST_INT(map1[tmp], i);
     }
@@ -532,7 +527,7 @@ NS_CREATE_SIMPLE_TEST(Containers, HashTable)
 
     for (nsUInt32 i = 0; i < 1000; ++i)
     {
-      tmp.Format("stuff{}bla", i);
+      tmp.SetFormat("stuff{}bla", i);
       map[tmp] = i;
     }
 
@@ -580,13 +575,56 @@ NS_CREATE_SIMPLE_TEST(Containers, HashTable)
 
     for (nsUInt32 i = 0; i < 1000; ++i)
     {
-      tmp.Format("stuff{}bla", i);
+      tmp.SetFormat("stuff{}bla", i);
       map[tmp] = i;
     }
 
     for (nsInt32 i = map.GetCount() - 1; i > 0; --i)
     {
-      tmp.Format("stuff{}bla", i);
+      tmp.SetFormat("stuff{}bla", i);
+
+      auto it = map.Find(tmp);
+      auto cit = static_cast<const nsHashTable<nsString, nsInt32>&>(map).Find(tmp);
+
+      NS_TEST_STRING(it.Key(), tmp);
+      NS_TEST_INT(it.Value(), i);
+
+      NS_TEST_STRING(cit.Key(), tmp);
+      NS_TEST_INT(cit.Value(), i);
+
+      int allowedIterations = map.GetCount();
+      for (auto it2 = it; it2.IsValid(); ++it2)
+      {
+        // just test that iteration is possible and terminates correctly
+        --allowedIterations;
+        NS_TEST_BOOL(allowedIterations >= 0);
+      }
+
+      allowedIterations = map.GetCount();
+      for (auto cit2 = cit; cit2.IsValid(); ++cit2)
+      {
+        // just test that iteration is possible and terminates correctly
+        --allowedIterations;
+        NS_TEST_BOOL(allowedIterations >= 0);
+      }
+
+      map.Remove(it);
+    }
+  }
+  NS_TEST_BLOCK(nsTestBlock::Enabled, "Find")
+  {
+    nsStringBuilder tmp;
+    nsHashTable<nsString, nsInt32> map;
+
+    for (nsUInt32 i = 0; i < 1000; ++i)
+    {
+      tmp.SetFormat("stuff{}bla", i);
+      map[tmp] = i;
+    }
+
+    for (nsInt32 i = map.GetCount() - 1; i > 0; --i)
+    {
+      tmp.SetFormat("stuff{}bla", i);
 
       auto it = map.Find(tmp);
       auto cit = static_cast<const nsHashTable<nsString, nsInt32>&>(map).Find(tmp);

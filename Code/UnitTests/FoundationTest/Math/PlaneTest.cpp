@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/Math/BoundingBox.h>
@@ -324,43 +319,68 @@ NS_CREATE_SIMPLE_TEST(Math, Plane)
 
   NS_TEST_BLOCK(nsTestBlock::Enabled, "Transform(Mat3)")
   {
-    nsPlaneT p = nsPlane::MakeFromNormalAndPoint(nsVec3T(0, 1, 0), nsVec3T(0, 10, 0));
+    const float matrixScale[] = {1, 2, 99};
 
-    nsMat3T m;
-    m = nsMat3::MakeRotationX(nsAngle::MakeFromDegree(90));
+    for (nsUInt32 loopIndex = 0; loopIndex < NS_ARRAY_SIZE(matrixScale); ++loopIndex)
+    {
+      nsPlaneT p = nsPlane::MakeFromNormalAndPoint(nsVec3T(0, 1, 0), nsVec3T(0, 10, 0));
 
-    p.Transform(m);
+      nsMat3T m;
+      {
+        m = nsMat3::MakeRotationX(nsAngle::MakeFromDegree(90));
 
-    NS_TEST_VEC3(p.m_vNormal, nsVec3T(0, 0, 1), 0.0001f);
-    NS_TEST_FLOAT(p.m_fNegDistance, -10.0f, 0.0001f);
+        nsMat3T rot = nsMat3T::MakeScaling(nsVec3(1) * matrixScale[loopIndex]);
+        m = m * rot;
+      }
+
+      p.Transform(m);
+
+      NS_TEST_VEC3(p.m_vNormal, nsVec3T(0, 0, 1), 0.0001f);
+      NS_TEST_FLOAT(p.m_fNegDistance, -10.0f * matrixScale[loopIndex], 0.0001f);
+    }
   }
 
   NS_TEST_BLOCK(nsTestBlock::Enabled, "Transform(Mat4)")
   {
+    const float matrixScale[] = {1, 2, 99};
+
+    for (nsUInt32 loopIndex = 0; loopIndex < NS_ARRAY_SIZE(matrixScale); ++loopIndex)
     {
-      nsPlaneT p = nsPlane::MakeFromNormalAndPoint(nsVec3T(0, 1, 0), nsVec3T(0, 10, 0));
+      {
+        nsPlaneT p = nsPlane::MakeFromNormalAndPoint(nsVec3T(0, 1, 0), nsVec3T(0, 10, 0));
 
-      nsMat4T m;
-      m = nsMat4::MakeRotationX(nsAngle::MakeFromDegree(90));
-      m.SetTranslationVector(nsVec3T(0, 5, 0));
+        nsMat4T m;
+        {
+          m = nsMat4::MakeRotationX(nsAngle::MakeFromDegree(90));
+          m.SetTranslationVector(nsVec3T(0, 5, 0));
 
-      p.Transform(m);
+          nsMat4T rot = nsMat4T::MakeScaling(nsVec3(1) * matrixScale[loopIndex]);
+          m = m * rot;
+        }
 
-      NS_TEST_VEC3(p.m_vNormal, nsVec3T(0, 0, 1), 0.0001f);
-      NS_TEST_FLOAT(p.m_fNegDistance, -10.0f, 0.0001f);
-    }
+        p.Transform(m);
 
-    {
-      nsPlaneT p = nsPlane::MakeFromNormalAndPoint(nsVec3T(0, 1, 0), nsVec3T(0, 10, 0));
+        NS_TEST_VEC3(p.m_vNormal, nsVec3T(0, 0, 1), 0.0001f);
+        NS_TEST_FLOAT(p.m_fNegDistance, -10.0f * matrixScale[loopIndex], 0.0001f);
+      }
 
-      nsMat4T m;
-      m = nsMat4::MakeRotationX(nsAngle::MakeFromDegree(90));
-      m.SetTranslationVector(nsVec3T(0, 0, 5));
+      {
+        nsPlaneT p = nsPlane::MakeFromNormalAndPoint(nsVec3T(0, 1, 0), nsVec3T(0, 10, 0));
 
-      p.Transform(m);
+        nsMat4T m;
+        {
+          m = nsMat4::MakeRotationX(nsAngle::MakeFromDegree(90));
+          m.SetTranslationVector(nsVec3T(0, 0, 5));
 
-      NS_TEST_VEC3(p.m_vNormal, nsVec3T(0, 0, 1), 0.0001f);
-      NS_TEST_FLOAT(p.m_fNegDistance, -15.0f, 0.0001f);
+          nsMat4T rot = nsMat4T::MakeScaling(nsVec3(1) * matrixScale[loopIndex]);
+          m = m * rot;
+        }
+
+        p.Transform(m);
+
+        NS_TEST_VEC3(p.m_vNormal, nsVec3T(0, 0, 1), 0.0001f);
+        NS_TEST_FLOAT(p.m_fNegDistance, -10.0f * matrixScale[loopIndex] - 5.0f, 0.0001f);
+      }
     }
   }
 
@@ -549,7 +569,8 @@ NS_CREATE_SIMPLE_TEST(Math, Plane)
     nsRandom randomGenerator;
     randomGenerator.Initialize(0x83482343);
 
-    const auto randomNonZeroVec3T = [&randomGenerator]() -> nsVec3T {
+    const auto randomNonZeroVec3T = [&randomGenerator]() -> nsVec3T
+    {
       const float extent = 1000.f;
       const nsVec3T v(randomGenerator.FloatMinMax(-extent, extent), randomGenerator.FloatMinMax(-extent, extent), randomGenerator.FloatMinMax(-extent, extent));
       return v.GetLength() > 0.001f ? v : nsVec3T::MakeAxisX();

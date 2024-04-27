@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Logging/Log.h>
@@ -162,7 +157,8 @@ nsRttiConverterWriter::nsRttiConverterWriter(nsAbstractObjectGraph* pGraph, nsRt
   m_pGraph = pGraph;
   m_pContext = pContext;
 
-  m_Filter = [bSerializeReadOnly, bSerializeOwnerPtrs](const void* pObject, const nsAbstractProperty* pProp) {
+  m_Filter = [bSerializeReadOnly, bSerializeOwnerPtrs](const void* pObject, const nsAbstractProperty* pProp)
+  {
     if (pProp->GetFlags().IsSet(nsPropertyFlags::ReadOnly) && !bSerializeReadOnly)
       return false;
 
@@ -454,7 +450,3 @@ void nsRttiConverterWriter::AddProperties(nsAbstractObjectNode* pNode, const nsR
     AddProperty(pNode, pProp, pObject);
   }
 }
-
-
-
-NS_STATICLINK_FILE(Foundation, Foundation_Serialization_Implementation_RttiConverterWriter);

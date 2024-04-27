@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Math/Vec2.h>
@@ -67,7 +62,7 @@ NS_FORCE_INLINE const nsVec4Template<Type> nsVec3Template<Type>::GetAsDirectionV
 template <typename Type>
 NS_ALWAYS_INLINE nsVec4Template<Type>::nsVec4Template()
 {
-#if NS_ENABLED(NS_COMPILE_FOR_DEBUG)
+#if NS_ENABLED(NS_MATH_CHECK_FOR_NAN)
   // Initialize all data to NaN in debug mode to find problems with uninitialized data easier.
   const Type TypeNaN = nsMath::NaN<Type>();
   x = TypeNaN;
@@ -82,6 +77,15 @@ NS_ALWAYS_INLINE nsVec4Template<Type>::nsVec4Template(Type x, Type y, Type z, Ty
   : x(x)
   , y(y)
   , z(z)
+  , w(w)
+{
+}
+
+template <typename Type>
+NS_ALWAYS_INLINE nsVec4Template<Type>::nsVec4Template(nsVec3Template<Type> vXyz, Type w)
+  : x(vXyz.x)
+  , y(vXyz.y)
+  , z(vXyz.z)
   , w(w)
 {
 }
@@ -138,7 +142,7 @@ inline void nsVec4Template<Type>::SetZero()
 }
 
 template <typename Type>
-NS_ALWAYS_INLINE Type nsVec4Template<Type>::GetLength() const
+NS_IMPLEMENT_IF_FLOAT_TYPE NS_ALWAYS_INLINE Type nsVec4Template<Type>::GetLength() const
 {
   return (nsMath::Sqrt(GetLengthSquared()));
 }
@@ -152,7 +156,7 @@ NS_FORCE_INLINE Type nsVec4Template<Type>::GetLengthSquared() const
 }
 
 template <typename Type>
-NS_FORCE_INLINE Type nsVec4Template<Type>::GetLengthAndNormalize()
+NS_IMPLEMENT_IF_FLOAT_TYPE NS_FORCE_INLINE Type nsVec4Template<Type>::GetLengthAndNormalize()
 {
   const Type fLength = GetLength();
   *this /= fLength;
@@ -160,7 +164,7 @@ NS_FORCE_INLINE Type nsVec4Template<Type>::GetLengthAndNormalize()
 }
 
 template <typename Type>
-NS_FORCE_INLINE const nsVec4Template<Type> nsVec4Template<Type>::GetNormalized() const
+NS_IMPLEMENT_IF_FLOAT_TYPE NS_FORCE_INLINE const nsVec4Template<Type> nsVec4Template<Type>::GetNormalized() const
 {
   const Type fLen = GetLength();
 
@@ -169,13 +173,13 @@ NS_FORCE_INLINE const nsVec4Template<Type> nsVec4Template<Type>::GetNormalized()
 }
 
 template <typename Type>
-NS_ALWAYS_INLINE void nsVec4Template<Type>::Normalize()
+NS_IMPLEMENT_IF_FLOAT_TYPE NS_ALWAYS_INLINE void nsVec4Template<Type>::Normalize()
 {
   *this /= GetLength();
 }
 
 template <typename Type>
-inline nsResult nsVec4Template<Type>::NormalizeIfNotZero(const nsVec4Template<Type>& vFallback, Type fEpsilon)
+NS_IMPLEMENT_IF_FLOAT_TYPE inline nsResult nsVec4Template<Type>::NormalizeIfNotZero(const nsVec4Template<Type>& vFallback, Type fEpsilon)
 {
   NS_NAN_ASSERT(&vFallback);
 
@@ -195,7 +199,7 @@ inline nsResult nsVec4Template<Type>::NormalizeIfNotZero(const nsVec4Template<Ty
   length is between a lower and upper limit.
 */
 template <typename Type>
-inline bool nsVec4Template<Type>::IsNormalized(Type fEpsilon /* = nsMath::HugeEpsilon<Type>() */) const
+NS_IMPLEMENT_IF_FLOAT_TYPE inline bool nsVec4Template<Type>::IsNormalized(Type fEpsilon /* = nsMath::HugeEpsilon<Type>() */) const
 {
   const Type t = GetLengthSquared();
   return nsMath::IsEqual(t, (Type)1, fEpsilon);
@@ -291,12 +295,21 @@ NS_FORCE_INLINE void nsVec4Template<Type>::operator*=(Type f)
 template <typename Type>
 NS_FORCE_INLINE void nsVec4Template<Type>::operator/=(Type f)
 {
-  const Type f_inv = nsMath::Invert(f);
-
-  x *= f_inv;
-  y *= f_inv;
-  z *= f_inv;
-  w *= f_inv;
+  if constexpr (std::is_floating_point_v<Type>)
+  {
+    const Type f_inv = nsMath::Invert(f);
+    x *= f_inv;
+    y *= f_inv;
+    z *= f_inv;
+    w *= f_inv;
+  }
+  else
+  {
+    x /= f;
+    y /= f;
+    z /= f;
+    w /= f;
+  }
 
   NS_NAN_ASSERT(this);
 }
@@ -406,9 +419,16 @@ NS_FORCE_INLINE const nsVec4Template<Type> operator/(const nsVec4Template<Type>&
 {
   NS_NAN_ASSERT(&v);
 
-  // multiplication is much faster than division
-  const Type f_inv = nsMath::Invert(f);
-  return nsVec4Template<Type>(v.x * f_inv, v.y * f_inv, v.z * f_inv, v.w * f_inv);
+  if constexpr (std::is_floating_point_v<Type>)
+  {
+    // multiplication is much faster than division
+    const Type f_inv = nsMath::Invert(f);
+    return nsVec4Template<Type>(v.x * f_inv, v.y * f_inv, v.z * f_inv, v.w * f_inv);
+  }
+  else
+  {
+    return nsVec4Template<Type>(v.x / f, v.y / f, v.z / f, v.w / f);
+  }
 }
 
 template <typename Type>

@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/IO/DependencyFile.h>
@@ -173,7 +168,7 @@ nsResult nsDependencyFile::RetrieveFileTimeStamp(nsStringView sFile, nsTimestamp
 #else
 
   out_Result = nsTimestamp::MakeFromInt(0, nsSIUnitOfTime::Second);
-  nsLog::Warning("Trying to retrieve a file time stamp on a platform that does not support it (file: '{0}')", nsArgSensitive(szFile, "File"));
+  nsLog::Warning("Trying to retrieve a file time stamp on a platform that does not support it (file: '{0}')", nsArgSensitive(sFile, "File"));
 
 #endif
 
@@ -201,7 +196,3 @@ nsResult nsDependencyFile::ReadDependencyFile(nsStringView sFile)
 
   return ReadDependencyFile(file);
 }
-
-
-
-NS_STATICLINK_FILE(Foundation, Foundation_IO_Implementation_DependencyFile);

@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 
 #pragma once
 
@@ -39,7 +34,10 @@ protected:                                     \
 /// \brief Implements the necessary functions to access a serialization context through GetContext.
 #define NS_IMPLEMENT_SERIALIZATION_CONTEXT(type)                                                                                     \
   thread_local type* NS_CONCAT(s_pActiveContext, type);                                                                              \
-  type* type::GetContext() { return NS_CONCAT(s_pActiveContext, type); }                                                             \
+  type* type::GetContext()                                                                                                           \
+  {                                                                                                                                  \
+    return NS_CONCAT(s_pActiveContext, type);                                                                                        \
+  }                                                                                                                                  \
   void type::SetContext(nsSerializationContext* pContext)                                                                            \
   {                                                                                                                                  \
     NS_ASSERT_DEV(pContext == nullptr || NS_CONCAT(s_pActiveContext, type) == nullptr, "Only one context can be active at a time."); \

@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Reflection/Reflection.h>
@@ -149,6 +144,21 @@ NS_BEGIN_DYNAMIC_REFLECTED_TYPE(nsDefaultValueAttribute, 1, nsRTTIDefaultAllocat
 }
 NS_END_DYNAMIC_REFLECTED_TYPE;
 
+NS_BEGIN_DYNAMIC_REFLECTED_TYPE(nsImageSliderUiAttribute, 1, nsRTTIDefaultAllocator<nsImageSliderUiAttribute>)
+{
+  NS_BEGIN_PROPERTIES
+  {
+    NS_MEMBER_PROPERTY("ImageGenerator", m_sImageGenerator),
+  }
+  NS_END_PROPERTIES;
+  NS_BEGIN_FUNCTIONS
+  {
+    NS_CONSTRUCTOR_PROPERTY(const char*),
+  }
+  NS_END_FUNCTIONS;
+}
+NS_END_DYNAMIC_REFLECTED_TYPE;
+
 NS_BEGIN_DYNAMIC_REFLECTED_TYPE(nsClampValueAttribute, 1, nsRTTIDefaultAllocator<nsClampValueAttribute>)
 {
   NS_BEGIN_PROPERTIES
@@ -281,7 +291,24 @@ NS_BEGIN_DYNAMIC_REFLECTED_TYPE(nsFileBrowserAttribute, 1, nsRTTIDefaultAllocato
   NS_END_PROPERTIES;
   NS_BEGIN_FUNCTIONS
   {
-    NS_CONSTRUCTOR_PROPERTY(const char*, const char*),
+    NS_CONSTRUCTOR_PROPERTY(nsStringView, nsStringView),
+    NS_CONSTRUCTOR_PROPERTY(nsStringView, nsStringView, nsStringView),
+  }
+  NS_END_FUNCTIONS;
+}
+NS_END_DYNAMIC_REFLECTED_TYPE;
+
+NS_BEGIN_DYNAMIC_REFLECTED_TYPE(nsExternalFileBrowserAttribute, 1, nsRTTIDefaultAllocator<nsExternalFileBrowserAttribute>)
+{
+  NS_BEGIN_PROPERTIES
+  {
+    NS_MEMBER_PROPERTY("Title", m_sDialogTitle),
+    NS_MEMBER_PROPERTY("Filter", m_sTypeFilter),
+  }
+  NS_END_PROPERTIES;
+  NS_BEGIN_FUNCTIONS
+  {
+    NS_CONSTRUCTOR_PROPERTY(nsStringView, nsStringView),
   }
   NS_END_FUNCTIONS;
 }
@@ -292,12 +319,16 @@ NS_BEGIN_DYNAMIC_REFLECTED_TYPE(nsAssetBrowserAttribute, 1, nsRTTIDefaultAllocat
   NS_BEGIN_PROPERTIES
   {
     NS_MEMBER_PROPERTY("Filter", m_sTypeFilter),
+    NS_MEMBER_PROPERTY("RequiredTag", m_sRequiredTag),
     NS_BITFLAGS_MEMBER_PROPERTY("DependencyFlags", nsDependencyFlags, m_DependencyFlags),
   }
   NS_END_PROPERTIES;
   NS_BEGIN_FUNCTIONS
   {
     NS_CONSTRUCTOR_PROPERTY(const char*),
+    NS_CONSTRUCTOR_PROPERTY(const char*, nsBitflags<nsDependencyFlags>),
+    NS_CONSTRUCTOR_PROPERTY(const char*, const char*),
+    NS_CONSTRUCTOR_PROPERTY(const char*, const char*, nsBitflags<nsDependencyFlags>),
   }
   NS_END_FUNCTIONS;
 }
@@ -490,8 +521,8 @@ nsNonUniformBoxManipulatorAttribute::nsNonUniformBoxManipulatorAttribute(
 {
 }
 
-nsNonUniformBoxManipulatorAttribute::nsNonUniformBoxManipulatorAttribute(const char* szSizeX, const char* szSizeY, const char* szSizns)
-  : nsManipulatorAttribute(szSizeX, szSizeY, szSizns)
+nsNonUniformBoxManipulatorAttribute::nsNonUniformBoxManipulatorAttribute(const char* szSizeX, const char* szSizeY, const char* szSizeZ)
+  : nsManipulatorAttribute(szSizeX, szSizeY, szSizeZ)
 {
 }
 
@@ -1032,7 +1063,7 @@ NS_BEGIN_DYNAMIC_REFLECTED_TYPE(nsFunctionArgumentAttributes, 1, nsRTTIDefaultAl
   NS_BEGIN_PROPERTIES
   {
     NS_MEMBER_PROPERTY("ArgIndex", m_uiArgIndex),
-    NS_ARRAY_MEMBER_PROPERTY("ArgAttributes", m_ArgAttributes),
+    NS_ARRAY_MEMBER_PROPERTY("ArgAttributes", m_ArgAttributes)->AddFlags(nsPropertyFlags::PointerOwner),
   }
   NS_END_PROPERTIES;
 }
@@ -1065,6 +1096,15 @@ nsFunctionArgumentAttributes::nsFunctionArgumentAttributes(nsUInt32 uiArgIndex, 
       return;
 
     m_ArgAttributes.PushBack(pAttribute4);
+  }
+}
+
+nsFunctionArgumentAttributes::~nsFunctionArgumentAttributes()
+{
+  for (auto pAttribute : m_ArgAttributes)
+  {
+    auto pAttributeNonConst = const_cast<nsPropertyAttribute*>(pAttribute);
+    NS_DEFAULT_DELETE(pAttributeNonConst);
   }
 }
 

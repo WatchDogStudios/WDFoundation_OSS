@@ -6,7 +6,7 @@ macro(ns_include_nsExport)
 	# Create a modified version of the nsExport.cmake file,
 	# where the absolute paths to the original locations are replaced
 	# with the absolute paths to this installation
-	set(EXP_FILE "${NS_OUTPUT_DIRECTORY_DLL}/nsExport.cmake")
+	ns_get_export_location(EXP_FILE)
 	set(IMP_FILE "${CMAKE_BINARY_DIR}/nsExport.cmake")
 	set(EXPINFO_FILE "${NS_OUTPUT_DIRECTORY_DLL}/nsExportInfo.cmake")
 

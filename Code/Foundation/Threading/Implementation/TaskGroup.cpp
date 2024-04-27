@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Threading/Implementation/Task.h>
@@ -50,6 +45,3 @@ void nsTaskGroup::DebugCheckTaskGroup(nsTaskGroupID groupID, nsMutex& mutex)
   NS_ASSERT_DEV(pGroup->m_iNumActiveDependencies == 0, "Invalid active dependenices");
 }
 #endif
-
-
-NS_STATICLINK_FILE(Foundation, Foundation_Threading_Implementation_TaskGroup);

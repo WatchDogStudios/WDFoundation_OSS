@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Algorithm/Sorting.h>
@@ -31,13 +26,13 @@ class nsDequeBase
 {
 protected:
   /// \brief No memory is allocated during construction.
-  explicit nsDequeBase(nsAllocatorBase* pAllocator); // [tested]
+  explicit nsDequeBase(nsAllocator* pAllocator); // [tested]
 
   /// \brief Constructs this deque by copying from rhs.
-  nsDequeBase(const nsDequeBase<T, Construct>& rhs, nsAllocatorBase* pAllocator); // [tested]
+  nsDequeBase(const nsDequeBase<T, Construct>& rhs, nsAllocator* pAllocator); // [tested]
 
   /// \brief Constructs this deque by moving from rhs.
-  nsDequeBase(nsDequeBase<T, Construct>&& rhs, nsAllocatorBase* pAllocator); // [tested]
+  nsDequeBase(nsDequeBase<T, Construct>&& rhs, nsAllocator* pAllocator); // [tested]
 
   /// \brief Destructor.
   ~nsDequeBase(); // [tested]
@@ -159,7 +154,7 @@ public:
   bool RemoveAndSwap(const T& value); // [tested]
 
   /// \brief Inserts value at index by shifting all following elements. Valid insert positions are [0; GetCount].
-  void Insert(const T& value, nsUInt32 uiIndex); // [tested]
+  void InsertAt(nsUInt32 uiIndex, const T& value); // [tested]
 
   /// \brief Sort with explicit comparer
   template <typename Comparer>
@@ -169,7 +164,7 @@ public:
   void Sort(); // [tested]
 
   /// \brief Returns the allocator that is used by this instance.
-  nsAllocatorBase* GetAllocator() const { return m_pAllocator; }
+  nsAllocator* GetAllocator() const { return m_pAllocator; }
 
   using const_iterator = const_iterator_base<nsDequeBase<T, Construct>, T, false>;
   using const_reverse_iterator = const_iterator_base<nsDequeBase<T, Construct>, T, true>;
@@ -184,15 +179,14 @@ public:
   /// \brief Comparison operator
   bool operator==(const nsDequeBase<T, Construct>& rhs) const; // [tested]
 
-  /// \brief Comparison operator
-  bool operator!=(const nsDequeBase<T, Construct>& rhs) const; // [tested]
+  NS_ADD_DEFAULT_OPERATOR_NOTEQUAL(const nsDequeBase<T, Construct>&);
 
   /// \brief Returns the amount of bytes that are currently allocated on the heap.
   nsUInt64 GetHeapMemoryUsage() const; // [tested]
 
 private:
   /// \brief A common constructor function.
-  void Constructor(nsAllocatorBase* pAllocator);
+  void Constructor(nsAllocator* pAllocator);
 
   /// \brief Reduces the index array to take up less memory.
   void CompactIndexArray(nsUInt32 uiMinChunksToKeep);
@@ -253,7 +247,7 @@ private:
   /// \brief Deallocates all data, resets the deque to the state after construction.
   void DeallocateAll();
 
-  nsAllocatorBase* m_pAllocator;
+  nsAllocator* m_pAllocator;
   T** m_pChunks;                ///< The chunk index array for redirecting accesses. Not all chunks must be allocated.
   nsUInt32 m_uiChunks;          ///< The size of the m_pChunks array. Determines how many elements could theoretically be stored in the deque.
   nsUInt32 m_uiFirstElement;    ///< Which element (across all chunks) is considered to be the first.
@@ -275,7 +269,7 @@ class nsDeque : public nsDequeBase<T, Construct>
 {
 public:
   nsDeque();
-  nsDeque(nsAllocatorBase* pAllocator);
+  nsDeque(nsAllocator* pAllocator);
 
   nsDeque(const nsDeque<T, AllocatorWrapper, Construct>& other);
   nsDeque(const nsDequeBase<T, Construct>& other);

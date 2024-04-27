@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Algorithm/HashingUtils.h>
@@ -38,7 +33,7 @@ public:
   };
 
   // Do NOT use a hash-table! The map does not relocate memory when it resizes, which is a vital aspect for the hashed strings to work.
-  using StringStorage = nsMap<nsUInt64, HashedData, nsCompareHelper<nsUInt64>, nsStaticAllocatorWrapper>;
+  using StringStorage = nsMap<nsUInt64, HashedData, nsCompareHelper<nsUInt64>, nsStaticsAllocatorWrapper>;
   using HashedType = StringStorage::Iterator;
 
 #if NS_ENABLED(NS_HASHED_STRING_REF_COUNTING)
@@ -98,16 +93,12 @@ public:
   /// \note Comparing between nsHashedString objects is always error-free, so even if two string had the same hash value, although they are
   /// different, this comparison function will not report they are the same.
   bool operator==(const nsHashedString& rhs) const; // [tested]
-
-  /// \brief \see operator==
-  bool operator!=(const nsHashedString& rhs) const; // [tested]
+  NS_ADD_DEFAULT_OPERATOR_NOTEQUAL(const nsHashedString&);
 
   /// \brief Compares this string object to an nsTempHashedString object. This should be used whenever some object needs to be found
   /// and the string to compare against is not yet an nsHashedString object.
   bool operator==(const nsTempHashedString& rhs) const; // [tested]
-
-  /// \brief \see operator==
-  bool operator!=(const nsTempHashedString& rhs) const; // [tested]
+  NS_ADD_DEFAULT_OPERATOR_NOTEQUAL(const nsTempHashedString&);
 
   /// \brief This operator allows sorting objects by hash value, not by alphabetical order.
   bool operator<(const nsHashedString& rhs) const; // [tested]
@@ -172,7 +163,7 @@ public:
 
   /// \brief Creates an nsTempHashedString object from the given string. Computes the hash of the given string during runtime, which might
   /// be slow.
-  nsTempHashedString(nsStringView sString); // [tested]
+  explicit nsTempHashedString(nsStringView sString); // [tested]
 
   /// \brief Copies the hash from rhs.
   nsTempHashedString(const nsTempHashedString& rhs); // [tested]
@@ -200,9 +191,7 @@ public:
 
   /// \brief Compares the two objects by their hash value. Might report incorrect equality, if two strings have the same hash value.
   bool operator==(const nsTempHashedString& rhs) const; // [tested]
-
-  /// \brief \see operator==
-  bool operator!=(const nsTempHashedString& rhs) const; // [tested]
+  NS_ADD_DEFAULT_OPERATOR_NOTEQUAL(const nsTempHashedString&);
 
   /// \brief This operator allows soring objects by hash value, not by alphabetical order.
   bool operator<(const nsTempHashedString& rhs) const; // [tested]

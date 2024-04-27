@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/Profiling/Profiling.h>
@@ -12,7 +7,7 @@
 
 namespace
 {
-  volatile nsInt32 g_iCrossThreadVariable = 0;
+  nsInt32 g_iCrossThreadVariable = 0;
   const nsUInt32 g_uiIncrementSteps = 160000;
 
   class TestThread3 : public nsThread

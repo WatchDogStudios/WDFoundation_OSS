@@ -1,20 +1,15 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Memory/CommonAllocators.h>
 
-#if NS_ENABLED(NS_USE_GUARDED_ALLOCATIONS)
-using DefaultHeapType = nsGuardedAllocator;
-using DefaultAlignedHeapType = nsGuardedAllocator;
-using DefaultStaticHeapType = nsGuardedAllocator;
+#if NS_ENABLED(NS_ALLOC_GUARD_ALLOCATIONS)
+using DefaultHeapType = nsGuardingAllocator;
+using DefaultAlignedHeapType = nsGuardingAllocator;
+using DefaultStaticsHeapType = nsAllocatorWithPolicy<nsAllocPolicyGuarding, nsAllocatorTrackingMode::AllocationStatsIgnoreLeaks>;
 #else
 using DefaultHeapType = nsHeapAllocator;
 using DefaultAlignedHeapType = nsAlignedHeapAllocator;
-using DefaultStaticHeapType = nsHeapAllocator;
+using DefaultStaticsHeapType = nsAllocatorWithPolicy<nsAllocPolicyHeap, nsAllocatorTrackingMode::AllocationStatsIgnoreLeaks>;
 #endif
 
 enum
@@ -29,8 +24,8 @@ alignas(NS_ALIGNMENT_MINIMUM) static nsUInt8 s_StaticAllocatorBuffer[HEAP_ALLOCA
 alignas(NS_ALIGNMENT_MINIMUM) static nsUInt8 s_AlignedAllocatorBuffer[ALIGNED_ALLOCATOR_BUFFER_SIZE];
 
 bool nsFoundation::s_bIsInitialized = false;
-nsAllocatorBase* nsFoundation::s_pDefaultAllocator = nullptr;
-nsAllocatorBase* nsFoundation::s_pAlignedAllocator = nullptr;
+nsAllocator* nsFoundation::s_pDefaultAllocator = nullptr;
+nsAllocator* nsFoundation::s_pAlignedAllocator = nullptr;
 
 void nsFoundation::Initialize()
 {
@@ -55,12 +50,12 @@ void nsFoundation::Initialize()
 }
 
 #if defined(NS_CUSTOM_STATIC_ALLOCATOR_FUNC)
-extern nsAllocatorBase* NS_CUSTOM_STATIC_ALLOCATOR_FUNC();
+extern nsAllocator* NS_CUSTOM_STATIC_ALLOCATOR_FUNC();
 #endif
 
-nsAllocatorBase* nsFoundation::GetStaticAllocator()
+nsAllocator* nsFoundation::GetStaticsAllocator()
 {
-  static nsAllocatorBase* pStaticAllocator = nullptr;
+  static nsAllocator* pStaticAllocator = nullptr;
 
   if (pStaticAllocator == nullptr)
   {
@@ -69,7 +64,7 @@ nsAllocatorBase* nsFoundation::GetStaticAllocator()
 #  if NS_ENABLED(NS_COMPILE_ENGINE_AS_DLL)
 
 #    if NS_ENABLED(NS_PLATFORM_WINDOWS)
-    using GetStaticAllocatorFunc = nsAllocatorBase* (*)();
+    using GetStaticAllocatorFunc = nsAllocator* (*)();
 
     HMODULE hThisModule = GetModuleHandle(nullptr);
     GetStaticAllocatorFunc func = (GetStaticAllocatorFunc)GetProcAddress(hThisModule, NS_CUSTOM_STATIC_ALLOCATOR_FUNC);
@@ -88,12 +83,8 @@ nsAllocatorBase* nsFoundation::GetStaticAllocator()
 
 #endif
 
-    pStaticAllocator = new (s_StaticAllocatorBuffer) DefaultStaticHeapType(NS_STATIC_ALLOCATOR_NAME);
+    pStaticAllocator = new (s_StaticAllocatorBuffer) DefaultStaticsHeapType("Statics");
   }
 
   return pStaticAllocator;
 }
-
-
-
-NS_STATICLINK_FILE(Foundation, Foundation_Basics_Basics);

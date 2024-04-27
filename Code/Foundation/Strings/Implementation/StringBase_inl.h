@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 template <typename Derived>
@@ -176,7 +171,9 @@ template <typename Derived>
 const char* nsStringBase<Derived>::ComputeCharacterPosition(nsUInt32 uiCharacterIndex) const
 {
   const char* pos = InternalGetData();
-  nsUnicodeUtils::MoveToNextUtf8(pos, InternalGetDataEnd(), uiCharacterIndex);
+  if (nsUnicodeUtils::MoveToNextUtf8(pos, InternalGetDataEnd(), uiCharacterIndex).Failed())
+    return nullptr;
+
   return pos;
 }
 
@@ -210,6 +207,8 @@ NS_ALWAYS_INLINE bool operator==(const nsStringBase<DerivedLhs>& lhs, const char
   return lhs.IsEqual(rhs);
 }
 
+#if NS_DISABLED(NS_USE_CPP20_OPERATORS)
+
 template <typename DerivedLhs, typename DerivedRhs>
 NS_ALWAYS_INLINE bool operator!=(const nsStringBase<DerivedLhs>& lhs, const nsStringBase<DerivedRhs>& rhs) // [tested]
 {
@@ -227,6 +226,24 @@ NS_ALWAYS_INLINE bool operator!=(const nsStringBase<DerivedLhs>& lhs, const char
 {
   return !lhs.IsEqual(rhs);
 }
+
+#endif
+
+#if NS_ENABLED(NS_USE_CPP20_OPERATORS)
+
+template <typename DerivedLhs, typename DerivedRhs>
+NS_ALWAYS_INLINE std::strong_ordering operator<=>(const nsStringBase<DerivedLhs>& lhs, const nsStringBase<DerivedRhs>& rhs)
+{
+  return lhs.Compare(rhs) <=> 0;
+}
+
+template <typename DerivedLhs, typename DerivedRhs>
+NS_ALWAYS_INLINE std::strong_ordering operator<=>(const nsStringBase<DerivedLhs>& lhs, const char* rhs)
+{
+  return lhs.Compare(rhs) <=> 0;
+}
+
+#else
 
 template <typename DerivedLhs, typename DerivedRhs>
 NS_ALWAYS_INLINE bool operator<(const nsStringBase<DerivedLhs>& lhs, const nsStringBase<DerivedRhs>& rhs) // [tested]
@@ -299,6 +316,8 @@ NS_ALWAYS_INLINE bool operator>=(const nsStringBase<DerivedLhs>& lhs, const char
 {
   return lhs.Compare(rhs) >= 0;
 }
+
+#endif
 
 template <typename DerivedLhs>
 NS_ALWAYS_INLINE nsStringBase<DerivedLhs>::operator nsStringView() const

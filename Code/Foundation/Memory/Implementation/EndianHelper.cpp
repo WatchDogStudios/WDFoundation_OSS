@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Memory/EndianHelper.h>
@@ -67,5 +62,3 @@ void nsEndianHelper::SwitchStructs(void* pDataPointer, const char* szFormat, nsU
     pDataPointer = nsMemoryUtils::AddByteOffset(pDataPointer, uiStride);
   }
 }
-
-NS_STATICLINK_FILE(Foundation, Foundation_Memory_Implementation_EndianHelper);

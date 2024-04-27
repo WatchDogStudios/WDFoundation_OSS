@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Math/Math.h>
@@ -43,10 +38,15 @@ public:
   // no copy-constructor and operator= since the default-generated ones will be faster
 
   /// \brief Returns a vector with all components set to Not-a-Number (NaN).
-  [[nodiscard]] static const nsVec2Template<Type> MakeNaN() { return nsVec2Template<Type>(nsMath::NaN<Type>()); }
+  NS_DECLARE_IF_FLOAT_TYPE
+  [[nodiscard]] static const nsVec2Template<Type>
+  MakeNaN()
+  {
+    return nsVec2Template<Type>(nsMath::NaN<Type>());
+  }
 
   /// \brief Static function that returns a zero-vector.
-  [[nodiscard]] static const nsVec2Template<Type> MakeZero() { return nsVec2Template(0); } // [tested]
+  [[nodiscard]] static constexpr nsVec2Template<Type> MakeZero() { return nsVec2Template(0); } // [tested]
 
 #if NS_ENABLED(NS_MATH_CHECK_FOR_NAN)
   void AssertNotNaN() const
@@ -84,10 +84,12 @@ public:
   // *** Functions dealing with length ***
 public:
   /// \brief Returns the length of the vector.
+  NS_DECLARE_IF_FLOAT_TYPE
   Type GetLength() const; // [tested]
 
   /// \brief Tries to rescale the vector to the given length. If the vector is too close to zero, NS_FAILURE is returned and the vector is
   /// set to zero.
+  NS_DECLARE_IF_FLOAT_TYPE
   nsResult SetLength(Type fNewLength, Type fEpsilon = nsMath::DefaultEpsilon<Type>()); // [tested]
 
   /// \brief Returns the squared length. Faster, since no square-root is taken. Useful, if one only wants to compare the lengths of two
@@ -96,16 +98,20 @@ public:
 
   /// \brief Normalizes this vector and returns its previous length in one operation. More efficient than calling GetLength and then
   /// Normalize.
+  NS_DECLARE_IF_FLOAT_TYPE
   Type GetLengthAndNormalize(); // [tested]
 
   /// \brief Returns a normalized version of this vector, leaves the vector itself unchanged.
+  NS_DECLARE_IF_FLOAT_TYPE
   const nsVec2Template<Type> GetNormalized() const; // [tested]
 
   /// \brief Normalizes this vector.
+  NS_DECLARE_IF_FLOAT_TYPE
   void Normalize(); // [tested]
 
   /// \brief Tries to normalize this vector. If the vector is too close to zero, NS_FAILURE is returned and the vector is set to the given
   /// fallback value.
+  NS_DECLARE_IF_FLOAT_TYPE
   nsResult NormalizeIfNotZero(const nsVec2Template<Type>& vFallback = nsVec2Template<Type>(1, 0), Type fEpsilon = nsMath::DefaultEpsilon<Type>()); // [tested]
 
   /// \brief Returns, whether this vector is (0, 0).
@@ -115,6 +121,7 @@ public:
   bool IsZero(Type fEpsilon) const; // [tested]
 
   /// \brief Returns, whether the squared length of this vector is between 0.999f and 1.001f.
+  NS_DECLARE_IF_FLOAT_TYPE
   bool IsNormalized(Type fEpsilon = nsMath::HugeEpsilon<Type>()) const; // [tested]
 
   /// \brief Returns true, if any of x or y is NaN
@@ -181,12 +188,14 @@ public:
   ///
   /// \note This function may fail, e.g. create a vector that is zero, if the given normal is parallel to the vector itself.
   ///       If you need to handle such cases, you should manually check afterwards, whether the result is zero, or cannot be normalized.
+  NS_DECLARE_IF_FLOAT_TYPE
   void MakeOrthogonalTo(const nsVec2Template<Type>& vNormal); // [tested]
 
   /// \brief Returns some arbitrary vector orthogonal to this one. The vector is NOT normalized.
   const nsVec2Template<Type> GetOrthogonalVector() const; // [tested]
 
   /// \brief Returns this vector reflected at vNormal.
+  NS_DECLARE_IF_FLOAT_TYPE
   const nsVec2Template<Type> GetReflectedVector(const nsVec2Template<Type>& vNormal) const; // [tested]
 };
 

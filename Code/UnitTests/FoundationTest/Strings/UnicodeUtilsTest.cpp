@@ -1,9 +1,4 @@
-﻿/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
-#include <FoundationTest/FoundationTestPCH.h>
+﻿#include <FoundationTest/FoundationTestPCH.h>
 
 // NOTE: always save as Unicode UTF-8 with signature
 
@@ -170,50 +165,50 @@ NS_CREATE_SIMPLE_TEST(Strings, UnicodeUtils)
 
     // test how far it skips ahead
 
-    nsUnicodeUtils::MoveToNextUtf8(sz);
+    nsUnicodeUtils::MoveToNextUtf8(sz).AssertSuccess();
     NS_TEST_BOOL(sz == &s.GetData()[1]);
 
-    nsUnicodeUtils::MoveToNextUtf8(sz);
+    nsUnicodeUtils::MoveToNextUtf8(sz).AssertSuccess();
     NS_TEST_BOOL(sz == &s.GetData()[2]);
 
-    nsUnicodeUtils::MoveToNextUtf8(sz);
+    nsUnicodeUtils::MoveToNextUtf8(sz).AssertSuccess();
     NS_TEST_BOOL(sz == &s.GetData()[4]);
 
-    nsUnicodeUtils::MoveToNextUtf8(sz);
+    nsUnicodeUtils::MoveToNextUtf8(sz).AssertSuccess();
     NS_TEST_BOOL(sz == &s.GetData()[6]);
 
-    nsUnicodeUtils::MoveToNextUtf8(sz);
+    nsUnicodeUtils::MoveToNextUtf8(sz).AssertSuccess();
     NS_TEST_BOOL(sz == &s.GetData()[8]);
 
-    nsUnicodeUtils::MoveToNextUtf8(sz);
+    nsUnicodeUtils::MoveToNextUtf8(sz).AssertSuccess();
     NS_TEST_BOOL(sz == &s.GetData()[11]);
 
-    nsUnicodeUtils::MoveToNextUtf8(sz);
+    nsUnicodeUtils::MoveToNextUtf8(sz).AssertSuccess();
     NS_TEST_BOOL(sz == &s.GetData()[12]);
 
     sz = s.GetData();
     const char* szEnd = s.GetView().GetEndPointer();
 
 
-    nsUnicodeUtils::MoveToNextUtf8(sz, szEnd);
+    nsUnicodeUtils::MoveToNextUtf8(sz, szEnd).AssertSuccess();
     NS_TEST_BOOL(sz == &s.GetData()[1]);
 
-    nsUnicodeUtils::MoveToNextUtf8(sz, szEnd);
+    nsUnicodeUtils::MoveToNextUtf8(sz, szEnd).AssertSuccess();
     NS_TEST_BOOL(sz == &s.GetData()[2]);
 
-    nsUnicodeUtils::MoveToNextUtf8(sz, szEnd);
+    nsUnicodeUtils::MoveToNextUtf8(sz, szEnd).AssertSuccess();
     NS_TEST_BOOL(sz == &s.GetData()[4]);
 
-    nsUnicodeUtils::MoveToNextUtf8(sz, szEnd);
+    nsUnicodeUtils::MoveToNextUtf8(sz, szEnd).AssertSuccess();
     NS_TEST_BOOL(sz == &s.GetData()[6]);
 
-    nsUnicodeUtils::MoveToNextUtf8(sz, szEnd);
+    nsUnicodeUtils::MoveToNextUtf8(sz, szEnd).AssertSuccess();
     NS_TEST_BOOL(sz == &s.GetData()[8]);
 
-    nsUnicodeUtils::MoveToNextUtf8(sz, szEnd);
+    nsUnicodeUtils::MoveToNextUtf8(sz, szEnd).AssertSuccess();
     NS_TEST_BOOL(sz == &s.GetData()[11]);
 
-    nsUnicodeUtils::MoveToNextUtf8(sz, szEnd);
+    nsUnicodeUtils::MoveToNextUtf8(sz, szEnd).AssertSuccess();
     NS_TEST_BOOL(sz == &s.GetData()[12]);
   }
 
@@ -227,28 +222,28 @@ NS_CREATE_SIMPLE_TEST(Strings, UnicodeUtils)
 
     // test how far it skips ahead
 
-    nsUnicodeUtils::MoveToPriorUtf8(sz);
+    nsUnicodeUtils::MoveToPriorUtf8(sz, s.GetData()).AssertSuccess();
     NS_TEST_BOOL(sz == &s.GetData()[12]);
 
-    nsUnicodeUtils::MoveToPriorUtf8(sz);
+    nsUnicodeUtils::MoveToPriorUtf8(sz, s.GetData()).AssertSuccess();
     NS_TEST_BOOL(sz == &s.GetData()[11]);
 
-    nsUnicodeUtils::MoveToPriorUtf8(sz);
+    nsUnicodeUtils::MoveToPriorUtf8(sz, s.GetData()).AssertSuccess();
     NS_TEST_BOOL(sz == &s.GetData()[8]);
 
-    nsUnicodeUtils::MoveToPriorUtf8(sz);
+    nsUnicodeUtils::MoveToPriorUtf8(sz, s.GetData()).AssertSuccess();
     NS_TEST_BOOL(sz == &s.GetData()[6]);
 
-    nsUnicodeUtils::MoveToPriorUtf8(sz);
+    nsUnicodeUtils::MoveToPriorUtf8(sz, s.GetData()).AssertSuccess();
     NS_TEST_BOOL(sz == &s.GetData()[4]);
 
-    nsUnicodeUtils::MoveToPriorUtf8(sz);
+    nsUnicodeUtils::MoveToPriorUtf8(sz, s.GetData()).AssertSuccess();
     NS_TEST_BOOL(sz == &s.GetData()[2]);
 
-    nsUnicodeUtils::MoveToPriorUtf8(sz);
+    nsUnicodeUtils::MoveToPriorUtf8(sz, s.GetData()).AssertSuccess();
     NS_TEST_BOOL(sz == &s.GetData()[1]);
 
-    nsUnicodeUtils::MoveToPriorUtf8(sz);
+    nsUnicodeUtils::MoveToPriorUtf8(sz, s.GetData()).AssertSuccess();
     NS_TEST_BOOL(sz == &s.GetData()[0]);
   }
 

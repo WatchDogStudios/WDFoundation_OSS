@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 
 #pragma once
 
@@ -38,7 +33,8 @@ namespace nsApplicationDetails
 
     // This handler overrides the default handler
     // (which would call ExitProcess, which leads to disorderly engine shutdowns)
-    const auto consoleHandler = [](nsMinWindows::DWORD ctrlType) -> nsMinWindows::BOOL {
+    const auto consoleHandler = [](nsMinWindows::DWORD ctrlType) -> nsMinWindows::BOOL
+    {
       // We have to wait until the application has shut down orderly
       // since Windows will kill everything after this handler returns
       pApp->SetReturnCode(ctrlType);
@@ -108,8 +104,11 @@ namespace nsApplicationDetails
     _declspec(dllexport) nsMinWindows::DWORD NvOptimusEnablement = 0x00000001;                  \
     _declspec(dllexport) nsMinWindows::DWORD AmdPowerXpressRequestHighPerformance = 0x00000001; \
   }                                                                                             \
-  NS_APPLICATION_ENTRY_POINT_CODE_INJECTION                                     \
-  int main(int argc, const char** argv) { return nsApplicationDetails::ConsoleEntry<AppClass>(argc, argv, __VA_ARGS__); }
+  NS_APPLICATION_ENTRY_POINT_CODE_INJECTION                                                     \
+  int main(int argc, const char** argv)                                                         \
+  {                                                                                             \
+    return nsApplicationDetails::ConsoleEntry<AppClass>(argc, argv, __VA_ARGS__);               \
+  }
 
 // If windows.h is already included use the native types, otherwise use types from nsMinWindows
 //

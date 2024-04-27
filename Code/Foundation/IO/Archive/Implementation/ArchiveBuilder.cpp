@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/IO/Archive/ArchiveBuilder.h>
@@ -47,6 +42,7 @@ void nsArchiveBuilder::AddFolder(nsStringView sAbsFolderPath, nsArchiveCompressi
             compression = nsArchiveCompressionMode::Uncompressed;
             break;
 
+#  ifdef BUILDSYSTEM_ENABLE_ZSTD_SUPPORT
           case InclusionMode::Compress_zstd_fastest:
             compression = nsArchiveCompressionMode::Compressed_zstd;
             iCompressionLevel = static_cast<nsInt32>(nsCompressedStreamWriterZstd::Compression::Fastest);
@@ -67,6 +63,7 @@ void nsArchiveBuilder::AddFolder(nsStringView sAbsFolderPath, nsArchiveCompressi
             compression = nsArchiveCompressionMode::Compressed_zstd;
             iCompressionLevel = static_cast<nsInt32>(nsCompressedStreamWriterZstd::Compression::Highest);
             break;
+#  endif
         }
       }
 
@@ -114,8 +111,7 @@ nsResult nsArchiveBuilder::WriteArchive(nsStreamWriter& inout_stream) const
   {
     const SourceEntry& e = m_Entries[i];
 
-    const nsUInt32 uiPathStringOffset = toc.m_AllPathStrings.GetCount();
-    toc.m_AllPathStrings.PushBackRange(nsArrayPtr<const nsUInt8>(reinterpret_cast<const nsUInt8*>(e.m_sRelTargetPath.GetData()), e.m_sRelTargetPath.GetElementCount() + 1));
+    const nsUInt32 uiPathStringOffset = toc.AddPathString(e.m_sRelTargetPath);
 
     sHashablePath = e.m_sRelTargetPath;
     sHashablePath.ToLower();
@@ -146,5 +142,3 @@ bool nsArchiveBuilder::WriteFileProgressCallback(nsUInt64 bytesWritten, nsUInt64
 {
   return true;
 }
-
-NS_STATICLINK_FILE(Foundation, Foundation_IO_Archive_Implementation_ArchiveBuilder);

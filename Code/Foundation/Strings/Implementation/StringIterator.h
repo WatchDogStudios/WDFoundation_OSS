@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Strings/StringUtils.h>
@@ -13,7 +8,7 @@ struct nsStringIterator
 {
   using iterator_category = std::bidirectional_iterator_tag;
   using value_type = nsUInt32;
-  using difference_type = ptrdiff_t;
+  using difference_type = std::ptrdiff_t;
   using pointer = const char*;
   using reference = nsUInt32;
 
@@ -44,9 +39,7 @@ struct nsStringIterator
 
   /// \brief Checks whether the two iterators point to the same element.
   NS_ALWAYS_INLINE bool operator==(const nsStringIterator& it2) const { return (m_pCurPtr == it2.m_pCurPtr); } // [tested]
-
-  /// \brief Checks whether the two iterators point to the same element.
-  NS_ALWAYS_INLINE bool operator!=(const nsStringIterator& it2) const { return (m_pCurPtr != it2.m_pCurPtr); } // [tested]
+  NS_ADD_DEFAULT_OPERATOR_NOTEQUAL(const nsStringIterator&);
 
   /// \brief Advances the iterated to the next character, same as operator++, but returns how many bytes were consumed in the source string.
   NS_ALWAYS_INLINE nsUInt32 Advance()
@@ -55,7 +48,7 @@ struct nsStringIterator
 
     if (m_pCurPtr < m_pEndPtr)
     {
-      nsUnicodeUtils::MoveToNextUtf8(m_pCurPtr);
+      nsUnicodeUtils::MoveToNextUtf8(m_pCurPtr).AssertSuccess();
     }
 
     return static_cast<nsUInt32>(m_pCurPtr - pPrevElement);
@@ -66,7 +59,7 @@ struct nsStringIterator
   {
     if (m_pCurPtr < m_pEndPtr)
     {
-      nsUnicodeUtils::MoveToNextUtf8(m_pCurPtr);
+      nsUnicodeUtils::MoveToNextUtf8(m_pCurPtr).AssertSuccess();
     }
 
     return *this;
@@ -77,7 +70,7 @@ struct nsStringIterator
   {
     if (m_pStartPtr < m_pCurPtr)
     {
-      nsUnicodeUtils::MoveToPriorUtf8(m_pCurPtr);
+      nsUnicodeUtils::MoveToPriorUtf8(m_pCurPtr, m_pStartPtr).AssertSuccess();
     }
 
     return *this;
@@ -168,7 +161,7 @@ struct nsStringReverseIterator
 {
   using iterator_category = std::bidirectional_iterator_tag;
   using value_type = nsUInt32;
-  using difference_type = ptrdiff_t;
+  using difference_type = std::ptrdiff_t;
   using pointer = const char*;
   using reference = nsUInt32;
 
@@ -190,7 +183,7 @@ struct nsStringReverseIterator
     }
     else if (m_pCurPtr == m_pEndPtr)
     {
-      nsUnicodeUtils::MoveToPriorUtf8(m_pCurPtr);
+      nsUnicodeUtils::MoveToPriorUtf8(m_pCurPtr, m_pStartPtr).AssertSuccess();
     }
   }
 
@@ -208,15 +201,13 @@ struct nsStringReverseIterator
 
   /// \brief Checks whether the two iterators point to the same element.
   NS_ALWAYS_INLINE bool operator==(const nsStringReverseIterator& it2) const { return (m_pCurPtr == it2.m_pCurPtr); } // [tested]
-
-  /// \brief Checks whether the two iterators point to the same element.
-  NS_ALWAYS_INLINE bool operator!=(const nsStringReverseIterator& it2) const { return (m_pCurPtr != it2.m_pCurPtr); } // [tested]
+  NS_ADD_DEFAULT_OPERATOR_NOTEQUAL(const nsStringReverseIterator&);
 
   /// \brief Move to the next Utf8 character
   NS_FORCE_INLINE nsStringReverseIterator& operator++() // [tested]
   {
     if (m_pCurPtr != nullptr && m_pStartPtr < m_pCurPtr)
-      nsUnicodeUtils::MoveToPriorUtf8(m_pCurPtr);
+      nsUnicodeUtils::MoveToPriorUtf8(m_pCurPtr, m_pStartPtr).AssertSuccess();
     else
       m_pCurPtr = nullptr;
 
@@ -229,7 +220,7 @@ struct nsStringReverseIterator
     if (m_pCurPtr != nullptr)
     {
       const char* szOldPos = m_pCurPtr;
-      nsUnicodeUtils::MoveToNextUtf8(m_pCurPtr);
+      nsUnicodeUtils::MoveToNextUtf8(m_pCurPtr).AssertSuccess();
 
       if (m_pCurPtr == m_pEndPtr)
         m_pCurPtr = szOldPos;

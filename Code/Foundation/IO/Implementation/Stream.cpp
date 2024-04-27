@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/IO/Stream.h>
@@ -30,7 +25,6 @@ nsResult nsStreamReader::ReadString(nsStringBuilder& ref_sBuilder)
       ref_sBuilder.m_Data.Reserve(uiCount + 1);
       ref_sBuilder.m_Data.SetCountUninitialized(uiCount);
       ReadBytes(ref_sBuilder.m_Data.GetData(), uiCount);
-      ref_sBuilder.m_uiCharacterCount = uiCount;
       ref_sBuilder.AppendTerminator();
     }
     else
@@ -73,6 +67,3 @@ nsResult nsStreamWriter::WriteString(const nsStringView sStringView)
 
   return NS_SUCCESS;
 }
-
-
-NS_STATICLINK_FILE(Foundation, Foundation_IO_Implementation_Stream);

@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Memory/MemoryUtils.h>
@@ -207,6 +202,7 @@ public:
   }
 
   /// \brief Compares the two arrays for equality.
+  template <typename = typename std::enable_if<std::is_const<T>::value == false>>
   inline bool operator==(const nsArrayPtr<const T>& other) const // [tested]
   {
     if (GetCount() != other.GetCount())
@@ -218,11 +214,26 @@ public:
     return nsMemoryUtils::IsEqual(static_cast<const ValueType*>(GetPtr()), static_cast<const ValueType*>(other.GetPtr()), GetCount());
   }
 
-  /// \brief Compares the two arrays for inequality.
-  NS_ALWAYS_INLINE bool operator!=(const nsArrayPtr<const T>& other) const // [tested]
+#if NS_DISABLED(NS_USE_CPP20_OPERATORS)
+  template <typename = typename std::enable_if<std::is_const<T>::value == false>>
+  inline bool operator!=(const nsArrayPtr<const T>& other) const // [tested]
   {
     return !(*this == other);
   }
+#endif
+
+  /// \brief Compares the two arrays for equality.
+  inline bool operator==(const nsArrayPtr<T>& other) const // [tested]
+  {
+    if (GetCount() != other.GetCount())
+      return false;
+
+    if (GetPtr() == other.GetPtr())
+      return true;
+
+    return nsMemoryUtils::IsEqual(static_cast<const ValueType*>(GetPtr()), static_cast<const ValueType*>(other.GetPtr()), GetCount());
+  }
+  NS_ADD_DEFAULT_OPERATOR_NOTEQUAL(const nsArrayPtr<T>&);
 
   /// \brief Compares the two arrays for less.
   inline bool operator<(const nsArrayPtr<const T>& other) const // [tested]

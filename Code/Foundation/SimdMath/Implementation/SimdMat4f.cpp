@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Math/Mat4.h>
@@ -22,7 +17,3 @@ nsResult nsSimdMat4f::Invert(const nsSimdFloat& fEpsilon)
 
   return NS_SUCCESS;
 }
-
-
-
-NS_STATICLINK_FILE(Foundation, Foundation_SimdMath_Implementation_SimdMat4f);

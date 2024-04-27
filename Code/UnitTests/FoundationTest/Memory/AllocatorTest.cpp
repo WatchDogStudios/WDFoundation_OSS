@@ -1,13 +1,8 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/Memory/CommonAllocators.h>
 #include <Foundation/Memory/LargeBlockAllocator.h>
-#include <Foundation/Memory/StackAllocator.h>
+#include <Foundation/Memory/LinearAllocator.h>
 
 struct alignas(NS_ALIGNMENT_MINIMUM) NonAlignedVector
 {
@@ -45,7 +40,7 @@ struct alignas(16) AlignedVector
 template <typename T>
 void TestAlignmentHelper(size_t uiExpectedAlignment)
 {
-  nsAllocatorBase* pAllocator = nsFoundation::GetAlignedAllocator();
+  nsAllocator* pAllocator = nsFoundation::GetAlignedAllocator();
   NS_TEST_BOOL(pAllocator != nullptr);
 
   size_t uiAlignment = NS_ALIGNMENT_OF(T);
@@ -67,22 +62,24 @@ void TestAlignmentHelper(size_t uiExpectedAlignment)
 
   size_t uiExpectedSize = sizeof(T) * 32;
 
-#if NS_ENABLED(NS_USE_ALLOCATION_TRACKING)
-  NS_TEST_INT(pAllocator->AllocatedSize(pTestBuffer), uiExpectedSize);
+  if constexpr (nsAllocatorTrackingMode::Default >= nsAllocatorTrackingMode::AllocationStats)
+  {
+    NS_TEST_INT(pAllocator->AllocatedSize(pTestBuffer), uiExpectedSize);
 
-  nsAllocatorBase::Stats stats = pAllocator->GetStats();
-  NS_TEST_INT(stats.m_uiAllocationSize, uiExpectedSize * 2);
-  NS_TEST_INT(stats.m_uiNumAllocations - stats.m_uiNumDeallocations, 2);
-#endif
+    nsAllocator::Stats stats = pAllocator->GetStats();
+    NS_TEST_INT(stats.m_uiAllocationSize, uiExpectedSize * 2);
+    NS_TEST_INT(stats.m_uiNumAllocations - stats.m_uiNumDeallocations, 2);
+  }
 
   NS_DELETE_ARRAY(pAllocator, TestArray);
   NS_DELETE_RAW_BUFFER(pAllocator, pTestBuffer);
 
-#if NS_ENABLED(NS_USE_ALLOCATION_TRACKING)
-  stats = pAllocator->GetStats();
-  NS_TEST_INT(stats.m_uiAllocationSize, 0);
-  NS_TEST_INT(stats.m_uiNumAllocations - stats.m_uiNumDeallocations, 0);
-#endif
+  if constexpr (nsAllocatorTrackingMode::Default >= nsAllocatorTrackingMode::Basics)
+  {
+    nsAllocator::Stats stats = pAllocator->GetStats();
+    NS_TEST_INT(stats.m_uiAllocationSize, 0);
+    NS_TEST_INT(stats.m_uiNumAllocations - stats.m_uiNumDeallocations, 0);
+  }
 }
 
 NS_CREATE_SIMPLE_TEST_GROUP(Memory);
@@ -103,7 +100,7 @@ NS_CREATE_SIMPLE_TEST(Memory, Allocator)
     };
     const nsUInt32 uiPageSize = nsSystemInformation::Get().GetMemoryPageSize();
 
-    nsLargeBlockAllocator<BLOCK_SIZE_IN_BYTES> allocator("Test", nsFoundation::GetDefaultAllocator(), nsMemoryTrackingFlags::EnableAllocationTracking);
+    nsLargeBlockAllocator<BLOCK_SIZE_IN_BYTES> allocator("Test", nsFoundation::GetDefaultAllocator(), nsAllocatorTrackingMode::AllocationStats);
 
     nsDynamicArray<nsDataBlock<int, BLOCK_SIZE_IN_BYTES>> blocks;
     blocks.Reserve(1000);
@@ -117,7 +114,7 @@ NS_CREATE_SIMPLE_TEST(Memory, Allocator)
       blocks.PushBack(block);
     }
 
-    nsAllocatorBase::Stats stats = allocator.GetStats();
+    nsAllocator::Stats stats = allocator.GetStats();
 
     NS_TEST_BOOL(stats.m_uiNumAllocations == 17);
     NS_TEST_BOOL(stats.m_uiNumDeallocations == 0);
@@ -172,7 +169,7 @@ NS_CREATE_SIMPLE_TEST(Memory, Allocator)
 
   NS_TEST_BLOCK(nsTestBlock::Enabled, "StackAllocator")
   {
-    nsStackAllocator<> allocator("TestStackAllocator", nsFoundation::GetAlignedAllocator());
+    nsLinearAllocator<> allocator("TestStackAllocator", nsFoundation::GetAlignedAllocator());
 
     void* blocks[8];
     for (size_t i = 0; i < NS_ARRAY_SIZE(blocks); i++)
@@ -217,7 +214,7 @@ NS_CREATE_SIMPLE_TEST(Memory, Allocator)
 
   NS_TEST_BLOCK(nsTestBlock::Enabled, "StackAllocator with non-PODs")
   {
-    nsStackAllocator<> allocator("TestStackAllocator", nsFoundation::GetAlignedAllocator());
+    nsLinearAllocator<> allocator("TestStackAllocator", nsFoundation::GetAlignedAllocator());
 
     nsDynamicArray<nsConstructionCounter*> counters;
     counters.Reserve(100);

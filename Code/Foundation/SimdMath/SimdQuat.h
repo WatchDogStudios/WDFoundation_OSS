@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/SimdMath/SimdMat4f.h>
@@ -12,7 +7,7 @@ class NS_FOUNDATION_DLL nsSimdQuat
 public:
   NS_DECLARE_POD_TYPE();
 
-  nsSimdQuat(); // [tested]
+  nsSimdQuat();                              // [tested]
 
   explicit nsSimdQuat(const nsSimdVec4f& v); // [tested]
 
@@ -67,8 +62,8 @@ public:
   /// \brief Concatenates the rotations of q1 and q2
   [[nodiscard]] nsSimdQuat operator*(const nsSimdQuat& q2) const; // [tested]
 
-  bool operator==(const nsSimdQuat& q2) const; // [tested]
-  bool operator!=(const nsSimdQuat& q2) const; // [tested]
+  bool operator==(const nsSimdQuat& q2) const;                    // [tested]
+  bool operator!=(const nsSimdQuat& q2) const;                    // [tested]
 
 public:
   nsSimdVec4f m_v;

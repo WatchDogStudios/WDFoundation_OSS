@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 /// \file
@@ -28,9 +23,9 @@ struct nsTypeFlags
     Bitflags = NS_BIT(2),     ///< bitflags struct used for nsBitflags.
     Class = NS_BIT(3),        ///< A class or struct. The above flags are mutually exclusive.
 
-    Abstract = NS_BIT(4), ///< Type is abstract.
-    Phantom = NS_BIT(5),  ///< De-serialized type information that cannot be created on this process.
-    Minimal = NS_BIT(6),  ///< Does not contain any property, function or attribute information. Used only for versioning.
+    Abstract = NS_BIT(4),     ///< Type is abstract.
+    Phantom = NS_BIT(5),      ///< De-serialized type information that cannot be created on this process.
+    Minimal = NS_BIT(6),      ///< Does not contain any property, function or attribute information. Used only for versioning.
     Default = 0
   };
 
@@ -655,7 +650,7 @@ NS_ALWAYS_INLINE const nsRTTI* nsGetStaticRTTI()
 ///   The name of the member variable that should get exposed as a message sender.
 ///
 /// \note A message sender must be derived from nsMessageSenderBase.
-#define NS_MESSAGE_SENDER(MemberName)                                                  \
-  {                                                                                    \
-#    MemberName, nsGetStaticRTTI < NS_MEMBER_TYPE(OwnType, MemberName)::MessageType>() \
+#define NS_MESSAGE_SENDER(MemberName)                                                \
+  {                                                                                  \
+    #MemberName, nsGetStaticRTTI<NS_MEMBER_TYPE(OwnType, MemberName)::MessageType>() \
   }

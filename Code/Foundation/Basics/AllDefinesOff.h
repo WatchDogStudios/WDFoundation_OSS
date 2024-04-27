@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 /// \file
@@ -59,6 +54,8 @@
 
 // Platform Features
 #define NS_USE_POSIX_FILE_API NS_OFF
+#define NS_USE_LINUX_POSIX_EXTENSIONS NS_OFF // linux specific posix extensions like pipe2, dup3, etc.
+#define NS_USE_CPP20_OPERATORS NS_OFF
 #define NS_SUPPORTS_FILE_ITERATORS NS_OFF
 #define NS_SUPPORTS_FILE_STATS NS_OFF
 #define NS_SUPPORTS_DIRECTORY_WATCHER NS_OFF
@@ -69,15 +66,14 @@
 #define NS_SUPPORTS_CASE_INSENSITIVE_PATHS NS_OFF
 #define NS_SUPPORTS_CRASH_DUMPS NS_OFF
 #define NS_SUPPORTS_LONG_PATHS NS_OFF
-#define NS_SUPPORTS_GLFW NS_OFF
 
 // Allocators
-#define NS_USE_ALLOCATION_TRACKING NS_OFF
-#define NS_USE_ALLOCATION_STACK_TRACING NS_OFF
-#define NS_USE_GUARDED_ALLOCATIONS NS_OFF
+#define NS_ALLOC_GUARD_ALLOCATIONS NS_OFF
+#define NS_ALLOC_TRACKING_DEFAULT nsAllocatorTrackingMode::Nothing
 
 // Other Features
 #define NS_USE_PROFILING NS_OFF
+#define NS_USE_STRING_VALIDATION NS_OFF
 
 // Hashed String
 /// \brief Ref counting on hashed strings adds the possibility to cleanup unused strings. Since ref counting has a performance overhead it is disabled
@@ -99,3 +95,7 @@
 
 // Whether 'RuntimeConfigs' files should be searched in the old location
 #define NS_MIGRATE_RUNTIMECONFIGS NS_OFF
+
+// Interoperability with other libraries
+#define NS_INTEROP_STL_STRINGS NS_OFF
+#define NS_INTEROP_STL_SPAN NS_OFF

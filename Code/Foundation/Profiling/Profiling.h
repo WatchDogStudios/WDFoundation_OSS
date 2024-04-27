@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Basics.h>
@@ -169,7 +164,7 @@ public:
 };
 
 #if NS_ENABLED(NS_USE_PROFILING) || defined(NS_DOCS)
-
+#   if !defined(TRACY_ENABLE)
 /// \brief Profiles the current scope using the given name.
 ///
 /// It is allowed to nest NS_PROFILE_SCOPE, also with NS_PROFILE_LIST_SCOPE. However NS_PROFILE_SCOPE should start and end within the same list scope
@@ -185,7 +180,7 @@ public:
 /// \brief Same as NS_PROFILE_SCOPE but if the scope takes longer than 'Timeout', the nsProfilingSystem's timeout callback is executed.
 ///
 /// This can be used to log an error or save a callstack, etc. when a scope exceeds an expected amount of time.
-/// 
+///
 /// \sa nsProfilingSystem::SetScopeTimeoutCallback()
 #  define NS_PROFILE_SCOPE_WITH_TIMEOUT(szScopeName, Timeout) nsProfilingScope NS_CONCAT(_nsProfilingScope, NS_SOURCE_LINE)(szScopeName, NS_SOURCE_FUNCTION, Timeout)
 
@@ -209,14 +204,9 @@ public:
 /// \sa NS_PROFILE_LIST_SCOPE
 #  define NS_PROFILE_LIST_NEXT_SECTION(szNextSectionName) nsProfilingListScope::StartNextSection(szNextSectionName)
 
+#   define NS_PROFILER_END_FRAME
 #else
-
-#  define NS_PROFILE_SCOPE(Name) /*empty*/
-
-#  define NS_PROFILE_SCOPE_WITH_TIMEOUT(szScopeName, Timeout) /*empty*/
-
-#  define NS_PROFILE_LIST_SCOPE(szListName, szFirstSectionName) /*empty*/
-
-#  define NS_PROFILE_LIST_NEXT_SECTION(szNextSectionName) /*empty*/
-
+/// Tracy Implementation Header.
+#    include <Foundation/Profiling/Profiling_Tracy.h>
+#endif
 #endif

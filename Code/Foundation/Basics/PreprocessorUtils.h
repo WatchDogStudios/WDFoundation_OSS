@@ -1,12 +1,11 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 
 #pragma once
 
 /// \file
+
+/// \brief Used to pass a token through without modification
+/// Useful to separate tokens that have no whitespace in between and thus would otherwise form one string.
+#define NS_PP_IDENTITY(x) x
 
 /// \brief Concatenates two strings, even when the strings are macros themselves
 #define NS_CONCAT(x, y) NS_CONCAT_HELPER(x, y)

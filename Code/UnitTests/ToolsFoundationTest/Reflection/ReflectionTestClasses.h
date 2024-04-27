@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Math/Color8UNorm.h>
@@ -86,7 +81,9 @@ public:
     m_bBool = true;
     m_Color = nsColor(1.0f, 0.0f, 0.0f, 0.0f);
     m_Color2 = nsColorGammaUB(255, 10, 1);
+    m_sCharPtr = "Test";
     m_sString = "Test";
+    m_sStringView = "Test";
     m_Buffer.PushBack(0xFF);
     m_Buffer.PushBack(0x0);
     m_Buffer.PushBack(0xCD);
@@ -96,12 +93,20 @@ public:
   nsIntegerStruct m_IntegerStruct;
   nsFloatStruct m_FloatStruct;
 
-  void SetBool(bool b) { m_bBool = b; }
   bool GetBool() const { return m_bBool; }
-  void SetColor(nsColor c) { m_Color = c; }
+  void SetBool(bool b) { m_bBool = b; }
+
   nsColor GetColor() const { return m_Color; }
-  const char* GetString() const { return m_sString.GetData(); }
-  void SetString(const char* szSz) { m_sString = szSz; }
+  void SetColor(nsColor c) { m_Color = c; }
+
+  const char* GetCharPtr() const { return m_sCharPtr.GetData(); }
+  void SetCharPtr(const char* szSz) { m_sCharPtr = szSz; }
+
+  const nsString& GetString() const { return m_sString; }
+  void SetString(const nsString& sStr) { m_sString = sStr; }
+
+  nsStringView GetStringView() const { return m_sStringView.GetView(); }
+  void SetStringView(nsStringView sStrView) { m_sStringView = sStrView; }
 
   const nsDataBuffer& GetBuffer() const { return m_Buffer; }
   void SetBuffer(const nsDataBuffer& data) { m_Buffer = data; }
@@ -113,7 +118,9 @@ private:
   bool m_bBool;
   nsColor m_Color;
   nsColorGammaUB m_Color2;
+  nsString m_sCharPtr;
   nsString m_sString;
+  nsString m_sStringView;
   nsDataBuffer m_Buffer;
   nsVarianceTypeAngle m_VarianceAngle;
 };

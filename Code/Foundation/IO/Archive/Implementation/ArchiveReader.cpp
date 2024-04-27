@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/IO/Archive/ArchiveReader.h>
@@ -34,11 +29,28 @@ nsResult nsArchiveReader::OpenArchive(nsStringView sPath)
     {
       NS_SUCCEED_OR_RETURN(nsArchiveUtils::ReadHeader(reader, m_uiArchiveVersion));
 
-      m_pDataStart = m_MemFile.GetReadPointer(16, nsMemoryMappedFile::OffsetBase::Start);
+      m_pDataStart = m_MemFile.GetReadPointer(nsArchiveUtils::ArchiveHeaderSize, nsMemoryMappedFile::OffsetBase::Start);
 
       NS_SUCCEED_OR_RETURN(nsArchiveUtils::ExtractTOC(m_MemFile, m_ArchiveTOC, m_uiArchiveVersion));
     }
+#  ifdef BUILDSYSTEM_ENABLE_ZLIB_SUPPORT
+    else if (extension == "zip" || extension == "apk")
+    {
+      NS_SUCCEED_OR_RETURN(nsArchiveUtils::ReadZipHeader(reader, m_uiArchiveVersion));
+      if (m_uiArchiveVersion != 0)
+      {
+        nsLog::Error("Unknown zip version '{}'", m_uiArchiveVersion);
+        return NS_FAILURE;
+      }
+      m_pDataStart = m_MemFile.GetReadPointer(0, nsMemoryMappedFile::OffsetBase::Start);
 
+      if (nsArchiveUtils::ExtractZipTOC(m_MemFile, m_ArchiveTOC).Failed())
+      {
+        nsLog::Error("Failed to deserialize zip TOC");
+        return NS_FAILURE;
+      }
+    }
+#  endif
     else
     {
       nsLog::Error("Unknown archive file extension '{}'", extension);
@@ -160,6 +172,3 @@ bool nsArchiveReader::ExtractFileProgressCallback(nsUInt64 bytesWritten, nsUInt6
 {
   return true;
 }
-
-
-NS_STATICLINK_FILE(Foundation, Foundation_IO_Archive_Implementation_ArchiveReader);

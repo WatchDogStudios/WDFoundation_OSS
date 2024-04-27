@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Logging/VisualStudioWriter.h>
@@ -30,56 +25,56 @@ void nsLogWriter::VisualStudio::LogMessageHandler(const nsLoggingEventData& even
   switch (eventData.m_EventType)
   {
     case nsLogMsgType::BeginGroup:
-      s.Format("+++++ {} ({}) +++++\n", eventData.m_sText, eventData.m_sTag);
+      s.SetFormat("+++++ {} ({}) +++++\n", eventData.m_sText, eventData.m_sTag);
       OutputDebugStringW(nsStringWChar(s));
       break;
 
     case nsLogMsgType::EndGroup:
 #  if NS_ENABLED(NS_COMPILE_FOR_DEVELOPMENT)
-      s.Format("----- {} ({} sec) -----\n\n", eventData.m_sText, eventData.m_fSeconds);
+      s.SetFormat("----- {} ({} sec) -----\n\n", eventData.m_sText, eventData.m_fSeconds);
 #  else
-      s.Format("----- {} (timing info not available) -----\n\n", eventData.m_sText);
+      s.SetFormat("----- {} (timing info not available) -----\n\n", eventData.m_sText);
 #  endif
       OutputDebugStringW(nsStringWChar(s));
       break;
 
     case nsLogMsgType::ErrorMsg:
-      s.Format("Error: {}\n", eventData.m_sText);
+      s.SetFormat("Error: {}\n", eventData.m_sText);
       OutputDebugStringW(nsStringWChar(s));
       break;
 
     case nsLogMsgType::SeriousWarningMsg:
-      s.Format("Seriously: {}\n", eventData.m_sText);
+      s.SetFormat("Seriously: {}\n", eventData.m_sText);
       OutputDebugStringW(nsStringWChar(s));
       break;
 
     case nsLogMsgType::WarningMsg:
-      s.Format("Warning: {}\n", eventData.m_sText);
+      s.SetFormat("Warning: {}\n", eventData.m_sText);
       OutputDebugStringW(nsStringWChar(s));
       break;
 
     case nsLogMsgType::SuccessMsg:
-      s.Format("{}\n", eventData.m_sText);
+      s.SetFormat("{}\n", eventData.m_sText);
       OutputDebugStringW(nsStringWChar(s));
       break;
 
     case nsLogMsgType::InfoMsg:
-      s.Format("{}\n", eventData.m_sText);
+      s.SetFormat("{}\n", eventData.m_sText);
       OutputDebugStringW(nsStringWChar(s));
       break;
 
     case nsLogMsgType::DevMsg:
-      s.Format("{}\n", eventData.m_sText);
+      s.SetFormat("{}\n", eventData.m_sText);
       OutputDebugStringW(nsStringWChar(s));
       break;
 
     case nsLogMsgType::DebugMsg:
-      s.Format("{}\n", eventData.m_sText);
+      s.SetFormat("{}\n", eventData.m_sText);
       OutputDebugStringW(nsStringWChar(s));
       break;
 
     default:
-      s.Format("{}\n", eventData.m_sText);
+      s.SetFormat("{}\n", eventData.m_sText);
       OutputDebugStringW(nsStringWChar(s));
 
       nsLog::Warning("Unknown Message Type {0}", eventData.m_EventType);
@@ -92,7 +87,3 @@ void nsLogWriter::VisualStudio::LogMessageHandler(const nsLoggingEventData& even
 void nsLogWriter::VisualStudio::LogMessageHandler(const nsLoggingEventData& eventData) {}
 
 #endif
-
-
-
-NS_STATICLINK_FILE(Foundation, Foundation_Logging_Implementation_VisualStudioWriter);

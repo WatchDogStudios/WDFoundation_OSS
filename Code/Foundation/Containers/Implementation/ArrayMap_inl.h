@@ -1,19 +1,14 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 template <typename KEY, typename VALUE>
-inline nsArrayMapBase<KEY, VALUE>::nsArrayMapBase(nsAllocatorBase* pAllocator)
+inline nsArrayMapBase<KEY, VALUE>::nsArrayMapBase(nsAllocator* pAllocator)
   : m_Data(pAllocator)
 {
   m_bSorted = true;
 }
 
 template <typename KEY, typename VALUE>
-inline nsArrayMapBase<KEY, VALUE>::nsArrayMapBase(const nsArrayMapBase& rhs, nsAllocatorBase* pAllocator)
+inline nsArrayMapBase<KEY, VALUE>::nsArrayMapBase(const nsArrayMapBase& rhs, nsAllocator* pAllocator)
   : m_bSorted(rhs.m_bSorted)
   , m_Data(pAllocator)
 {
@@ -304,12 +299,6 @@ bool nsArrayMapBase<KEY, VALUE>::operator==(const nsArrayMapBase<KEY, VALUE>& rh
   return m_Data == rhs.m_Data;
 }
 
-template <typename KEY, typename VALUE>
-NS_ALWAYS_INLINE bool nsArrayMapBase<KEY, VALUE>::operator!=(const nsArrayMapBase<KEY, VALUE>& rhs) const
-{
-  return !(*this == rhs);
-}
-
 template <typename KEY, typename VALUE, typename A>
 nsArrayMap<KEY, VALUE, A>::nsArrayMap()
   : nsArrayMapBase<KEY, VALUE>(A::GetAllocator())
@@ -317,7 +306,7 @@ nsArrayMap<KEY, VALUE, A>::nsArrayMap()
 }
 
 template <typename KEY, typename VALUE, typename A>
-nsArrayMap<KEY, VALUE, A>::nsArrayMap(nsAllocatorBase* pAllocator)
+nsArrayMap<KEY, VALUE, A>::nsArrayMap(nsAllocator* pAllocator)
   : nsArrayMapBase<KEY, VALUE>(pAllocator)
 {
 }

@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Math/Math.h>
@@ -25,7 +20,7 @@
 // larger chunks
 
 template <typename T, bool Construct>
-void nsDequeBase<T, Construct>::Constructor(nsAllocatorBase* pAllocator)
+void nsDequeBase<T, Construct>::Constructor(nsAllocator* pAllocator)
 {
   m_pAllocator = pAllocator;
   m_pChunks = nullptr;
@@ -43,13 +38,13 @@ void nsDequeBase<T, Construct>::Constructor(nsAllocatorBase* pAllocator)
 }
 
 template <typename T, bool Construct>
-nsDequeBase<T, Construct>::nsDequeBase(nsAllocatorBase* pAllocator)
+nsDequeBase<T, Construct>::nsDequeBase(nsAllocator* pAllocator)
 {
   Constructor(pAllocator);
 }
 
 template <typename T, bool Construct>
-nsDequeBase<T, Construct>::nsDequeBase(const nsDequeBase<T, Construct>& rhs, nsAllocatorBase* pAllocator)
+nsDequeBase<T, Construct>::nsDequeBase(const nsDequeBase<T, Construct>& rhs, nsAllocator* pAllocator)
 {
   NS_CHECK_AT_COMPILETIME_MSG(Construct, "This function is not supported on Deques that do not construct their data.");
 
@@ -59,7 +54,7 @@ nsDequeBase<T, Construct>::nsDequeBase(const nsDequeBase<T, Construct>& rhs, nsA
 }
 
 template <typename T, bool Construct>
-nsDequeBase<T, Construct>::nsDequeBase(nsDequeBase<T, Construct>&& rhs, nsAllocatorBase* pAllocator)
+nsDequeBase<T, Construct>::nsDequeBase(nsDequeBase<T, Construct>&& rhs, nsAllocator* pAllocator)
 {
   NS_CHECK_AT_COMPILETIME_MSG(Construct, "This function is not supported on Deques that do not construct their data.");
 
@@ -129,12 +124,6 @@ bool nsDequeBase<T, Construct>::operator==(const nsDequeBase<T, Construct>& rhs)
   }
 
   return true;
-}
-
-template <typename T, bool Construct>
-bool nsDequeBase<T, Construct>::operator!=(const nsDequeBase<T, Construct>& rhs) const
-{
-  return !operator==(rhs);
 }
 
 template <typename T, bool Construct>
@@ -370,7 +359,7 @@ void nsDequeBase<T, Construct>::SetCount(nsUInt32 uiCount)
     {
       // default construct the new elements
       for (nsUInt32 i = uiOldCount; i < uiNewCount; ++i)
-        nsMemoryUtils::DefaultConstruct(&ElementAt(i), 1);
+        nsMemoryUtils::Construct<ConstructAll>(&ElementAt(i), 1);
     }
     else
     {
@@ -489,7 +478,9 @@ inline T& nsDequeBase<T, Construct>::ExpandAndGetRef()
   T* pElement = &ElementAt(m_uiCount - 1);
 
   if (Construct)
-    nsMemoryUtils::DefaultConstruct(pElement, 1);
+  {
+    nsMemoryUtils::Construct<ConstructAll>(pElement, 1);
+  }
 
   return *pElement;
 }
@@ -503,7 +494,9 @@ inline void nsDequeBase<T, Construct>::PushBack()
   T* pElement = &ElementAt(m_uiCount - 1);
 
   if (Construct)
-    nsMemoryUtils::DefaultConstruct(pElement, 1);
+  {
+    nsMemoryUtils::Construct<ConstructAll>(pElement, 1);
+  }
 }
 
 template <typename T, bool Construct>
@@ -579,7 +572,9 @@ inline void nsDequeBase<T, Construct>::PushFront()
   T* pElement = &ElementAt(0);
 
   if (Construct)
-    nsMemoryUtils::Construct(pElement, 1);
+  {
+    nsMemoryUtils::Construct<SkipTrivialTypes>(pElement, 1);
+  }
 }
 
 template <typename T, bool Construct>
@@ -590,7 +585,9 @@ inline void nsDequeBase<T, Construct>::PopFront(nsUInt32 uiElements)
   for (nsUInt32 i = 0; i < uiElements; ++i)
   {
     if (Construct)
+    {
       nsMemoryUtils::Destruct(&operator[](0), 1);
+    }
 
     --m_uiCount;
     ++m_uiFirstElement;
@@ -937,7 +934,7 @@ bool nsDequeBase<T, Construct>::RemoveAndSwap(const T& value)
 }
 
 template <typename T, bool Construct>
-void nsDequeBase<T, Construct>::Insert(const T& value, nsUInt32 uiIndex)
+void nsDequeBase<T, Construct>::InsertAt(nsUInt32 uiIndex, const T& value)
 {
   NS_CHECK_AT_COMPILETIME_MSG(Construct, "This function is not supported on Deques that do not construct their data.");
 
@@ -999,7 +996,7 @@ nsDeque<T, A, Construct>::nsDeque()
 }
 
 template <typename T, typename A, bool Construct>
-nsDeque<T, A, Construct>::nsDeque(nsAllocatorBase* pAllocator)
+nsDeque<T, A, Construct>::nsDeque(nsAllocator* pAllocator)
   : nsDequeBase<T, Construct>(pAllocator)
 {
 }

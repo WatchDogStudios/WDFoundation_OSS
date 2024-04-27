@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/IO/Archive/Archive.h>
@@ -34,6 +29,41 @@ nsUInt32 nsArchiveTOC::FindEntry(nsStringView sFile) const
 
   NS_ASSERT_DEBUG(sFile.IsEqual_NoCase(GetEntryPathString(uiIndex)), "Hash table corruption detected.");
   return uiIndex;
+}
+
+nsUInt32 nsArchiveTOC::AddPathString(nsStringView sPathString)
+{
+  const nsUInt32 offset = m_AllPathStrings.GetCount();
+  const nsUInt32 numNewBytesNeeded = sPathString.GetElementCount() + 1;
+  m_AllPathStrings.Reserve(m_AllPathStrings.GetCount() + numNewBytesNeeded);
+  m_AllPathStrings.PushBackRange(nsArrayPtr<const nsUInt8>(reinterpret_cast<const nsUInt8*>(sPathString.GetStartPointer()), sPathString.GetElementCount()));
+  m_AllPathStrings.PushBackUnchecked('\0');
+  return offset;
+}
+
+void nsArchiveTOC::RebuildPathToEntryHashes()
+{
+  const nsUInt32 uiNumEntries = m_Entries.GetCount();
+  m_PathToEntryIndex.Clear();
+  m_PathToEntryIndex.Reserve(uiNumEntries);
+
+  nsStringBuilder sLowerCasePath;
+
+  for (nsUInt32 i = 0; i < uiNumEntries; i++)
+  {
+    const nsUInt32 uiSrcStringOffset = m_Entries[i].m_uiPathStringOffset;
+    nsStringView sEntryString = GetEntryPathString(i);
+    sLowerCasePath = sEntryString;
+    sLowerCasePath.ToLower();
+
+    // cut off the upper 32 bit, we don't need them here
+    const nsUInt32 uiLowerCaseHash = nsHashingUtils::StringHashTo32(nsHashingUtils::StringHash(sLowerCasePath.GetView()) & 0xFFFFFFFFllu);
+
+    m_PathToEntryIndex.Insert(nsArchiveStoredString(uiLowerCaseHash, uiSrcStringOffset), i);
+
+    // Verify that the conversion worked
+    NS_ASSERT_DEBUG(FindEntry(sEntryString) == i, "Hashed path retrieval did not yield inserted index");
+  }
 }
 
 nsStringView nsArchiveTOC::GetEntryPathString(nsUInt32 uiEntryIdx) const
@@ -132,29 +162,7 @@ nsResult nsArchiveTOC::Deserialize(nsStreamReader& inout_stream, nsUInt8 uiArchi
     // version 3 switched to 32 bit xxHash
     // version 4 switched to 64 bit hashes
 
-    const nsUInt32 uiNumEntries = m_Entries.GetCount();
-    m_PathToEntryIndex.Clear();
-    m_PathToEntryIndex.Reserve(uiNumEntries);
-
-    nsStringBuilder sLowerCasePath;
-
-    for (nsUInt32 i = 0; i < uiNumEntries; i++)
-    {
-      const nsUInt32 uiSrcStringOffset = m_Entries[i].m_uiPathStringOffset;
-
-      nsStringView sEntryString = GetEntryPathString(i);
-
-      sLowerCasePath = sEntryString;
-      sLowerCasePath.ToLower();
-
-      // cut off the upper 32 bit, we don't need them here
-      const nsUInt32 uiLowerCaseHash = nsHashingUtils::StringHashTo32(nsHashingUtils::StringHash(sLowerCasePath.GetView()) & 0xFFFFFFFFllu);
-
-      m_PathToEntryIndex.Insert(nsArchiveStoredString(uiLowerCaseHash, uiSrcStringOffset), i);
-
-      // Verify that the conversion worked
-      NS_ASSERT_DEBUG(FindEntry(sEntryString) == i, "Hashed path retrieval did not yield inserted index");
-    }
+    RebuildPathToEntryHashes();
   }
 
   // path strings mustn't be empty and must be zero-terminated
@@ -190,6 +198,3 @@ nsResult nsArchiveEntry::Deserialize(nsStreamReader& inout_stream)
 
   return NS_SUCCESS;
 }
-
-
-NS_STATICLINK_FILE(Foundation, Foundation_IO_Archive_Implementation_Archive);

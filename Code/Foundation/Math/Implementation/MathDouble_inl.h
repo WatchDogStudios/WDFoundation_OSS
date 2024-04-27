@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 namespace nsMath
@@ -27,11 +22,20 @@ namespace nsMath
     return (((i2f.i & 0x7FF0000000000000ull) == 0x7FF0000000000000ull) && ((i2f.i & 0xFFFFFFFFFFFFFull) != 0));
   }
 
-  NS_ALWAYS_INLINE double Floor(double f) { return floor(f); }
+  NS_ALWAYS_INLINE double Floor(double f)
+  {
+    return floor(f);
+  }
 
-  NS_ALWAYS_INLINE double Ceil(double f) { return ceil(f); }
+  NS_ALWAYS_INLINE double Ceil(double f)
+  {
+    return ceil(f);
+  }
 
-  NS_ALWAYS_INLINE double Round(double f) { return Floor(f + 0.5f); }
+  NS_ALWAYS_INLINE double Round(double f)
+  {
+    return Floor(f + 0.5f);
+  }
 
   inline double RoundDown(double f, double fMultiple)
   {
@@ -47,25 +51,58 @@ namespace nsMath
     return fFactor * fMultiple;
   }
 
-  NS_ALWAYS_INLINE double RoundToMultiple(double f, double fMultiple) { return Round(f / fMultiple) * fMultiple; }
+  NS_ALWAYS_INLINE double RoundToMultiple(double f, double fMultiple)
+  {
+    return Round(f / fMultiple) * fMultiple;
+  }
 
-  NS_ALWAYS_INLINE double Exp(double f) { return exp(f); }
+  NS_ALWAYS_INLINE double Exp(double f)
+  {
+    return exp(f);
+  }
 
-  NS_ALWAYS_INLINE double Ln(double f) { return log(f); }
+  NS_ALWAYS_INLINE double Ln(double f)
+  {
+    return log(f);
+  }
 
-  NS_ALWAYS_INLINE double Log2(double f) { return log10(f) / log10(2.0); }
+  NS_ALWAYS_INLINE double Log2(double f)
+  {
+    return log10(f) / log10(2.0);
+  }
 
-  NS_ALWAYS_INLINE double Log10(double f) { return log10(f); }
+  NS_ALWAYS_INLINE double Log10(double f)
+  {
+    return log10(f);
+  }
 
-  NS_ALWAYS_INLINE double Log(double fBase, double f) { return log10(f) / log10(fBase); }
+  NS_ALWAYS_INLINE double Log(double fBase, double f)
+  {
+    return log10(f) / log10(fBase);
+  }
 
-  NS_ALWAYS_INLINE double Pow2(double f) { return pow(2.0, f); }
+  NS_ALWAYS_INLINE double Pow2(double f)
+  {
+    return pow(2.0, f);
+  }
 
-  NS_ALWAYS_INLINE double Pow(double fBase, double fExp) { return pow(fBase, fExp); }
+  NS_ALWAYS_INLINE double Pow(double fBase, double fExp)
+  {
+    return pow(fBase, fExp);
+  }
 
-  NS_ALWAYS_INLINE double Root(double f, double fNthRoot) { return pow(f, 1.0 / fNthRoot); }
+  NS_ALWAYS_INLINE double Root(double f, double fNthRoot)
+  {
+    return pow(f, 1.0 / fNthRoot);
+  }
 
-  NS_ALWAYS_INLINE double Sqrt(double f) { return sqrt(f); }
+  NS_ALWAYS_INLINE double Sqrt(double f)
+  {
+    return sqrt(f);
+  }
 
-  NS_ALWAYS_INLINE double Mod(double f, double fDiv) { return fmod(f, fDiv); }
+  NS_ALWAYS_INLINE double Mod(double f, double fDiv)
+  {
+    return fmod(f, fDiv);
+  }
 } // namespace nsMath

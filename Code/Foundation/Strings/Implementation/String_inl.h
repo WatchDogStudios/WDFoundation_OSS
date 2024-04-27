@@ -1,47 +1,42 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 template <nsUInt16 Size>
-nsHybridStringBase<Size>::nsHybridStringBase(nsAllocatorBase* pAllocator)
+nsHybridStringBase<Size>::nsHybridStringBase(nsAllocator* pAllocator)
   : m_Data(pAllocator)
 {
   Clear();
 }
 
 template <nsUInt16 Size>
-nsHybridStringBase<Size>::nsHybridStringBase(const nsHybridStringBase& rhs, nsAllocatorBase* pAllocator)
+nsHybridStringBase<Size>::nsHybridStringBase(const nsHybridStringBase& rhs, nsAllocator* pAllocator)
   : m_Data(pAllocator)
 {
   *this = rhs;
 }
 
 template <nsUInt16 Size>
-nsHybridStringBase<Size>::nsHybridStringBase(nsHybridStringBase&& rhs, nsAllocatorBase* pAllocator)
+nsHybridStringBase<Size>::nsHybridStringBase(nsHybridStringBase&& rhs, nsAllocator* pAllocator)
   : m_Data(pAllocator)
 {
   operator=(std::move(rhs));
 }
 
 template <nsUInt16 Size>
-nsHybridStringBase<Size>::nsHybridStringBase(const char* rhs, nsAllocatorBase* pAllocator)
+nsHybridStringBase<Size>::nsHybridStringBase(const char* rhs, nsAllocator* pAllocator)
   : m_Data(pAllocator)
 {
   *this = rhs;
 }
 
 template <nsUInt16 Size>
-nsHybridStringBase<Size>::nsHybridStringBase(const wchar_t* rhs, nsAllocatorBase* pAllocator)
+nsHybridStringBase<Size>::nsHybridStringBase(const wchar_t* rhs, nsAllocator* pAllocator)
   : m_Data(pAllocator)
 {
   *this = rhs;
 }
 
 template <nsUInt16 Size>
-nsHybridStringBase<Size>::nsHybridStringBase(const nsStringView& rhs, nsAllocatorBase* pAllocator)
+nsHybridStringBase<Size>::nsHybridStringBase(const nsStringView& rhs, nsAllocator* pAllocator)
   : m_Data(pAllocator)
 {
   *this = rhs;
@@ -55,7 +50,6 @@ void nsHybridStringBase<Size>::Clear()
 {
   m_Data.SetCountUninitialized(1);
   m_Data[0] = '\0';
-  m_uiCharacterCount = 0;
 }
 
 template <nsUInt16 Size>
@@ -76,14 +70,13 @@ NS_ALWAYS_INLINE nsUInt32 nsHybridStringBase<Size>::GetElementCount() const
 template <nsUInt16 Size>
 NS_ALWAYS_INLINE nsUInt32 nsHybridStringBase<Size>::GetCharacterCount() const
 {
-  return m_uiCharacterCount;
+  return nsStringUtils::GetCharacterCount(GetData());
 }
 
 template <nsUInt16 Size>
 void nsHybridStringBase<Size>::operator=(const char* szString)
 {
-  nsUInt32 uiElementCount = 0;
-  nsStringUtils::GetCharacterAndElementCount(szString, m_uiCharacterCount, uiElementCount);
+  nsUInt32 uiElementCount = nsStringUtils::GetStringElementCount(szString);
 
   if (szString + uiElementCount < m_Data.GetData() || szString >= m_Data.GetData() + m_Data.GetCount())
   {
@@ -105,7 +98,6 @@ void nsHybridStringBase<Size>::operator=(const nsHybridStringBase& rhs)
   if (this == &rhs)
     return;
 
-  m_uiCharacterCount = rhs.m_uiCharacterCount;
   m_Data = rhs.m_Data;
 }
 
@@ -115,7 +107,6 @@ void nsHybridStringBase<Size>::operator=(nsHybridStringBase&& rhs)
   if (this == &rhs)
     return;
 
-  m_uiCharacterCount = rhs.m_uiCharacterCount;
   m_Data = std::move(rhs.m_Data);
 }
 
@@ -134,20 +125,17 @@ void nsHybridStringBase<Size>::operator=(const nsStringView& rhs)
 
   m_Data.SetCountUninitialized(rhs.GetElementCount() + 1);
   nsStringUtils::Copy(&m_Data[0], m_Data.GetCount(), rhs.GetStartPointer(), rhs.GetEndPointer());
-  m_uiCharacterCount = nsStringUtils::GetCharacterCount(GetData());
 }
 
 template <nsUInt16 Size>
 nsStringView nsHybridStringBase<Size>::GetSubString(nsUInt32 uiFirstCharacter, nsUInt32 uiNumCharacters) const
 {
-  NS_ASSERT_DEV(uiFirstCharacter + uiNumCharacters <= m_uiCharacterCount,
-    "The string only has {0} characters, cannot get a sub-string up to character {1}.", m_uiCharacterCount, uiFirstCharacter + uiNumCharacters);
-
   const char* szStart = GetData();
-  nsUnicodeUtils::MoveToNextUtf8(szStart, uiFirstCharacter);
+  if (nsUnicodeUtils::MoveToNextUtf8(szStart, uiFirstCharacter).Failed())
+    return {};                                                           // szStart was moved too far, the result is just an empty string
 
   const char* szEnd = szStart;
-  nsUnicodeUtils::MoveToNextUtf8(szEnd, uiNumCharacters);
+  nsUnicodeUtils::MoveToNextUtf8(szEnd, uiNumCharacters).IgnoreResult(); // if it fails, szEnd just points to the end of this string
 
   return nsStringView(szStart, szEnd);
 }
@@ -161,9 +149,10 @@ nsStringView nsHybridStringBase<Size>::GetFirst(nsUInt32 uiNumCharacters) const
 template <nsUInt16 Size>
 nsStringView nsHybridStringBase<Size>::GetLast(nsUInt32 uiNumCharacters) const
 {
-  NS_ASSERT_DEV(uiNumCharacters < m_uiCharacterCount, "The string only contains {0} characters, cannot return the last {1} characters.",
-    m_uiCharacterCount, uiNumCharacters);
-  return GetSubString(m_uiCharacterCount - uiNumCharacters, uiNumCharacters);
+  const nsUInt32 uiMaxCharacterCount = GetCharacterCount();
+  NS_ASSERT_DEV(uiNumCharacters < uiMaxCharacterCount, "The string only contains {0} characters, cannot return the last {1} characters.",
+    uiMaxCharacterCount, uiNumCharacters);
+  return GetSubString(uiMaxCharacterCount - uiNumCharacters, uiNumCharacters);
 }
 
 
@@ -174,7 +163,7 @@ NS_ALWAYS_INLINE nsHybridString<Size, A>::nsHybridString()
 }
 
 template <nsUInt16 Size, typename A>
-NS_ALWAYS_INLINE nsHybridString<Size, A>::nsHybridString(nsAllocatorBase* pAllocator)
+NS_ALWAYS_INLINE nsHybridString<Size, A>::nsHybridString(nsAllocator* pAllocator)
   : nsHybridStringBase<Size>(pAllocator)
 {
 }
@@ -262,5 +251,65 @@ NS_ALWAYS_INLINE void nsHybridString<Size, A>::operator=(const nsStringView& rhs
 {
   nsHybridStringBase<Size>::operator=(rhs);
 }
+
+#if NS_ENABLED(NS_INTEROP_STL_STRINGS)
+
+template <nsUInt16 Size>
+nsHybridStringBase<Size>::nsHybridStringBase(const std::string_view& rhs, nsAllocator* pAllocator)
+{
+  *this = rhs;
+}
+
+template <nsUInt16 Size>
+nsHybridStringBase<Size>::nsHybridStringBase(const std::string& rhs, nsAllocator* pAllocator)
+{
+  *this = rhs;
+}
+
+template <nsUInt16 Size>
+void nsHybridStringBase<Size>::operator=(const std::string_view& rhs)
+{
+  if (rhs.empty())
+  {
+    Clear();
+  }
+  else
+  {
+    m_Data.SetCountUninitialized(((nsUInt32)rhs.size() + 1));
+    nsStringUtils::Copy(&m_Data[0], m_Data.GetCount(), rhs.data(), rhs.data() + rhs.size());
+  }
+}
+
+template <nsUInt16 Size>
+void nsHybridStringBase<Size>::operator=(const std::string& rhs)
+{
+  *this = std::string_view(rhs);
+}
+
+template <nsUInt16 Size, typename A>
+NS_ALWAYS_INLINE nsHybridString<Size, A>::nsHybridString(const std::string_view& rhs)
+  : nsHybridStringBase<Size>(rhs, A::GetAllocator())
+{
+}
+
+template <nsUInt16 Size, typename A>
+NS_ALWAYS_INLINE nsHybridString<Size, A>::nsHybridString(const std::string& rhs)
+  : nsHybridStringBase<Size>(rhs, A::GetAllocator())
+{
+}
+
+template <nsUInt16 Size, typename A>
+NS_ALWAYS_INLINE void nsHybridString<Size, A>::operator=(const std::string_view& rhs)
+{
+  nsHybridStringBase<Size>::operator=(rhs);
+}
+
+template <nsUInt16 Size, typename A>
+NS_ALWAYS_INLINE void nsHybridString<Size, A>::operator=(const std::string& rhs)
+{
+  nsHybridStringBase<Size>::operator=(rhs);
+}
+
+#endif
 
 #include <Foundation/Strings/Implementation/AllStrings_inl.h>

@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Logging/Log.h>
@@ -12,16 +7,16 @@
 #include <Foundation/Types/VarianceTypes.h>
 #include <Foundation/Types/VariantTypeRegistry.h>
 
-// nsAllocatorBase::Stats
+// nsAllocator::Stats
 
-void operator<<(nsStreamWriter& inout_stream, const nsAllocatorBase::Stats& rhs)
+void operator<<(nsStreamWriter& inout_stream, const nsAllocator::Stats& rhs)
 {
   inout_stream << rhs.m_uiNumAllocations;
   inout_stream << rhs.m_uiNumDeallocations;
   inout_stream << rhs.m_uiAllocationSize;
 }
 
-void operator>>(nsStreamReader& inout_stream, nsAllocatorBase::Stats& rhs)
+void operator>>(nsStreamReader& inout_stream, nsAllocator::Stats& rhs)
 {
   inout_stream >> rhs.m_uiNumAllocations;
   inout_stream >> rhs.m_uiNumDeallocations;
@@ -343,4 +338,3 @@ void operator>>(nsStreamReader& inout_stream, nsVarianceTypeAngle& ref_value)
   inout_stream >> ref_value.m_fVariance;
   inout_stream >> ref_value.m_Value;
 }
-NS_STATICLINK_FILE(Foundation, Foundation_IO_Implementation_StreamOperationsOther);

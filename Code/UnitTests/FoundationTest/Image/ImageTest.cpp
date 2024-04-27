@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 
@@ -44,7 +39,7 @@ NS_CREATE_SIMPLE_TEST(Image, Image)
       nsImage image;
       {
         nsStringBuilder fileName;
-        fileName.Format("{0}.bmp", testImagesGood[i]);
+        fileName.SetFormat("{0}.bmp", testImagesGood[i]);
 
         NS_TEST_BOOL_MSG(nsFileSystem::ExistsFile(fileName), "Image file does not exist: '%s'", fileName.GetData());
         NS_TEST_BOOL_MSG(image.LoadFrom(fileName) == NS_SUCCESS, "Reading image failed: '%s'", fileName.GetData());
@@ -52,7 +47,7 @@ NS_CREATE_SIMPLE_TEST(Image, Image)
 
       {
         nsStringBuilder fileName;
-        fileName.Format(":output/{0}_out.bmp", testImagesGood[i]);
+        fileName.SetFormat(":output/{0}_out.bmp", testImagesGood[i]);
 
         NS_TEST_BOOL_MSG(image.SaveTo(fileName) == NS_SUCCESS, "Writing image failed: '%s'", fileName.GetData());
         NS_TEST_BOOL_MSG(nsFileSystem::ExistsFile(fileName), "Output image file is missing: '%s'", fileName.GetData());
@@ -75,7 +70,7 @@ NS_CREATE_SIMPLE_TEST(Image, Image)
       nsImage image;
       {
         nsStringBuilder fileName;
-        fileName.Format("{0}.bmp", testImagesBad[i]);
+        fileName.SetFormat("{0}.bmp", testImagesBad[i]);
 
         NS_TEST_BOOL_MSG(nsFileSystem::ExistsFile(fileName), "File does not exist: '%s'", fileName.GetData());
 
@@ -94,7 +89,7 @@ NS_CREATE_SIMPLE_TEST(Image, Image)
       nsImage image;
       {
         nsStringBuilder fileName;
-        fileName.Format("{0}.tga", testImagesGood[i]);
+        fileName.SetFormat("{0}.tga", testImagesGood[i]);
 
         NS_TEST_BOOL_MSG(nsFileSystem::ExistsFile(fileName), "Image file does not exist: '%s'", fileName.GetData());
         NS_TEST_BOOL_MSG(image.LoadFrom(fileName) == NS_SUCCESS, "Reading image failed: '%s'", fileName.GetData());
@@ -102,10 +97,10 @@ NS_CREATE_SIMPLE_TEST(Image, Image)
 
       {
         nsStringBuilder fileName;
-        fileName.Format(":output/{0}_out.bmp", testImagesGood[i]);
+        fileName.SetFormat(":output/{0}_out.bmp", testImagesGood[i]);
 
         nsStringBuilder fileNameExpected;
-        fileNameExpected.Format("{0}_expected.bmp", testImagesGood[i]);
+        fileNameExpected.SetFormat("{0}_expected.bmp", testImagesGood[i]);
 
         NS_TEST_BOOL_MSG(image.SaveTo(fileName) == NS_SUCCESS, "Writing image failed: '%s'", fileName.GetData());
         NS_TEST_BOOL_MSG(nsFileSystem::ExistsFile(fileName), "Output image file is missing: '%s'", fileName.GetData());
@@ -115,10 +110,10 @@ NS_CREATE_SIMPLE_TEST(Image, Image)
 
       {
         nsStringBuilder fileName;
-        fileName.Format(":output/{0}_out.tga", testImagesGood[i]);
+        fileName.SetFormat(":output/{0}_out.tga", testImagesGood[i]);
 
         nsStringBuilder fileNameExpected;
-        fileNameExpected.Format("{0}_expected.tga", testImagesGood[i]);
+        fileNameExpected.SetFormat("{0}_expected.tga", testImagesGood[i]);
 
         NS_TEST_BOOL_MSG(image.SaveTo(fileName) == NS_SUCCESS, "Writing image failed: '%s'", fileName.GetData());
         NS_TEST_BOOL_MSG(nsFileSystem::ExistsFile(fileName), "Output image file is missing: '%s'", fileName.GetData());
@@ -157,7 +152,7 @@ NS_CREATE_SIMPLE_TEST(Image, Image)
       nsImage image;
       {
         nsStringBuilder fileName;
-        fileName.Format("{}/{}.tga", szTestImagePath, imgTests[idx].szImage);
+        fileName.SetFormat("{}/{}.tga", szTestImagePath, imgTests[idx].szImage);
 
         NS_TEST_BOOL_MSG(nsFileSystem::ExistsFile(fileName), "Image file does not exist: '%s'", fileName.GetData());
         NS_TEST_BOOL_MSG(image.LoadFrom(fileName) == NS_SUCCESS, "Reading image failed: '%s'", fileName.GetData());
@@ -165,7 +160,7 @@ NS_CREATE_SIMPLE_TEST(Image, Image)
 
       {
         nsStringBuilder fileName;
-        fileName.Format(":output/WriteImageTest/{}.{}", imgTests[idx].szImage, imgTests[idx].szFormat);
+        fileName.SetFormat(":output/WriteImageTest/{}.{}", imgTests[idx].szImage, imgTests[idx].szFormat);
 
         nsFileSystem::DeleteFile(fileName);
 

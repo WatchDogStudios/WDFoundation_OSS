@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 
 template <typename T, nsUInt32 SizeInBytes>
 NS_ALWAYS_INLINE nsDataBlock<T, SizeInBytes>::nsDataBlock(T* pData, nsUInt32 uiCount)
@@ -48,14 +43,14 @@ NS_FORCE_INLINE T& nsDataBlock<T, SizeInBytes>::operator[](nsUInt32 uiIndex) con
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <nsUInt32 BlockSize>
-nsLargeBlockAllocator<BlockSize>::nsLargeBlockAllocator(nsStringView sName, nsAllocatorBase* pParent, nsBitflags<nsMemoryTrackingFlags> flags)
-  : m_TrackingFlags(flags)
+nsLargeBlockAllocator<BlockSize>::nsLargeBlockAllocator(nsStringView sName, nsAllocator* pParent, nsAllocatorTrackingMode mode)
+  : m_TrackingMode(mode)
   , m_SuperBlocks(pParent)
   , m_FreeBlocks(pParent)
 {
   NS_CHECK_AT_COMPILETIME_MSG(BlockSize >= 4096, "Block size must be 4096 or bigger");
 
-  m_Id = nsMemoryTracker::RegisterAllocator(sName, flags, nsPageAllocator::GetId());
+  m_Id = nsMemoryTracker::RegisterAllocator(sName, mode, nsPageAllocator::GetId());
   m_ThreadID = nsThreadUtils::GetCurrentThreadID();
 
   const nsUInt32 uiPageSize = nsSystemInformation::Get().GetMemoryPageSize();
@@ -117,7 +112,7 @@ NS_ALWAYS_INLINE nsAllocatorId nsLargeBlockAllocator<BlockSize>::GetId() const
 }
 
 template <nsUInt32 BlockSize>
-NS_ALWAYS_INLINE const nsAllocatorBase::Stats& nsLargeBlockAllocator<BlockSize>::GetStats() const
+NS_ALWAYS_INLINE const nsAllocator::Stats& nsLargeBlockAllocator<BlockSize>::GetStats() const
 {
   return nsMemoryTracker::GetAllocatorStats(m_Id);
 }
@@ -167,9 +162,9 @@ void* nsLargeBlockAllocator<BlockSize>::Allocate(size_t uiAlign)
     ptr = pMemory;
   }
 
-  if ((m_TrackingFlags & nsMemoryTrackingFlags::EnableAllocationTracking) != 0)
+  if (m_TrackingMode >= nsAllocatorTrackingMode::AllocationStats)
   {
-    nsMemoryTracker::AddAllocation(m_Id, m_TrackingFlags, ptr, BlockSize, uiAlign, nsTime::Now() - fAllocationTime);
+    nsMemoryTracker::AddAllocation(m_Id, m_TrackingMode, ptr, BlockSize, uiAlign, nsTime::Now() - fAllocationTime);
   }
 
   return ptr;
@@ -180,7 +175,7 @@ void nsLargeBlockAllocator<BlockSize>::Deallocate(void* ptr)
 {
   NS_LOCK(m_Mutex);
 
-  if ((m_TrackingFlags & nsMemoryTrackingFlags::EnableAllocationTracking) != 0)
+  if (m_TrackingMode >= nsAllocatorTrackingMode::AllocationStats)
   {
     nsMemoryTracker::RemoveAllocation(m_Id, ptr);
   }
@@ -188,7 +183,7 @@ void nsLargeBlockAllocator<BlockSize>::Deallocate(void* ptr)
   // find super block
   bool bFound = false;
   nsUInt32 uiSuperBlockIndex = m_SuperBlocks.GetCount();
-  ptrdiff_t diff = 0;
+  std::ptrdiff_t diff = 0;
 
   for (; uiSuperBlockIndex-- > 0;)
   {
@@ -200,6 +195,7 @@ void nsLargeBlockAllocator<BlockSize>::Deallocate(void* ptr)
     }
   }
 
+  NS_IGNORE_UNUSED(bFound);
   NS_ASSERT_DEV(bFound, "'{0}' was not allocated with this allocator", nsArgP(ptr));
 
   SuperBlock& superBlock = m_SuperBlocks[uiSuperBlockIndex];

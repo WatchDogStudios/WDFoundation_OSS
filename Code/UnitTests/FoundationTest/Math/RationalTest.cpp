@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/Math/Rational.h>
@@ -51,12 +46,12 @@ NS_CREATE_SIMPLE_TEST(Math, Rational)
     nsRational r1(50, 25);
 
     nsStringBuilder sb;
-    sb.Format("Rational: {}", r1);
+    sb.SetFormat("Rational: {}", r1);
     NS_TEST_STRING(sb, "Rational: 2");
 
 
     nsRational r2(233, 76);
-    sb.Format("Rational: {}", r2);
+    sb.SetFormat("Rational: {}", r2);
     NS_TEST_STRING(sb, "Rational: 233/76");
   }
 }

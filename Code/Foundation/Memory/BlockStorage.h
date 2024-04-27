@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Containers/Bitfield.h>
@@ -60,7 +55,7 @@ public:
     Iterator(const nsBlockStorage<T, BlockSizeInByte, StorageType>& storage, nsUInt32 uiStartIndex, nsUInt32 uiCount);
   };
 
-  nsBlockStorage(nsLargeBlockAllocator<BlockSizeInByte>* pBlockAllocator, nsAllocatorBase* pAllocator);
+  nsBlockStorage(nsLargeBlockAllocator<BlockSizeInByte>* pBlockAllocator, nsAllocator* pAllocator);
   ~nsBlockStorage();
 
   void Clear();

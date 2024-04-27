@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/Containers/DynamicArray.h>
@@ -48,11 +43,11 @@ namespace DynamicArrayTestDetail
     bool operator==(const Dummy& dummy) const { return a == dummy.a; }
   };
 
-  nsAllocatorBase* g_pTestAllocator;
+  nsAllocator* g_pTestAllocator;
 
   struct nsTestAllocatorWrapper
   {
-    static nsAllocatorBase* GetAllocator() { return g_pTestAllocator; }
+    static nsAllocator* GetAllocator() { return g_pTestAllocator; }
   };
 
   template <typename T = st, typename AllocatorWrapper = nsTestAllocatorWrapper>
@@ -433,7 +428,7 @@ NS_CREATE_SIMPLE_TEST(Containers, DynamicArray)
 
     // always inserts at the front
     for (nsInt32 i = 0; i < 100; ++i)
-      a1.Insert(i, 0);
+      a1.InsertAt(0, i);
 
     for (nsInt32 i = 0; i < 100; ++i)
       NS_TEST_INT(a1[i], 99 - i);
@@ -444,9 +439,9 @@ NS_CREATE_SIMPLE_TEST(Containers, DynamicArray)
     {
       nsDynamicArray<nsUniquePtr<DynamicArrayTestDetail::st>> a2;
       for (nsUInt32 i = 0; i < 10; ++i)
-        a2.Insert(nsUniquePtr<DynamicArrayTestDetail::st>(), 0);
+        a2.InsertAt(0, nsUniquePtr<DynamicArrayTestDetail::st>());
 
-      a2.Insert(std::move(ptr), 0);
+      a2.InsertAt(0, std::move(ptr));
       NS_TEST_BOOL(ptr == nullptr);
       NS_TEST_BOOL(a2[0] != nullptr);
 
@@ -596,7 +591,7 @@ NS_CREATE_SIMPLE_TEST(Containers, DynamicArray)
     nsDynamicArray<nsInt32> a1;
 
     for (nsInt32 i = 0; i < 10; ++i)
-      a1.Insert(i, i); // inserts at the end
+      a1.InsertAt(i, i); // inserts at the end
 
     a1.RemoveAndSwap(9);
     a1.RemoveAndSwap(7);
@@ -615,7 +610,7 @@ NS_CREATE_SIMPLE_TEST(Containers, DynamicArray)
     nsDynamicArray<nsInt32> a1;
 
     for (nsInt32 i = 0; i < 10; ++i)
-      a1.Insert(i, i); // inserts at the end
+      a1.InsertAt(i, i); // inserts at the end
 
     a1.RemoveAtAndCopy(9);
     a1.RemoveAtAndCopy(7);
@@ -634,7 +629,7 @@ NS_CREATE_SIMPLE_TEST(Containers, DynamicArray)
     {
       nsDynamicArray<nsUniquePtr<DynamicArrayTestDetail::st>> a2;
       for (nsUInt32 i = 0; i < 10; ++i)
-        a2.Insert(nsUniquePtr<DynamicArrayTestDetail::st>(), 0);
+        a2.InsertAt(0, nsUniquePtr<DynamicArrayTestDetail::st>());
 
       a2.PushBack(std::move(ptr));
       NS_TEST_BOOL(ptr == nullptr);
@@ -653,7 +648,7 @@ NS_CREATE_SIMPLE_TEST(Containers, DynamicArray)
     nsDynamicArray<nsInt32> a1;
 
     for (nsInt32 i = 0; i < 10; ++i)
-      a1.Insert(i, i); // inserts at the end
+      a1.InsertAt(i, i); // inserts at the end
 
     a1.RemoveAtAndSwap(9);
     a1.RemoveAtAndSwap(7);
@@ -672,7 +667,7 @@ NS_CREATE_SIMPLE_TEST(Containers, DynamicArray)
     {
       nsDynamicArray<nsUniquePtr<DynamicArrayTestDetail::st>> a2;
       for (nsUInt32 i = 0; i < 10; ++i)
-        a2.Insert(nsUniquePtr<DynamicArrayTestDetail::st>(), 0);
+        a2.InsertAt(0, nsUniquePtr<DynamicArrayTestDetail::st>());
 
       a2.PushBack(std::move(ptr));
       NS_TEST_BOOL(ptr == nullptr);
@@ -742,7 +737,7 @@ NS_CREATE_SIMPLE_TEST(Containers, DynamicArray)
       a1.PushBack(DynamicArrayTestDetail::st(1));
       NS_TEST_BOOL(DynamicArrayTestDetail::st::HasDone(2, 1)); // one temporary, one final (copy constructed)
 
-      a1.Insert(DynamicArrayTestDetail::st(2), 0);
+      a1.InsertAt(0, DynamicArrayTestDetail::st(2));
       NS_TEST_BOOL(DynamicArrayTestDetail::st::HasDone(2, 1)); // one temporary, one final (copy constructed)
 
       a2 = a1;
@@ -838,9 +833,9 @@ NS_CREATE_SIMPLE_TEST(Containers, DynamicArray)
     list.PushBack(1);
     list.PushBack(2);
     list.PushBack(3);
-    list.Insert(4, 3);
-    list.Insert(0, 1);
-    list.Insert(0, 5);
+    list.InsertAt(3, 4);
+    list.InsertAt(1, 0);
+    list.InsertAt(5, 0);
 
     NS_TEST_BOOL(list[0].a == 1);
     NS_TEST_BOOL(list[1].a == 0);
@@ -1180,7 +1175,7 @@ NS_CREATE_SIMPLE_TEST(Containers, DynamicArray)
 
     nsTime t = sw.GetRunningTotal();
     nsStringBuilder s;
-    s.Format("ns-sort (random keys): {}", t);
+    s.SetFormat("ns-sort (random keys): {}", t);
     nsTestFramework::Output(nsTestOutput::Details, s);
 
     for (nsUInt32 i = 1; i < list.GetCount(); i++)
@@ -1206,7 +1201,7 @@ NS_CREATE_SIMPLE_TEST(Containers, DynamicArray)
 
     nsTime t = sw.GetRunningTotal();
     nsStringBuilder s;
-    s.Format("std::sort (random keys): {}", t);
+    s.SetFormat("std::sort (random keys): {}", t);
     nsTestFramework::Output(nsTestOutput::Details, s);
 
     for (nsUInt32 i = 1; i < list.GetCount(); i++)
@@ -1232,7 +1227,7 @@ NS_CREATE_SIMPLE_TEST(Containers, DynamicArray)
 
     nsTime t = sw.GetRunningTotal();
     nsStringBuilder s;
-    s.Format("ns-sort (equal keys): {}", t);
+    s.SetFormat("ns-sort (equal keys): {}", t);
     nsTestFramework::Output(nsTestOutput::Details, s);
 
     for (nsUInt32 i = 1; i < list.GetCount(); i++)
@@ -1258,7 +1253,7 @@ NS_CREATE_SIMPLE_TEST(Containers, DynamicArray)
 
     nsTime t = sw.GetRunningTotal();
     nsStringBuilder s;
-    s.Format("std::sort (equal keys): {}", t);
+    s.SetFormat("std::sort (equal keys): {}", t);
     nsTestFramework::Output(nsTestOutput::Details, s);
 
     for (nsUInt32 i = 1; i < list.GetCount(); i++)

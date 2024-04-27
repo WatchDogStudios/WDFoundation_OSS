@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Configuration/CVar.h>
@@ -30,19 +25,19 @@ nsCVarType::Enum nsTypedCVar<Type, CVarType>::GetType() const
 }
 
 template <typename Type, nsCVarType::Enum CVarType>
-void nsTypedCVar<Type, CVarType>::SetToRestartValue()
+void nsTypedCVar<Type, CVarType>::SetToDelayedSyncValue()
 {
-  if (m_Values[nsCVarValue::Current] == m_Values[nsCVarValue::Restart])
+  if (m_Values[nsCVarValue::Current] == m_Values[nsCVarValue::DelayedSync])
     return;
 
   // this will NOT trigger a 'restart value changed' event
-  m_Values[nsCVarValue::Current] = m_Values[nsCVarValue::Restart];
+  m_Values[nsCVarValue::Current] = m_Values[nsCVarValue::DelayedSync];
 
   nsCVarEvent e(this);
   e.m_EventType = nsCVarEvent::ValueChanged;
   m_CVarEvents.Broadcast(e);
 
-  // broadcast the same to the 'all cvars' event handlers
+  // broadcast the same to the 'all CVars' event handlers
   s_AllCVarEvents.Broadcast(e);
 }
 
@@ -57,12 +52,12 @@ void nsTypedCVar<Type, CVarType>::operator=(const Type& value)
 {
   nsCVarEvent e(this);
 
-  if (GetFlags().IsAnySet(nsCVarFlags::RequiresRestart))
+  if (GetFlags().IsAnySet(nsCVarFlags::RequiresDelayedSync))
   {
-    if (value == m_Values[nsCVarValue::Restart]) // no change
+    if (value == m_Values[nsCVarValue::DelayedSync]) // no change
       return;
 
-    e.m_EventType = nsCVarEvent::RestartValueChanged;
+    e.m_EventType = nsCVarEvent::DelayedSyncValueChanged;
   }
   else
   {
@@ -73,7 +68,7 @@ void nsTypedCVar<Type, CVarType>::operator=(const Type& value)
     e.m_EventType = nsCVarEvent::ValueChanged;
   }
 
-  m_Values[nsCVarValue::Restart] = value;
+  m_Values[nsCVarValue::DelayedSync] = value;
 
   m_CVarEvents.Broadcast(e);
 

@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Basics.h>
@@ -44,7 +39,7 @@ void nsProcessingStreamSpawnerZeroInitialized::InitializeElements(nsUInt64 uiSta
   for (nsUInt64 i = uiStartIndex; i < uiStartIndex + uiNumElements; ++i)
   {
     nsMemoryUtils::ZeroFill<nsUInt8>(
-      static_cast<nsUInt8*>(nsMemoryUtils::AddByteOffset(m_pStream->GetWritableData(), static_cast<ptrdiff_t>(i * uiElementStride))),
+      static_cast<nsUInt8*>(nsMemoryUtils::AddByteOffset(m_pStream->GetWritableData(), static_cast<std::ptrdiff_t>(i * uiElementStride))),
       static_cast<size_t>(uiElementSize));
   }
 }

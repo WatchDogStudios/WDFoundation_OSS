@@ -1,12 +1,8 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Containers/DynamicArray.h>
 #include <Foundation/Containers/HybridArray.h>
+#include <Foundation/Containers/Implementation/BitIterator.h>
 #include <Foundation/IO/Stream.h>
 #include <Foundation/Math/Constants.h>
 
@@ -71,7 +67,57 @@ public:
   /// \brief Clears the range starting at uiFirstBit up to (and including) uiLastBit to 0.
   void ClearBitRange(nsUInt32 uiFirstBit, nsUInt32 uiNumBits); // [tested]
 
+  /// \brief Swaps two bitfields
+  void Swap(nsBitfield<Container>& other); // [tested]
+  struct ConstIterator
+  {
+    using iterator_category = std::forward_iterator_tag;
+    using value_type = nsUInt32;
+    using sub_iterator = ::nsBitIterator<nsUInt32, true>;
+
+    // Invalid iterator (end)
+    NS_FORCE_INLINE ConstIterator() = default; // [tested]
+
+    // Start iterator.
+    explicit ConstIterator(const nsBitfield<Container>& bitfield); // [tested]
+
+    /// \brief Checks whether this iterator points to a valid element.
+    bool IsValid() const; // [tested]
+
+    /// \brief Returns the 'value' of the element that this iterator points to.
+    nsUInt32 Value() const; // [tested]
+
+    /// \brief Advances the iterator to the next element in the map. The iterator will not be valid anymore, if the end is reached.
+    void Next();                                       // [tested]
+
+    bool operator==(const ConstIterator& other) const; // [tested]
+    bool operator!=(const ConstIterator& other) const; // [tested]
+
+    /// \brief Returns 'Value()' to enable foreach.
+    nsUInt32 operator*() const; // [tested]
+
+    /// \brief Shorthand for 'Next'.
+    void operator++(); // [tested]
+
+  private:
+    void FindNextChunk(nsUInt32 uiStartChunk);
+
+  private:
+    nsUInt32 m_uiChunk = 0;
+    sub_iterator m_Iterator;
+    const nsBitfield<Container>* m_pBitfield = nullptr;
+  };
+
+  /// \brief Returns a constant iterator to the very first set bit.
+  /// Note that due to the way iterating through bits is accelerated, changes to the bitfield while iterating through the bits has undefined behaviour.
+  ConstIterator GetIterator() const; // [tested]
+
+  /// \brief Returns an invalid iterator. Needed to support range based for loops.
+  ConstIterator GetEndIterator() const; // [tested]
+
 private:
+  friend struct ConstIterator;
+
   nsUInt32 GetBitInt(nsUInt32 uiBitIndex) const;
   nsUInt32 GetBitMask(nsUInt32 uiBitIndex) const;
 
@@ -87,6 +133,32 @@ template <nsUInt32 BITS>
 using nsHybridBitfield = nsBitfield<nsHybridArray<nsUInt32, (BITS + 31) / 32>>;
 
 //////////////////////////////////////////////////////////////////////////
+// begin() /end() for range-based for-loop support
+template <typename Container>
+typename nsBitfield<Container>::ConstIterator begin(const nsBitfield<Container>& container)
+{
+  return container.GetIterator();
+}
+
+template <typename Container>
+typename nsBitfield<Container>::ConstIterator cbegin(const nsBitfield<Container>& container)
+{
+  return container.GetIterator();
+}
+
+template <typename Container>
+typename nsBitfield<Container>::ConstIterator end(const nsBitfield<Container>& container)
+{
+  return container.GetEndIterator();
+}
+
+template <typename Container>
+typename nsBitfield<Container>::ConstIterator cend(const nsBitfield<Container>& container)
+{
+  return container.GetEndIterator();
+}
+
+//////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 
@@ -95,6 +167,8 @@ class nsStaticBitfield
 {
 public:
   using StorageType = T;
+  using ConstIterator = nsBitIterator<StorageType, true, nsUInt32>;
+
   static constexpr nsUInt32 GetStorageTypeBitCount() { return nsMath::NumBits<T>(); }
 
   /// \brief Initializes the bitfield to all zero.
@@ -150,6 +224,9 @@ public:
   /// \brief Sets the raw uint that stores all bits.
   void SetValue(T value); // [tested]
 
+  /// \brief Swaps two bitfields
+  void Swap(nsStaticBitfield<T>& other); // [tested]
+
   /// \brief Modifies \a this to also contain the bits from \a rhs.
   NS_ALWAYS_INLINE void operator|=(const nsStaticBitfield<T>& rhs) { m_Storage |= rhs.m_Storage; }
 
@@ -169,6 +246,19 @@ public:
     inout_reader >> m_Storage;
     return NS_SUCCESS;
   }
+
+  /// \brief Returns a constant iterator to the very first set bit.
+  /// Note that due to the way iterating through bits is accelerated, changes to the bitfield while iterating through the bits has undefined behaviour.
+  ConstIterator GetIterator() const // [tested]
+  {
+    return ConstIterator(m_Storage);
+  };
+
+  /// \brief Returns an invalid iterator. Needed to support range based for loops.
+  ConstIterator GetEndIterator() const // [tested]
+  {
+    return ConstIterator();
+  };
 
 private:
   static constexpr nsTypeVersion s_Version = 1;
@@ -224,6 +314,32 @@ template <typename T>
 inline bool operator!=(nsStaticBitfield<T> lhs, nsStaticBitfield<T> rhs)
 {
   return lhs.m_Storage != rhs.m_Storage;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// begin() /end() for range-based for-loop support
+template <typename Container>
+typename nsStaticBitfield<Container>::ConstIterator begin(const nsStaticBitfield<Container>& container)
+{
+  return container.GetIterator();
+}
+
+template <typename Container>
+typename nsStaticBitfield<Container>::ConstIterator cbegin(const nsStaticBitfield<Container>& container)
+{
+  return container.GetIterator();
+}
+
+template <typename Container>
+typename nsStaticBitfield<Container>::ConstIterator end(const nsStaticBitfield<Container>& container)
+{
+  return container.GetEndIterator();
+}
+
+template <typename Container>
+typename nsStaticBitfield<Container>::ConstIterator cend(const nsStaticBitfield<Container>& container)
+{
+  return container.GetEndIterator();
 }
 
 using nsStaticBitfield8 = nsStaticBitfield<nsUInt8>;

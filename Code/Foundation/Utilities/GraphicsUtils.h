@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Math/Mat4.h>
@@ -186,5 +181,38 @@ namespace nsGraphicsUtils
   ///
   /// \return If the triangle is degenerate (all points on a line, or two points identical), the function returns NS_FAILURE.
   NS_FOUNDATION_DLL nsResult ComputeBarycentricCoordinates(nsVec3& out_vCoordinates, const nsVec2& v0, const nsVec2& v1, const nsVec2& v2, const nsVec2& vPos);
+
+  /// \brief Returns a coverage value of how much space a sphere at a given location would take up on screen using a perspective projection.
+  ///
+  /// The coverage value is close to 0 for very small or far away spheres and approaches 1 when the projected sphere would take up the entire screen.
+  /// The calculation is resolution independent and also doesn't take into account whether the sphere is inside the view frustum at all.
+  /// Thus the value doesn't change depending on camera view direction, it only depends on distance and the camera's field-of-view.
+  /// Values (much) larger than 1 are possible.
+  ///
+  /// \note Only one camera FOV angle is used for the calculation, pass in either the horizontal or vertical FOV angle,
+  /// depending on what is most relevant to you.
+  /// Typically the 'fixed' angle is used (usually the vertical one) since the other one depends on the window size.
+  inline float CalculateSphereScreenCoverage(const nsBoundingSphere& sphere, const nsVec3& vCameraPosition, nsAngle perspectiveCameraFov)
+  {
+    const float fDist = (sphere.m_vCenter - vCameraPosition).GetLength();
+    const float fHalfHeight = nsMath::Tan(perspectiveCameraFov * 0.5f) * fDist;
+    return sphere.m_fRadius / fHalfHeight;
+  }
+
+  /// \brief Returns a coverage value of how much space a sphere of a given size would take up on screen using an orthographic projection.
+  ///
+  /// The coverage value is close to 0 for very small spheres and approaches 1 when the projected sphere would take up the entire screen.
+  /// The calculation is resolution independent and also doesn't take into account whether the sphere is inside the view frustum at all.
+  /// Thus the value doesn't change depending on camera view direction. In orthographic projections even the distance to the camera is irrelevant,
+  /// only the dimensions of the ortho camera are needed.
+  /// Values (much) larger than 1 are possible.
+  ///
+  /// \note Only one camera dimension is used for the calculation, pass in either the X or Y dimension, depending on what is most relevant to you.
+  /// Typically the 'fixed' dimension is used (usually Y) since the other one depends on the window size.
+  inline float CalculateSphereScreenCoverage(float fSphereRadius, float fOrthoCameraDimensions)
+  {
+    const float fHalfHeight = fOrthoCameraDimensions * 0.5f;
+    return fSphereRadius / fHalfHeight;
+  }
 
 } // namespace nsGraphicsUtils

@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 
 /// \brief Value used by containers for indices to indicate an invalid index.
 #ifndef nsInvalidIndex
@@ -12,13 +7,13 @@
 // ***** Const Iterator *****
 
 template <typename K, typename V, typename H>
-nsHashTableBase<K, V, H>::ConstIterator::ConstIterator(const nsHashTableBase<K, V, H>& hashTable)
+nsHashTableBaseConstIterator<K, V, H>::nsHashTableBaseConstIterator(const nsHashTableBase<K, V, H>& hashTable)
   : m_pHashTable(&hashTable)
 {
 }
 
 template <typename K, typename V, typename H>
-void nsHashTableBase<K, V, H>::ConstIterator::SetToBegin()
+void nsHashTableBaseConstIterator<K, V, H>::SetToBegin()
 {
   if (m_pHashTable->IsEmpty())
   {
@@ -32,7 +27,7 @@ void nsHashTableBase<K, V, H>::ConstIterator::SetToBegin()
 }
 
 template <typename K, typename V, typename H>
-inline void nsHashTableBase<K, V, H>::ConstIterator::SetToEnd()
+inline void nsHashTableBaseConstIterator<K, V, H>::SetToEnd()
 {
   m_uiCurrentCount = m_pHashTable->m_uiCount;
   m_uiCurrentIndex = m_pHashTable->m_uiCapacity;
@@ -40,37 +35,31 @@ inline void nsHashTableBase<K, V, H>::ConstIterator::SetToEnd()
 
 
 template <typename K, typename V, typename H>
-NS_FORCE_INLINE bool nsHashTableBase<K, V, H>::ConstIterator::IsValid() const
+NS_FORCE_INLINE bool nsHashTableBaseConstIterator<K, V, H>::IsValid() const
 {
   return m_uiCurrentCount < m_pHashTable->m_uiCount;
 }
 
 template <typename K, typename V, typename H>
-NS_FORCE_INLINE bool nsHashTableBase<K, V, H>::ConstIterator::operator==(const typename nsHashTableBase<K, V, H>::ConstIterator& rhs) const
+NS_FORCE_INLINE bool nsHashTableBaseConstIterator<K, V, H>::operator==(const nsHashTableBaseConstIterator<K, V, H>& rhs) const
 {
   return m_uiCurrentIndex == rhs.m_uiCurrentIndex && m_pHashTable->m_pEntries == rhs.m_pHashTable->m_pEntries;
 }
 
 template <typename K, typename V, typename H>
-NS_ALWAYS_INLINE bool nsHashTableBase<K, V, H>::ConstIterator::operator!=(const typename nsHashTableBase<K, V, H>::ConstIterator& rhs) const
-{
-  return !(*this == rhs);
-}
-
-template <typename K, typename V, typename H>
-NS_ALWAYS_INLINE const K& nsHashTableBase<K, V, H>::ConstIterator::Key() const
+NS_ALWAYS_INLINE const K& nsHashTableBaseConstIterator<K, V, H>::Key() const
 {
   return m_pHashTable->m_pEntries[m_uiCurrentIndex].key;
 }
 
 template <typename K, typename V, typename H>
-NS_ALWAYS_INLINE const V& nsHashTableBase<K, V, H>::ConstIterator::Value() const
+NS_ALWAYS_INLINE const V& nsHashTableBaseConstIterator<K, V, H>::Value() const
 {
   return m_pHashTable->m_pEntries[m_uiCurrentIndex].value;
 }
 
 template <typename K, typename V, typename H>
-void nsHashTableBase<K, V, H>::ConstIterator::Next()
+void nsHashTableBaseConstIterator<K, V, H>::Next()
 {
   // if we already iterated over the amount of valid elements that the hash-table stores, early out
   if (m_uiCurrentCount >= m_pHashTable->m_uiCount)
@@ -96,30 +85,53 @@ void nsHashTableBase<K, V, H>::ConstIterator::Next()
 }
 
 template <typename K, typename V, typename H>
-NS_ALWAYS_INLINE void nsHashTableBase<K, V, H>::ConstIterator::operator++()
+NS_ALWAYS_INLINE void nsHashTableBaseConstIterator<K, V, H>::operator++()
 {
   Next();
 }
 
+#if NS_ENABLED(NS_USE_CPP20_OPERATORS)
+// These functions are used for structured bindings.
+// They describe how many elements can be accessed in the binding and which type they are.
+namespace std
+{
+  template <typename K, typename V, typename H>
+  struct tuple_size<nsHashTableBaseConstIterator<K, V, H>> : integral_constant<size_t, 2>
+  {
+  };
+
+  template <typename K, typename V, typename H>
+  struct tuple_element<0, nsHashTableBaseConstIterator<K, V, H>>
+  {
+    using type = const K&;
+  };
+
+  template <typename K, typename V, typename H>
+  struct tuple_element<1, nsHashTableBaseConstIterator<K, V, H>>
+  {
+    using type = const V&;
+  };
+} // namespace std
+#endif
 
 // ***** Iterator *****
 
 template <typename K, typename V, typename H>
-nsHashTableBase<K, V, H>::Iterator::Iterator(const nsHashTableBase<K, V, H>& hashTable)
-  : ConstIterator(hashTable)
+nsHashTableBaseIterator<K, V, H>::nsHashTableBaseIterator(const nsHashTableBase<K, V, H>& hashTable)
+  : nsHashTableBaseConstIterator<K, V, H>(hashTable)
 {
 }
 
 template <typename K, typename V, typename H>
-nsHashTableBase<K, V, H>::Iterator::Iterator(const typename nsHashTableBase<K, V, H>::Iterator& rhs)
-  : ConstIterator(*rhs.m_pHashTable)
+nsHashTableBaseIterator<K, V, H>::nsHashTableBaseIterator(const nsHashTableBaseIterator<K, V, H>& rhs)
+  : nsHashTableBaseConstIterator<K, V, H>(*rhs.m_pHashTable)
 {
   this->m_uiCurrentIndex = rhs.m_uiCurrentIndex;
   this->m_uiCurrentCount = rhs.m_uiCurrentCount;
 }
 
 template <typename K, typename V, typename H>
-NS_ALWAYS_INLINE void nsHashTableBase<K, V, H>::Iterator::operator=(const Iterator& rhs) // [tested]
+NS_ALWAYS_INLINE void nsHashTableBaseIterator<K, V, H>::operator=(const nsHashTableBaseIterator& rhs) // [tested]
 {
   this->m_pHashTable = rhs.m_pHashTable;
   this->m_uiCurrentIndex = rhs.m_uiCurrentIndex;
@@ -127,16 +139,46 @@ NS_ALWAYS_INLINE void nsHashTableBase<K, V, H>::Iterator::operator=(const Iterat
 }
 
 template <typename K, typename V, typename H>
-NS_FORCE_INLINE V& nsHashTableBase<K, V, H>::Iterator::Value()
+NS_FORCE_INLINE V& nsHashTableBaseIterator<K, V, H>::Value()
+{
+  return this->m_pHashTable->m_pEntries[this->m_uiCurrentIndex].value;
+}
+
+template <typename K, typename V, typename H>
+NS_FORCE_INLINE V& nsHashTableBaseIterator<K, V, H>::Value() const
 {
   return this->m_pHashTable->m_pEntries[this->m_uiCurrentIndex].value;
 }
 
 
+#if NS_ENABLED(NS_USE_CPP20_OPERATORS)
+// These functions are used for structured bindings.
+// They describe how many elements can be accessed in the binding and which type they are.
+namespace std
+{
+  template <typename K, typename V, typename H>
+  struct tuple_size<nsHashTableBaseIterator<K, V, H>> : integral_constant<size_t, 2>
+  {
+  };
+
+  template <typename K, typename V, typename H>
+  struct tuple_element<0, nsHashTableBaseIterator<K, V, H>>
+  {
+    using type = const K&;
+  };
+
+  template <typename K, typename V, typename H>
+  struct tuple_element<1, nsHashTableBaseIterator<K, V, H>>
+  {
+    using type = V&;
+  };
+} // namespace std
+#endif
+
 // ***** nsHashTableBase *****
 
 template <typename K, typename V, typename H>
-nsHashTableBase<K, V, H>::nsHashTableBase(nsAllocatorBase* pAllocator)
+nsHashTableBase<K, V, H>::nsHashTableBase(nsAllocator* pAllocator)
 {
   m_pEntries = nullptr;
   m_pEntryFlags = nullptr;
@@ -146,7 +188,7 @@ nsHashTableBase<K, V, H>::nsHashTableBase(nsAllocatorBase* pAllocator)
 }
 
 template <typename K, typename V, typename H>
-nsHashTableBase<K, V, H>::nsHashTableBase(const nsHashTableBase<K, V, H>& other, nsAllocatorBase* pAllocator)
+nsHashTableBase<K, V, H>::nsHashTableBase(const nsHashTableBase<K, V, H>& other, nsAllocator* pAllocator)
 {
   m_pEntries = nullptr;
   m_pEntryFlags = nullptr;
@@ -158,7 +200,7 @@ nsHashTableBase<K, V, H>::nsHashTableBase(const nsHashTableBase<K, V, H>& other,
 }
 
 template <typename K, typename V, typename H>
-nsHashTableBase<K, V, H>::nsHashTableBase(nsHashTableBase<K, V, H>&& other, nsAllocatorBase* pAllocator)
+nsHashTableBase<K, V, H>::nsHashTableBase(nsHashTableBase<K, V, H>&& other, nsAllocator* pAllocator)
 {
   m_pEntries = nullptr;
   m_pEntryFlags = nullptr;
@@ -262,16 +304,10 @@ bool nsHashTableBase<K, V, H>::operator==(const nsHashTableBase<K, V, H>& rhs) c
 }
 
 template <typename K, typename V, typename H>
-NS_ALWAYS_INLINE bool nsHashTableBase<K, V, H>::operator!=(const nsHashTableBase<K, V, H>& rhs) const
-{
-  return !(*this == rhs);
-}
-
-template <typename K, typename V, typename H>
 void nsHashTableBase<K, V, H>::Reserve(nsUInt32 uiCapacity)
 {
   const nsUInt64 uiCap64 = static_cast<nsUInt64>(uiCapacity);
-  nsUInt64 uiNewCapacity64 = uiCap64 + (uiCap64 * 2 / 3); // ensure a maximum load of 60%
+  nsUInt64 uiNewCapacity64 = uiCap64 + (uiCap64 * 2 / 3);                  // ensure a maximum load of 60%
 
   uiNewCapacity64 = nsMath::Min<nsUInt64>(uiNewCapacity64, 0x80000000llu); // the largest power-of-two in 32 bit
 
@@ -569,7 +605,7 @@ V& nsHashTableBase<K, V, H>::FindOrAdd(const K& key, bool* out_pExisted)
 
     // new entry
     nsMemoryUtils::CopyConstruct(&m_pEntries[uiIndex].key, key, 1);
-    nsMemoryUtils::DefaultConstruct(&m_pEntries[uiIndex].value, 1);
+    nsMemoryUtils::Construct<ConstructAll>(&m_pEntries[uiIndex].value, 1);
     MarkEntryAsValid(uiIndex);
     ++m_uiCount;
   }
@@ -618,7 +654,7 @@ NS_ALWAYS_INLINE typename nsHashTableBase<K, V, H>::ConstIterator nsHashTableBas
 }
 
 template <typename K, typename V, typename H>
-NS_ALWAYS_INLINE nsAllocatorBase* nsHashTableBase<K, V, H>::GetAllocator() const
+NS_ALWAYS_INLINE nsAllocator* nsHashTableBase<K, V, H>::GetAllocator() const
 {
   return m_pAllocator;
 }
@@ -774,7 +810,7 @@ nsHashTable<K, V, H, A>::nsHashTable()
 }
 
 template <typename K, typename V, typename H, typename A>
-nsHashTable<K, V, H, A>::nsHashTable(nsAllocatorBase* pAllocator)
+nsHashTable<K, V, H, A>::nsHashTable(nsAllocator* pAllocator)
   : nsHashTableBase<K, V, H>(pAllocator)
 {
 }

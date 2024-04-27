@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/IO/OSFile.h>
@@ -285,6 +280,29 @@ bool nsOSFile::ExistsDirectory(nsStringView sDirectory)
   return bRes;
 }
 
+void nsOSFile::FindFreeFilename(nsStringBuilder& inout_sPath, nsStringView sSuffix /*= {}*/)
+{
+  NS_ASSERT_DEV(!inout_sPath.IsEmpty() && inout_sPath.IsAbsolutePath(), "Invalid input path.");
+
+  if (!nsOSFile::ExistsFile(inout_sPath))
+    return;
+
+  const nsString orgName = inout_sPath.GetFileName();
+
+  nsStringBuilder newName;
+
+  for (nsUInt32 i = 1; i < 100000; ++i)
+  {
+    newName.SetFormat("{}{}{}", orgName, sSuffix, i);
+
+    inout_sPath.ChangeFileName(newName);
+    if (!nsOSFile::ExistsFile(inout_sPath))
+      return;
+  }
+
+  NS_REPORT_FAILURE("Something went wrong.");
+}
+
 nsResult nsOSFile::DeleteFile(nsStringView sFile)
 {
   const nsTime t0 = nsTime::Now();
@@ -308,6 +326,18 @@ nsResult nsOSFile::DeleteFile(nsStringView sFile)
   s_FileEvents.Broadcast(e);
 
   return Res;
+}
+
+nsStringView nsOSFile::GetApplicationDirectory()
+{
+  if (s_sApplicationPath.IsEmpty())
+  {
+    // s_sApplicationPath is filled out and cached by GetApplicationPath(), so call that first, if necessary
+    GetApplicationPath();
+  }
+
+  NS_ASSERT_ALWAYS(!s_sApplicationPath.IsEmpty(), "Invalid application directory");
+  return s_sApplicationPath.GetFileDirectory();
 }
 
 nsResult nsOSFile::CreateDirectoryStructure(nsStringView sDirectory)
@@ -516,7 +546,7 @@ nsResult nsOSFile::GetFileCasing(nsStringView sFileOrFolder, nsStringBuilder& ou
 
 #  endif // NS_SUPPORTS_CASE_INSENSITIVE_PATHS && NS_SUPPORTS_UNRESTRICTED_FILE_ACCESS
 
-#endif // NS_SUPPORTS_FILE_STATS
+#endif   // NS_SUPPORTS_FILE_STATS
 
 #if NS_ENABLED(NS_SUPPORTS_FILE_ITERATORS) && NS_ENABLED(NS_SUPPORTS_FILE_STATS)
 
@@ -699,19 +729,3 @@ void nsFileSystemIterator::SkipFolder()
 }
 
 #endif
-
-
-#if NS_ENABLED(NS_PLATFORM_WINDOWS)
-#  include <Foundation/IO/Implementation/Win/OSFile_win.h>
-
-// For UWP we're currently using a mix of WinRT functions and posix.
-#  if NS_ENABLED(NS_PLATFORM_WINDOWS_UWP)
-#    include <Foundation/IO/Implementation/Posix/OSFile_posix.h>
-#  endif
-#elif NS_ENABLED(NS_USE_POSIX_FILE_API)
-#  include <Foundation/IO/Implementation/Posix/OSFile_posix.h>
-#else
-#  error "Unknown Platform."
-#endif
-
-NS_STATICLINK_FILE(Foundation, Foundation_IO_Implementation_OSFile);

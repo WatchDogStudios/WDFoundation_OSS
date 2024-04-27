@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Containers/ArrayBase.h>
@@ -19,18 +14,18 @@ class nsDynamicArrayBase : public nsArrayBase<T, nsDynamicArrayBase<T>>
 {
 protected:
   /// \brief Creates an empty array. Does not allocate any data yet.
-  explicit nsDynamicArrayBase(nsAllocatorBase* pAllocator); // [tested]
+  explicit nsDynamicArrayBase(nsAllocator* pAllocator);                                 // [tested]
 
-  nsDynamicArrayBase(T* pInplaceStorage, nsUInt32 uiCapacity, nsAllocatorBase* pAllocator); // [tested]
+  nsDynamicArrayBase(T* pInplaceStorage, nsUInt32 uiCapacity, nsAllocator* pAllocator); // [tested]
 
   /// \brief Creates a copy of the given array.
-  nsDynamicArrayBase(const nsDynamicArrayBase<T>& other, nsAllocatorBase* pAllocator); // [tested]
+  nsDynamicArrayBase(const nsDynamicArrayBase<T>& other, nsAllocator* pAllocator); // [tested]
 
   /// \brief Moves the given array into this one.
-  nsDynamicArrayBase(nsDynamicArrayBase<T>&& other, nsAllocatorBase* pAllocator); // [tested]
+  nsDynamicArrayBase(nsDynamicArrayBase<T>&& other, nsAllocator* pAllocator); // [tested]
 
   /// \brief Creates a copy of the given array.
-  nsDynamicArrayBase(const nsArrayPtr<const T>& other, nsAllocatorBase* pAllocator); // [tested]
+  nsDynamicArrayBase(const nsArrayPtr<const T>& other, nsAllocator* pAllocator); // [tested]
 
   /// \brief Destructor.
   ~nsDynamicArrayBase(); // [tested]
@@ -55,7 +50,7 @@ public:
   void Compact(); // [tested]
 
   /// \brief Returns the allocator that is used by this instance.
-  nsAllocatorBase* GetAllocator() const { return const_cast<nsAllocatorBase*>(m_pAllocator.GetPtr()); }
+  nsAllocator* GetAllocator() const { return const_cast<nsAllocator*>(m_pAllocator.GetPtr()); }
 
   /// \brief Returns the amount of bytes that are currently allocated on the heap.
   nsUInt64 GetHeapMemoryUsage() const; // [tested]
@@ -70,7 +65,7 @@ private:
     External = 1
   };
 
-  nsPointerWithFlags<nsAllocatorBase, 1> m_pAllocator;
+  nsPointerWithFlags<nsAllocator, 1> m_pAllocator;
 
   enum
   {
@@ -89,7 +84,7 @@ public:
 
 
   nsDynamicArray();
-  explicit nsDynamicArray(nsAllocatorBase* pAllocator);
+  explicit nsDynamicArray(nsAllocator* pAllocator);
 
   nsDynamicArray(const nsDynamicArray<T, AllocatorWrapper>& other);
   nsDynamicArray(const nsDynamicArrayBase<T>& other);
@@ -106,7 +101,7 @@ public:
   void operator=(nsDynamicArrayBase<T>&& rhs) noexcept;
 
 protected:
-  nsDynamicArray(T* pInplaceStorage, nsUInt32 uiCapacity, nsAllocatorBase* pAllocator)
+  nsDynamicArray(T* pInplaceStorage, nsUInt32 uiCapacity, nsAllocator* pAllocator)
     : nsDynamicArrayBase<T>(pInplaceStorage, uiCapacity, pAllocator)
   {
   }

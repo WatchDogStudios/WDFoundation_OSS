@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Math/Math.h>
@@ -25,7 +20,7 @@ nsListBase<T>::ListElement::ListElement(const T& data)
 // **** nsListBase ****
 
 template <typename T>
-nsListBase<T>::nsListBase(nsAllocatorBase* pAllocator)
+nsListBase<T>::nsListBase(nsAllocator* pAllocator)
   : m_End(reinterpret_cast<ListElement*>(&m_Last))
   , m_uiCount(0)
   , m_Elements(pAllocator)
@@ -36,7 +31,7 @@ nsListBase<T>::nsListBase(nsAllocatorBase* pAllocator)
 }
 
 template <typename T>
-nsListBase<T>::nsListBase(const nsListBase<T>& cc, nsAllocatorBase* pAllocator)
+nsListBase<T>::nsListBase(const nsListBase<T>& cc, nsAllocator* pAllocator)
   : m_End(reinterpret_cast<ListElement*>(&m_Last))
   , m_uiCount(0)
   , m_Elements(pAllocator)
@@ -62,7 +57,7 @@ void nsListBase<T>::operator=(const nsListBase<T>& cc)
 }
 
 template <typename T>
-typename nsListBase<T>::ListElement* nsListBase<T>::AcquireNode(const T& data)
+typename nsListBase<T>::ListElement* nsListBase<T>::AcquireNode()
 {
   ListElement* pNode;
 
@@ -77,8 +72,7 @@ typename nsListBase<T>::ListElement* nsListBase<T>::AcquireNode(const T& data)
     m_pFreeElementStack = m_pFreeElementStack->m_pNext;
   }
 
-  nsMemoryUtils::Construct<ListElement>(pNode, 1);
-  pNode->m_Data = data;
+  nsMemoryUtils::Construct<SkipTrivialTypes, ListElement>(pNode, 1);
   return pNode;
 }
 
@@ -112,12 +106,6 @@ NS_ALWAYS_INLINE typename nsListBase<T>::Iterator nsListBase<T>::GetIterator()
 }
 
 template <typename T>
-NS_ALWAYS_INLINE typename nsListBase<T>::Iterator nsListBase<T>::GetLastIterator()
-{
-  return Iterator(m_Last.m_pPrev);
-}
-
-template <typename T>
 NS_ALWAYS_INLINE typename nsListBase<T>::Iterator nsListBase<T>::GetEndIterator()
 {
   return m_End;
@@ -127,12 +115,6 @@ template <typename T>
 NS_ALWAYS_INLINE typename nsListBase<T>::ConstIterator nsListBase<T>::GetIterator() const
 {
   return ConstIterator(m_First.m_pNext);
-}
-
-template <typename T>
-NS_ALWAYS_INLINE typename nsListBase<T>::ConstIterator nsListBase<T>::GetLastIterator() const
-{
-  return ConstIterator(m_Last.m_pPrev);
 }
 
 template <typename T>
@@ -203,9 +185,9 @@ NS_FORCE_INLINE const T& nsListBase<T>::PeekBack() const
 
 
 template <typename T>
-NS_ALWAYS_INLINE void nsListBase<T>::PushBack()
+NS_ALWAYS_INLINE T& nsListBase<T>::PushBack()
 {
-  PushBack(T());
+  return *Insert(GetEndIterator());
 }
 
 template <typename T>
@@ -215,9 +197,9 @@ NS_ALWAYS_INLINE void nsListBase<T>::PushBack(const T& element)
 }
 
 template <typename T>
-NS_ALWAYS_INLINE void nsListBase<T>::PushFront()
+NS_ALWAYS_INLINE T& nsListBase<T>::PushFront()
 {
-  PushFront(T());
+  return *Insert(GetIterator());
 }
 
 template <typename T>
@@ -243,12 +225,30 @@ void nsListBase<T>::PopFront()
 }
 
 template <typename T>
+typename nsListBase<T>::Iterator nsListBase<T>::Insert(const Iterator& pos)
+{
+  NS_ASSERT_DEV(pos.m_pElement != nullptr, "The iterator (pos) is invalid.");
+
+  ++m_uiCount;
+  ListElement* elem = AcquireNode();
+
+  elem->m_pNext = pos.m_pElement;
+  elem->m_pPrev = pos.m_pElement->m_pPrev;
+
+  pos.m_pElement->m_pPrev->m_pNext = elem;
+  pos.m_pElement->m_pPrev = elem;
+
+  return Iterator(elem);
+}
+
+template <typename T>
 typename nsListBase<T>::Iterator nsListBase<T>::Insert(const Iterator& pos, const T& data)
 {
   NS_ASSERT_DEV(pos.m_pElement != nullptr, "The iterator (pos) is invalid.");
 
   ++m_uiCount;
-  ListElement* elem = AcquireNode(data);
+  ListElement* elem = AcquireNode();
+  elem->m_Data = data;
 
   elem->m_pNext = pos.m_pElement;
   elem->m_pPrev = pos.m_pElement->m_pPrev;
@@ -334,12 +334,6 @@ bool nsListBase<T>::operator==(const nsListBase<T>& rhs) const
   return true;
 }
 
-template <typename T>
-bool nsListBase<T>::operator!=(const nsListBase<T>& rhs) const
-{
-  return !operator==(rhs);
-}
-
 template <typename T, typename A>
 nsList<T, A>::nsList()
   : nsListBase<T>(A::GetAllocator())
@@ -347,7 +341,7 @@ nsList<T, A>::nsList()
 }
 
 template <typename T, typename A>
-nsList<T, A>::nsList(nsAllocatorBase* pAllocator)
+nsList<T, A>::nsList(nsAllocator* pAllocator)
   : nsListBase<T>(pAllocator)
 {
 }

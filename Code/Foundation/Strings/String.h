@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Algorithm/HashingUtils.h>
@@ -33,28 +28,28 @@ struct nsHybridStringBase : public nsStringBase<nsHybridStringBase<Size>>
 {
 protected:
   /// \brief Creates an empty string.
-  nsHybridStringBase(nsAllocatorBase* pAllocator); // [tested]
+  nsHybridStringBase(nsAllocator* pAllocator); // [tested]
 
   /// \brief Copies the data from \a rhs.
-  nsHybridStringBase(const nsHybridStringBase& rhs, nsAllocatorBase* pAllocator); // [tested]
+  nsHybridStringBase(const nsHybridStringBase& rhs, nsAllocator* pAllocator); // [tested]
 
   /// \brief Moves the data from \a rhs.
-  nsHybridStringBase(nsHybridStringBase&& rhs, nsAllocatorBase* pAllocator); // [tested]
+  nsHybridStringBase(nsHybridStringBase&& rhs, nsAllocator* pAllocator); // [tested]
 
   /// \brief Copies the data from \a rhs.
-  nsHybridStringBase(const char* rhs, nsAllocatorBase* pAllocator); // [tested]
+  nsHybridStringBase(const char* rhs, nsAllocator* pAllocator); // [tested]
 
   /// \brief Copies the data from \a rhs.
-  nsHybridStringBase(const wchar_t* rhs, nsAllocatorBase* pAllocator); // [tested]
+  nsHybridStringBase(const wchar_t* rhs, nsAllocator* pAllocator); // [tested]
 
   /// \brief Copies the data from \a rhs.
-  nsHybridStringBase(const nsStringView& rhs, nsAllocatorBase* pAllocator); // [tested]
+  nsHybridStringBase(const nsStringView& rhs, nsAllocator* pAllocator); // [tested]
 
   /// \brief Copies the data from \a rhs.
-  nsHybridStringBase(const nsStringBuilder& rhs, nsAllocatorBase* pAllocator); // [tested]
+  nsHybridStringBase(const nsStringBuilder& rhs, nsAllocator* pAllocator); // [tested]
 
   /// \brief Moves the data from \a rhs.
-  nsHybridStringBase(nsStringBuilder&& rhs, nsAllocatorBase* pAllocator); // [tested]
+  nsHybridStringBase(nsStringBuilder&& rhs, nsAllocator* pAllocator); // [tested]
 
   /// \brief Destructor.
   ~nsHybridStringBase(); // [tested]
@@ -80,8 +75,21 @@ protected:
   /// \brief Moves the data from \a rhs.
   void operator=(nsStringBuilder&& rhs); // [tested]
 
-public:
+#if NS_ENABLED(NS_INTEROP_STL_STRINGS)
+  /// \brief Copies the data from \a rhs.
+  nsHybridStringBase(const std::string_view& rhs, nsAllocator* pAllocator);
 
+  /// \brief Copies the data from \a rhs.
+  nsHybridStringBase(const std::string& rhs, nsAllocator* pAllocator);
+
+  /// \brief Copies the data from \a rhs.
+  void operator=(const std::string_view& rhs);
+
+  /// \brief Copies the data from \a rhs.
+  void operator=(const std::string& rhs);
+#endif
+
+public:
   /// \brief Resets this string to an empty string.
   ///
   /// This will not deallocate any previously allocated data, but reuse that memory.
@@ -93,7 +101,11 @@ public:
   /// \brief Returns the amount of bytes that this string takes (excluding the '\0' terminator).
   nsUInt32 GetElementCount() const; // [tested]
 
-  /// \brief Returns the number of characters in this string.
+  /// \brief Returns the number of characters in this string. Might be less than GetElementCount, if it contains Utf8
+  /// multi-byte characters.
+  ///
+  /// \note This is a slow operation, as it has to run through the entire string to count the Unicode characters.
+  /// Only call this once and use the result as long as the string doesn't change. Don't call this in a loop.
   nsUInt32 GetCharacterCount() const; // [tested]
 
   /// \brief Returns a view to a sub-string of this string, starting at character uiFirstCharacter, up until uiFirstCharacter +
@@ -125,7 +137,6 @@ private:
   friend class nsStringBuilder;
 
   nsHybridArray<char, Size> m_Data;
-  nsUInt32 m_uiCharacterCount = 0;
 };
 
 
@@ -135,7 +146,7 @@ struct nsHybridString : public nsHybridStringBase<Size>
 {
 public:
   nsHybridString();
-  nsHybridString(nsAllocatorBase* pAllocator);
+  nsHybridString(nsAllocator* pAllocator);
 
   nsHybridString(const nsHybridString<Size, AllocatorWrapper>& other);
   nsHybridString(const nsHybridStringBase<Size>& other);
@@ -144,10 +155,8 @@ public:
   nsHybridString(const nsStringView& rhs);
   nsHybridString(const nsStringBuilder& rhs);
   nsHybridString(nsStringBuilder&& rhs);
-
   nsHybridString(nsHybridString<Size, AllocatorWrapper>&& other);
   nsHybridString(nsHybridStringBase<Size>&& other);
-
 
   void operator=(const nsHybridString<Size, AllocatorWrapper>& rhs);
   void operator=(const nsHybridStringBase<Size>& rhs);
@@ -156,14 +165,21 @@ public:
   void operator=(const nsStringView& rhs);
   void operator=(const nsStringBuilder& rhs);
   void operator=(nsStringBuilder&& rhs);
-
   void operator=(nsHybridString<Size, AllocatorWrapper>&& rhs);
   void operator=(nsHybridStringBase<Size>&& rhs);
+
+#if NS_ENABLED(NS_INTEROP_STL_STRINGS)
+  nsHybridString(const std::string_view& rhs);
+  nsHybridString(const std::string& rhs);
+  void operator=(const std::string_view& rhs);
+  void operator=(const std::string& rhs);
+#endif
 };
 
-using nsDynamicString = nsHybridString<1>;
 /// \brief String that uses the static allocator to prevent leak reports in RTTI attributes.
-using nsUntrackedString = nsHybridString<32, nsStaticAllocatorWrapper>;
+using nsUntrackedString = nsHybridString<32, nsStaticsAllocatorWrapper>;
+
+using nsDynamicString = nsHybridString<1>;
 using nsString = nsHybridString<32>;
 using nsString16 = nsHybridString<16>;
 using nsString24 = nsHybridString<24>;
@@ -178,12 +194,12 @@ static_assert(nsGetTypeClass<nsString>::value == nsTypeIsClass::value);
 template <nsUInt16 Size>
 struct nsCompareHelper<nsHybridString<Size>>
 {
-  NS_ALWAYS_INLINE bool Less(nsStringView lhs, nsStringView rhs) const
+  static NS_ALWAYS_INLINE bool Less(nsStringView lhs, nsStringView rhs)
   {
     return lhs.Compare(rhs) < 0;
   }
 
-  NS_ALWAYS_INLINE bool Equal(nsStringView lhs, nsStringView rhs) const
+  static NS_ALWAYS_INLINE bool Equal(nsStringView lhs, nsStringView rhs)
   {
     return lhs.IsEqual(rhs);
   }
@@ -191,12 +207,12 @@ struct nsCompareHelper<nsHybridString<Size>>
 
 struct nsCompareString_NoCase
 {
-  NS_ALWAYS_INLINE bool Less(nsStringView lhs, nsStringView rhs) const
+  static NS_ALWAYS_INLINE bool Less(nsStringView lhs, nsStringView rhs)
   {
     return lhs.Compare_NoCase(rhs) < 0;
   }
 
-  NS_ALWAYS_INLINE bool Equal(nsStringView lhs, nsStringView rhs) const
+  static NS_ALWAYS_INLINE bool Equal(nsStringView lhs, nsStringView rhs)
   {
     return lhs.IsEqual_NoCase(rhs);
   }
@@ -205,10 +221,10 @@ struct nsCompareString_NoCase
 struct CompareConstChar
 {
   /// \brief Returns true if a is less than b
-  NS_ALWAYS_INLINE bool Less(const char* a, const char* b) const { return nsStringUtils::Compare(a, b) < 0; }
+  static NS_ALWAYS_INLINE bool Less(const char* a, const char* b) { return nsStringUtils::Compare(a, b) < 0; }
 
   /// \brief Returns true if a is equal to b
-  NS_ALWAYS_INLINE bool Equal(const char* a, const char* b) const { return nsStringUtils::IsEqual(a, b); }
+  static NS_ALWAYS_INLINE bool Equal(const char* a, const char* b) { return nsStringUtils::IsEqual(a, b); }
 };
 
 // For nsFormatString

@@ -1,13 +1,9 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/CodeUtils/Expression/ExpressionByteCode.h>
 #include <Foundation/IO/ChunkStream.h>
 #include <Foundation/Logging/Log.h>
+#include <Foundation/Reflection/Reflection.h>
 
 namespace
 {
@@ -194,50 +190,81 @@ const char* nsExpressionByteCode::OpCode::GetName(Enum code)
 
 //////////////////////////////////////////////////////////////////////////
 
+//clang-format off
+NS_BEGIN_STATIC_REFLECTED_TYPE(nsExpressionByteCode, nsNoBase, 1, nsRTTINoAllocator)
+NS_END_STATIC_REFLECTED_TYPE;
+//clang-format on
+
 nsExpressionByteCode::nsExpressionByteCode() = default;
-nsExpressionByteCode::~nsExpressionByteCode() = default;
+
+nsExpressionByteCode::nsExpressionByteCode(const nsExpressionByteCode& other)
+{
+  *this = other;
+}
+
+nsExpressionByteCode::~nsExpressionByteCode()
+{
+  Clear();
+}
+
+void nsExpressionByteCode::operator=(const nsExpressionByteCode& other)
+{
+  Clear();
+  Init(other.GetByteCode(), other.GetInputs(), other.GetOutputs(), other.GetFunctions(), other.GetNumTempRegisters(), other.GetNumInstructions());
+}
 
 bool nsExpressionByteCode::operator==(const nsExpressionByteCode& other) const
 {
-  return m_ByteCode == other.m_ByteCode &&
-         m_Inputs == other.m_Inputs &&
-         m_Outputs == other.m_Outputs &&
-         m_Functions == other.m_Functions;
+  return GetByteCode() == other.GetByteCode() &&
+         GetInputs() == other.GetInputs() &&
+         GetOutputs() == other.GetOutputs() &&
+         GetFunctions() == other.GetFunctions();
 }
 
 void nsExpressionByteCode::Clear()
 {
-  m_ByteCode.Clear();
-  m_Inputs.Clear();
-  m_Outputs.Clear();
-  m_Functions.Clear();
+  nsMemoryUtils::Destruct(m_pInputs, m_uiNumInputs);
+  nsMemoryUtils::Destruct(m_pOutputs, m_uiNumOutputs);
+  nsMemoryUtils::Destruct(m_pFunctions, m_uiNumFunctions);
 
-  m_uiNumInstructions = 0;
+  m_pInputs = nullptr;
+  m_pOutputs = nullptr;
+  m_pFunctions = nullptr;
+  m_pByteCode = nullptr;
+
+  m_uiByteCodeCount = 0;
+  m_uiNumInputs = 0;
+  m_uiNumOutputs = 0;
+  m_uiNumFunctions = 0;
+
   m_uiNumTempRegisters = 0;
+  m_uiNumInstructions = 0;
+
+  m_Data.Clear();
 }
 
 void nsExpressionByteCode::Disassemble(nsStringBuilder& out_sDisassembly) const
 {
   out_sDisassembly.Append("// Inputs:\n");
-  for (nsUInt32 i = 0; i < m_Inputs.GetCount(); ++i)
+  for (nsUInt32 i = 0; i < m_uiNumInputs; ++i)
   {
-    out_sDisassembly.AppendFormat("//  {}: {}({})\n", i, m_Inputs[i].m_sName, nsProcessingStream::GetDataTypeName(m_Inputs[i].m_DataType));
+    out_sDisassembly.AppendFormat("//  {}: {}({})\n", i, m_pInputs[i].m_sName, nsProcessingStream::GetDataTypeName(m_pInputs[i].m_DataType));
   }
 
   out_sDisassembly.Append("\n// Outputs:\n");
-  for (nsUInt32 i = 0; i < m_Outputs.GetCount(); ++i)
+  for (nsUInt32 i = 0; i < m_uiNumOutputs; ++i)
   {
-    out_sDisassembly.AppendFormat("//  {}: {}({})\n", i, m_Outputs[i].m_sName, nsProcessingStream::GetDataTypeName(m_Outputs[i].m_DataType));
+    out_sDisassembly.AppendFormat("//  {}: {}({})\n", i, m_pOutputs[i].m_sName, nsProcessingStream::GetDataTypeName(m_pOutputs[i].m_DataType));
   }
 
   out_sDisassembly.Append("\n// Functions:\n");
-  for (nsUInt32 i = 0; i < m_Functions.GetCount(); ++i)
+  for (nsUInt32 i = 0; i < m_uiNumFunctions; ++i)
   {
-    out_sDisassembly.AppendFormat("//  {}: {} {}(", i, nsExpression::RegisterType::GetName(m_Functions[i].m_OutputType), m_Functions[i].m_sName);
-    const nsUInt32 uiNumArguments = m_Functions[i].m_InputTypes.GetCount();
+    out_sDisassembly.AppendFormat("//  {}: {} {}(", i, nsExpression::RegisterType::GetName(m_pFunctions[i].m_OutputType), m_pFunctions[i].m_sName);
+    const nsUInt32 uiNumArguments = m_pFunctions[i].m_InputTypes.GetCount();
     for (nsUInt32 j = 0; j < uiNumArguments; ++j)
     {
-      out_sDisassembly.Append(nsExpression::RegisterType::GetName(m_Functions[i].m_InputTypes[j]));
+      out_sDisassembly.Append(nsExpression::RegisterType::GetName(m_pFunctions[i].m_InputTypes[j]));
       if (j < uiNumArguments - 1)
       {
         out_sDisassembly.Append(", ");
@@ -246,14 +273,15 @@ void nsExpressionByteCode::Disassemble(nsStringBuilder& out_sDisassembly) const
     out_sDisassembly.Append(")\n");
   }
 
-  out_sDisassembly.AppendFormat("\n// Temp Registers: {}\n", m_uiNumTempRegisters);
-  out_sDisassembly.AppendFormat("// Instructions: {}\n\n", m_uiNumInstructions);
+  out_sDisassembly.AppendFormat("\n// Temp Registers: {}\n", GetNumTempRegisters());
+  out_sDisassembly.AppendFormat("// Instructions: {}\n\n", GetNumInstructions());
 
-  auto AppendConstant = [](nsUInt32 x, nsStringBuilder& out_sString) {
+  auto AppendConstant = [](nsUInt32 x, nsStringBuilder& out_sString)
+  {
     out_sString.AppendFormat("0x{}({})", nsArgU(x, 8, true, 16), nsArgF(*reinterpret_cast<float*>(&x), 6));
   };
 
-  const StorageType* pByteCode = GetByteCode();
+  const StorageType* pByteCode = GetByteCodeStart();
   const StorageType* pByteCodeEnd = GetByteCodeEnd();
 
   while (pByteCode < pByteCodeEnd)
@@ -318,24 +346,24 @@ void nsExpressionByteCode::Disassemble(nsStringBuilder& out_sDisassembly) const
       nsUInt32 r = GetRegisterIndex(pByteCode);
       nsUInt32 i = GetRegisterIndex(pByteCode);
 
-      out_sDisassembly.AppendFormat("r{} i{}({})\n", r, i, m_Inputs[i].m_sName);
+      out_sDisassembly.AppendFormat("r{} i{}({})\n", r, i, m_pInputs[i].m_sName);
     }
     else if (opCode == OpCode::StoreF || opCode == OpCode::StoreI)
     {
       nsUInt32 o = GetRegisterIndex(pByteCode);
       nsUInt32 r = GetRegisterIndex(pByteCode);
 
-      out_sDisassembly.AppendFormat("o{}({}) r{}\n", o, m_Outputs[o].m_sName, r);
+      out_sDisassembly.AppendFormat("o{}({}) r{}\n", o, m_pOutputs[o].m_sName, r);
     }
     else if (opCode == OpCode::Call)
     {
       nsUInt32 uiIndex = GetFunctionIndex(pByteCode);
-      const char* szName = m_Functions[uiIndex].m_sName;
+      const char* szName = m_pFunctions[uiIndex].m_sName;
 
       nsStringBuilder sName;
       if (nsStringUtils::IsNullOrEmpty(szName))
       {
-        sName.Format("Unknown_{0}", uiIndex);
+        sName.SetFormat("Unknown_{0}", uiIndex);
       }
       else
       {
@@ -362,91 +390,178 @@ void nsExpressionByteCode::Disassemble(nsStringBuilder& out_sDisassembly) const
   }
 }
 
-static constexpr nsUInt32 s_uiMetaDataVersion = 4;
-static constexpr nsUInt32 s_uiCodeVersion = 3;
+static constexpr nsTypeVersion s_uiByteCodeVersion = 6;
 
-void nsExpressionByteCode::Save(nsStreamWriter& inout_stream) const
+nsResult nsExpressionByteCode::Save(nsStreamWriter& inout_stream) const
 {
-  nsChunkStreamWriter chunk(inout_stream);
+  inout_stream.WriteVersion(s_uiByteCodeVersion);
 
-  chunk.BeginStream(1);
+  nsUInt32 uiDataSize = static_cast<nsUInt32>(m_Data.GetByteBlobPtr().GetCount());
 
+  inout_stream << uiDataSize;
+
+  inout_stream << m_uiNumInputs;
+  for (auto& input : GetInputs())
   {
-    chunk.BeginChunk("MetaData", s_uiMetaDataVersion);
-
-    chunk << m_uiNumInstructions;
-    chunk << m_uiNumTempRegisters;
-    chunk.WriteArray(m_Inputs).IgnoreResult();
-    chunk.WriteArray(m_Outputs).IgnoreResult();
-    chunk.WriteArray(m_Functions).IgnoreResult();
-
-    chunk.EndChunk();
+    NS_SUCCEED_OR_RETURN(input.Serialize(inout_stream));
   }
 
+  inout_stream << m_uiNumOutputs;
+  for (auto& output : GetOutputs())
   {
-    chunk.BeginChunk("Code", s_uiCodeVersion);
-
-    chunk << m_ByteCode.GetCount();
-    chunk.WriteBytes(m_ByteCode.GetData(), m_ByteCode.GetCount() * sizeof(StorageType)).IgnoreResult();
-
-    chunk.EndChunk();
+    NS_SUCCEED_OR_RETURN(output.Serialize(inout_stream));
   }
 
-  chunk.EndStream();
-}
-
-nsResult nsExpressionByteCode::Load(nsStreamReader& inout_stream)
-{
-  nsChunkStreamReader chunk(inout_stream);
-  chunk.SetEndChunkFileMode(nsChunkStreamReader::EndChunkFileMode::SkipToEnd);
-
-  chunk.BeginStream();
-
-  while (chunk.GetCurrentChunk().m_bValid)
+  inout_stream << m_uiNumFunctions;
+  for (auto& function : GetFunctions())
   {
-    if (chunk.GetCurrentChunk().m_sChunkName == "MetaData")
-    {
-      if (chunk.GetCurrentChunk().m_uiChunkVersion >= s_uiMetaDataVersion)
-      {
-        chunk >> m_uiNumInstructions;
-        chunk >> m_uiNumTempRegisters;
-        NS_SUCCEED_OR_RETURN(chunk.ReadArray(m_Inputs));
-        NS_SUCCEED_OR_RETURN(chunk.ReadArray(m_Outputs));
-        NS_SUCCEED_OR_RETURN(chunk.ReadArray(m_Functions));
-      }
-      else
-      {
-        nsLog::Error("Invalid MetaData Chunk Version {}. Expected >= {}", chunk.GetCurrentChunk().m_uiChunkVersion, s_uiMetaDataVersion);
-
-        chunk.EndStream();
-        return NS_FAILURE;
-      }
-    }
-    else if (chunk.GetCurrentChunk().m_sChunkName == "Code")
-    {
-      if (chunk.GetCurrentChunk().m_uiChunkVersion >= s_uiCodeVersion)
-      {
-        nsUInt32 uiByteCodeCount = 0;
-        chunk >> uiByteCodeCount;
-
-        m_ByteCode.SetCountUninitialized(uiByteCodeCount);
-        chunk.ReadBytes(m_ByteCode.GetData(), uiByteCodeCount * sizeof(StorageType));
-      }
-      else
-      {
-        nsLog::Error("Invalid Code Chunk Version {}. Expected >= {}", chunk.GetCurrentChunk().m_uiChunkVersion, s_uiCodeVersion);
-
-        chunk.EndStream();
-        return NS_FAILURE;
-      }
-    }
-
-    chunk.NextChunk();
+    NS_SUCCEED_OR_RETURN(function.Serialize(inout_stream));
   }
 
-  chunk.EndStream();
+  inout_stream << m_uiByteCodeCount;
+  NS_SUCCEED_OR_RETURN(inout_stream.WriteBytes(m_pByteCode, m_uiByteCodeCount * sizeof(StorageType)));
+
+  inout_stream << m_uiNumTempRegisters;
+  inout_stream << m_uiNumInstructions;
 
   return NS_SUCCESS;
+}
+
+nsResult nsExpressionByteCode::Load(nsStreamReader& inout_stream, nsByteArrayPtr externalMemory /*= nsByteArrayPtr()*/)
+{
+  nsTypeVersion version = inout_stream.ReadVersion(s_uiByteCodeVersion);
+  if (version != s_uiByteCodeVersion)
+  {
+    nsLog::Error("Invalid expression byte code version {}. Expected {}", version, s_uiByteCodeVersion);
+    return NS_FAILURE;
+  }
+
+  nsUInt32 uiDataSize = 0;
+  inout_stream >> uiDataSize;
+
+  void* pData = nullptr;
+  if (externalMemory.IsEmpty())
+  {
+    m_Data.SetCountUninitialized(uiDataSize);
+    m_Data.ZeroFill();
+    pData = m_Data.GetByteBlobPtr().GetPtr();
+  }
+  else
+  {
+    if (externalMemory.GetCount() < uiDataSize)
+    {
+      nsLog::Error("External memory is too small. Expected at least {} bytes but got {} bytes.", uiDataSize, externalMemory.GetCount());
+      return NS_FAILURE;
+    }
+
+    if (nsMemoryUtils::IsAligned(externalMemory.GetPtr(), NS_ALIGNMENT_OF(nsExpression::StreamDesc)) == false)
+    {
+      nsLog::Error("External memory is not properly aligned. Expected an alignment of at least {} bytes.", NS_ALIGNMENT_OF(nsExpression::StreamDesc));
+      return NS_FAILURE;
+    }
+
+    pData = externalMemory.GetPtr();
+  }
+
+  // Inputs
+  {
+    inout_stream >> m_uiNumInputs;
+    m_pInputs = static_cast<nsExpression::StreamDesc*>(pData);
+    for (nsUInt32 i = 0; i < m_uiNumInputs; ++i)
+    {
+      NS_SUCCEED_OR_RETURN(m_pInputs[i].Deserialize(inout_stream));
+    }
+
+    pData = nsMemoryUtils::AddByteOffset(pData, GetInputs().ToByteArray().GetCount());
+  }
+
+  // Outputs
+  {
+    inout_stream >> m_uiNumOutputs;
+    m_pOutputs = static_cast<nsExpression::StreamDesc*>(pData);
+    for (nsUInt32 i = 0; i < m_uiNumOutputs; ++i)
+    {
+      NS_SUCCEED_OR_RETURN(m_pOutputs[i].Deserialize(inout_stream));
+    }
+
+    pData = nsMemoryUtils::AddByteOffset(pData, GetOutputs().ToByteArray().GetCount());
+  }
+
+  // Functions
+  {
+    pData = nsMemoryUtils::AlignForwards(pData, NS_ALIGNMENT_OF(nsExpression::FunctionDesc));
+
+    inout_stream >> m_uiNumFunctions;
+    m_pFunctions = static_cast<nsExpression::FunctionDesc*>(pData);
+    for (nsUInt32 i = 0; i < m_uiNumFunctions; ++i)
+    {
+      NS_SUCCEED_OR_RETURN(m_pFunctions[i].Deserialize(inout_stream));
+    }
+
+    pData = nsMemoryUtils::AddByteOffset(pData, GetFunctions().ToByteArray().GetCount());
+  }
+
+  // ByteCode
+  {
+    pData = nsMemoryUtils::AlignForwards(pData, NS_ALIGNMENT_OF(StorageType));
+
+    inout_stream >> m_uiByteCodeCount;
+    m_pByteCode = static_cast<StorageType*>(pData);
+    inout_stream.ReadBytes(m_pByteCode, m_uiByteCodeCount * sizeof(StorageType));
+  }
+
+  inout_stream >> m_uiNumTempRegisters;
+  inout_stream >> m_uiNumInstructions;
+
+  return NS_SUCCESS;
+}
+
+void nsExpressionByteCode::Init(nsArrayPtr<const StorageType> byteCode, nsArrayPtr<const nsExpression::StreamDesc> inputs, nsArrayPtr<const nsExpression::StreamDesc> outputs, nsArrayPtr<const nsExpression::FunctionDesc> functions, nsUInt32 uiNumTempRegisters, nsUInt32 uiNumInstructions)
+{
+  nsUInt32 uiOutputsOffset = 0;
+  nsUInt32 uiFunctionsOffset = 0;
+  nsUInt32 uiByteCodeOffset = 0;
+
+  nsUInt32 uiDataSize = 0;
+  uiDataSize += inputs.ToByteArray().GetCount();
+  uiOutputsOffset = uiDataSize;
+  uiDataSize += outputs.ToByteArray().GetCount();
+
+  uiDataSize = nsMemoryUtils::AlignSize<nsUInt32>(uiDataSize, NS_ALIGNMENT_OF(nsExpression::FunctionDesc));
+  uiFunctionsOffset = uiDataSize;
+  uiDataSize += functions.ToByteArray().GetCount();
+
+  uiDataSize = nsMemoryUtils::AlignSize<nsUInt32>(uiDataSize, NS_ALIGNMENT_OF(StorageType));
+  uiByteCodeOffset = uiDataSize;
+  uiDataSize += byteCode.ToByteArray().GetCount();
+
+  m_Data.SetCountUninitialized(uiDataSize);
+  m_Data.ZeroFill();
+
+  void* pData = m_Data.GetByteBlobPtr().GetPtr();
+
+  NS_ASSERT_DEV(inputs.GetCount() < nsSmallInvalidIndex, "Too many inputs");
+  m_pInputs = static_cast<nsExpression::StreamDesc*>(pData);
+  m_uiNumInputs = static_cast<nsUInt16>(inputs.GetCount());
+  nsMemoryUtils::Copy(m_pInputs, inputs.GetPtr(), m_uiNumInputs);
+
+  NS_ASSERT_DEV(outputs.GetCount() < nsSmallInvalidIndex, "Too many outputs");
+  m_pOutputs = static_cast<nsExpression::StreamDesc*>(nsMemoryUtils::AddByteOffset(pData, uiOutputsOffset));
+  m_uiNumOutputs = static_cast<nsUInt16>(outputs.GetCount());
+  nsMemoryUtils::Copy(m_pOutputs, outputs.GetPtr(), m_uiNumOutputs);
+
+  NS_ASSERT_DEV(functions.GetCount() < nsSmallInvalidIndex, "Too many functions");
+  m_pFunctions = static_cast<nsExpression::FunctionDesc*>(nsMemoryUtils::AddByteOffset(pData, uiFunctionsOffset));
+  m_uiNumFunctions = static_cast<nsUInt16>(functions.GetCount());
+  nsMemoryUtils::Copy(m_pFunctions, functions.GetPtr(), m_uiNumFunctions);
+
+  m_pByteCode = static_cast<StorageType*>(nsMemoryUtils::AddByteOffset(pData, uiByteCodeOffset));
+  m_uiByteCodeCount = byteCode.GetCount();
+  nsMemoryUtils::Copy(m_pByteCode, byteCode.GetPtr(), m_uiByteCodeCount);
+
+  NS_ASSERT_DEV(uiNumTempRegisters < nsSmallInvalidIndex, "Too many temp registers");
+  m_uiNumTempRegisters = static_cast<nsUInt16>(uiNumTempRegisters);
+  m_uiNumInstructions = uiNumInstructions;
 }
 
 

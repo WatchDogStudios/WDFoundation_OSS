@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Configuration/Plugin.h>
@@ -22,6 +17,12 @@
 
 nsResult UnloadPluginModule(nsPluginModule& ref_pModule, nsStringView sPluginFile);
 nsResult LoadPluginModule(nsStringView sFileToLoad, nsPluginModule& ref_pModule, nsStringView sPluginFile);
+
+nsDynamicArray<nsString>& GetStaticPlugins()
+{
+  static nsDynamicArray<nsString> s_StaticPlugins;
+  return s_StaticPlugins;
+}
 
 struct ModuleData
 {
@@ -53,7 +54,23 @@ void nsPlugin::SetMaxParallelInstances(nsUInt32 uiMaxParallelInstances)
 
 void nsPlugin::InitializeStaticallyLinkedPlugins()
 {
-  g_StaticModule.Initialize();
+  if (!g_StaticModule.m_bCalledOnLoad)
+  {
+    // We need to trigger the nsPlugin events to make sure the sub-systems are initialized at least once.
+    nsPlugin::BeginPluginChanges();
+    NS_SCOPE_EXIT(nsPlugin::EndPluginChanges());
+    g_StaticModule.Initialize();
+
+#if NS_DISABLED(NS_COMPILE_ENGINE_AS_DLL)
+    NS_LOG_BLOCK("Initialize Statically Linked Plugins");
+    // Merely add dummy entries so plugins can be enumerated etc.
+    for (nsStringView sPlugin : GetStaticPlugins())
+    {
+      g_LoadedModules.FindOrAdd(sPlugin);
+      nsLog::Debug("Plugin '{0}' statically linked.", sPlugin);
+    }
+#endif
+  }
 }
 
 void nsPlugin::GetAllPluginInfos(nsDynamicArray<PluginInfo>& ref_infos)
@@ -173,6 +190,7 @@ static nsResult UnloadPluginInternal(nsStringView sPluginFile)
   }
 
   // delete the plugin copy that we had loaded
+  if (nsPlugin::PlatformNeedsPluginCopy())
   {
     nsStringBuilder sOriginalFile, sCopiedFile;
     nsPlugin::GetPluginPaths(sPluginFile, sOriginalFile, sCopiedFile, g_LoadedModules[sPluginFile].m_uiFileNumber);
@@ -207,7 +225,7 @@ static nsResult LoadPluginInternal(nsStringView sPluginFile, nsBitflags<nsPlugin
     return NS_FAILURE;
   }
 
-  if (flags.IsSet(nsPluginLoadFlags::LoadCopy))
+  if (nsPlugin::PlatformNeedsPluginCopy() && flags.IsSet(nsPluginLoadFlags::LoadCopy))
   {
     // create a copy of the original plugin file
     const nsUInt8 uiMaxParallelInstances = static_cast<nsUInt8>(s_uiMaxParallelInstances);
@@ -292,15 +310,10 @@ bool nsPlugin::ExistsPluginFile(nsStringView sPluginFile)
 
 nsResult nsPlugin::LoadPlugin(nsStringView sPluginFile, nsBitflags<nsPluginLoadFlags> flags /*= nsPluginLoadFlags::Default*/)
 {
-  if (flags.IsSet(nsPluginLoadFlags::PluginIsOptional))
-  {
-    // early out without logging an error
-
-    if (!ExistsPluginFile(sPluginFile))
-      return NS_FAILURE;
-  }
-
   NS_LOG_BLOCK("Loading Plugin", sPluginFile);
+
+  // make sure this is done first
+  InitializeStaticallyLinkedPlugins();
 
   if (g_LoadedModules.Find(sPluginFile).IsValid())
   {
@@ -308,8 +321,17 @@ nsResult nsPlugin::LoadPlugin(nsStringView sPluginFile, nsBitflags<nsPluginLoadF
     return NS_SUCCESS;
   }
 
-  // make sure this is done first
-  InitializeStaticallyLinkedPlugins();
+#if NS_DISABLED(NS_COMPILE_ENGINE_AS_DLL)
+  // #TODO NS_COMPILE_ENGINE_AS_DLL and being able to load plugins are not necessarily the same thing.
+  return NS_FAILURE;
+#endif
+
+  if (flags.IsSet(nsPluginLoadFlags::PluginIsOptional))
+  {
+    // early out without logging an error
+    if (!ExistsPluginFile(sPluginFile))
+      return NS_FAILURE;
+  }
 
   nsLog::Debug("Plugin to load: \"{0}\"", sPluginFile);
 
@@ -380,4 +402,12 @@ nsPlugin::Init::Init(const char* szAddPluginDependency)
   pMD->m_sPluginDependencies.PushBack(szAddPluginDependency);
 }
 
-NS_STATICLINK_FILE(Foundation, Foundation_Configuration_Implementation_Plugin);
+#if NS_DISABLED(NS_COMPILE_ENGINE_AS_DLL)
+nsPluginRegister::nsPluginRegister(const char* szAddPlugin)
+{
+  if (g_pCurrentlyLoadingModule == nullptr)
+  {
+    GetStaticPlugins().PushBack(szAddPlugin);
+  }
+}
+#endif

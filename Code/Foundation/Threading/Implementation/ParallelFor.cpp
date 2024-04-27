@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Threading/TaskSystem.h>
@@ -45,7 +40,7 @@ private:
 };
 
 template <typename IndexType, typename Callback>
-void ParallelForIndexedInternal(IndexType uiStartIndex, IndexType uiNumItems, Callback&& taskCallback, const char* szTaskName, const nsParallelForParams& params)
+void ParallelForIndexedInternal(IndexType uiStartIndex, IndexType uiNumItems, const Callback&& taskCallback, const char* szTaskName, const nsParallelForParams& params, nsTaskNesting taskNesting)
 {
   typedef IndexedTask<IndexType, Callback> Task;
 
@@ -59,9 +54,13 @@ void ParallelForIndexedInternal(IndexType uiStartIndex, IndexType uiNumItems, Ca
     // If we have not exceeded the threading threshold we use serial execution
 
     Task indexedTask(uiStartIndex, uiNumItems, std::move(taskCallback), uiNumItems);
-    indexedTask.ConfigureTask(szTaskName, nsTaskNesting::Never);
+    indexedTask.ConfigureTask(szTaskName, taskNesting);
 
+#ifndef TRACY_ENABLE
     NS_PROFILE_SCOPE(szTaskName);
+#else
+    ZoneScoped;
+#endif
     indexedTask.Execute();
   }
   else
@@ -70,10 +69,10 @@ void ParallelForIndexedInternal(IndexType uiStartIndex, IndexType uiNumItems, Ca
     nsUInt64 uiItemsPerInvocation;
     params.DetermineThreading(uiNumItems, uiMultiplicity, uiItemsPerInvocation);
 
-    nsAllocatorBase* pAllocator = (params.m_pTaskAllocator != nullptr) ? params.m_pTaskAllocator : nsFoundation::GetDefaultAllocator();
+    nsAllocator* pAllocator = (params.m_pTaskAllocator != nullptr) ? params.m_pTaskAllocator : nsFoundation::GetDefaultAllocator();
 
     nsSharedPtr<Task> pIndexedTask = NS_NEW(pAllocator, Task, uiStartIndex, uiNumItems, std::move(taskCallback), static_cast<IndexType>(uiItemsPerInvocation));
-    pIndexedTask->ConfigureTask(szTaskName, nsTaskNesting::Never);
+    pIndexedTask->ConfigureTask(szTaskName, taskNesting);
 
     pIndexedTask->SetMultiplicity(uiMultiplicity);
     nsTaskGroupID taskGroupId = nsTaskSystem::StartSingleTask(pIndexedTask, nsTaskPriority::EarlyThisFrame);
@@ -134,14 +133,12 @@ void nsParallelForParams::DetermineThreading(nsUInt64 uiNumItemsToExecute, nsUIn
   }
 }
 
-void nsTaskSystem::ParallelForIndexed(nsUInt32 uiStartIndex, nsUInt32 uiNumItems, nsParallelForIndexedFunction32 taskCallback, const char* szTaskName, const nsParallelForParams& params)
+void nsTaskSystem::ParallelForIndexed(nsUInt32 uiStartIndex, nsUInt32 uiNumItems, nsParallelForIndexedFunction32 taskCallback, const char* szTaskName, nsTaskNesting taskNesting, const nsParallelForParams& params)
 {
-  ParallelForIndexedInternal<nsUInt32, nsParallelForIndexedFunction32>(uiStartIndex, uiNumItems, std::move(taskCallback), szTaskName, params);
+  ParallelForIndexedInternal<nsUInt32, nsParallelForIndexedFunction32>(uiStartIndex, uiNumItems, std::move(taskCallback), szTaskName, params, taskNesting);
 }
 
-void nsTaskSystem::ParallelForIndexed(nsUInt64 uiStartIndex, nsUInt64 uiNumItems, nsParallelForIndexedFunction64 taskCallback, const char* szTaskName, const nsParallelForParams& params)
+void nsTaskSystem::ParallelForIndexed(nsUInt64 uiStartIndex, nsUInt64 uiNumItems, nsParallelForIndexedFunction64 taskCallback, const char* szTaskName, nsTaskNesting taskNesting, const nsParallelForParams& params)
 {
-  ParallelForIndexedInternal<nsUInt64, nsParallelForIndexedFunction64>(uiStartIndex, uiNumItems, std::move(taskCallback), szTaskName, params);
+  ParallelForIndexedInternal<nsUInt64, nsParallelForIndexedFunction64>(uiStartIndex, uiNumItems, std::move(taskCallback), szTaskName, params, taskNesting);
 }
-
-NS_STATICLINK_FILE(Foundation, Foundation_Threading_Implementation_ParallelFor);

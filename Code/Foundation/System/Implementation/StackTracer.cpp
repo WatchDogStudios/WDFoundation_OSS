@@ -1,29 +1,7 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Configuration/Startup.h>
 #include <Foundation/System/StackTracer.h>
-
-// Include inline file
-#if NS_ENABLED(NS_PLATFORM_WINDOWS)
-
-#  if NS_ENABLED(NS_PLATFORM_WINDOWS_UWP)
-#    include <Foundation/System/Implementation/Win/StackTracer_uwp.h>
-#  else
-#    include <Foundation/System/Implementation/Win/StackTracer_win.h>
-#  endif
-
-#elif NS_ENABLED(NS_PLATFORM_OSX) || NS_ENABLED(NS_PLATFORM_LINUX)
-#  include <Foundation/System/Implementation/Posix/StackTracer_posix.h>
-#elif NS_ENABLED(NS_PLATFORM_ANDROID)
-#  include <Foundation/System/Implementation/Android/StackTracer_android.h>
-#else
-#  error "StackTracer is not implemented on current platform"
-#endif
 
 // clang-format off
 NS_BEGIN_SUBSYSTEM_DECLARATION(Foundation, StackTracer)

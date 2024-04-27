@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Basics.h>
@@ -218,7 +213,7 @@ private:
   // If changing its position in the class, make sure it always comes before all
   // other members that depend on it to ensure deallocations in those members
   // happen before the allocator get destroyed.
-  nsAllocator<nsMemoryPolicies::nsHeapAllocation, nsMemoryTrackingFlags::None> m_ClassAllocator;
+  nsAllocatorWithPolicy<nsAllocPolicyHeap, nsAllocatorTrackingMode::Nothing> m_ClassAllocator;
 
   bool m_bPassThroughPragma;
   bool m_bPassThroughLine;
@@ -285,7 +280,7 @@ private: // *** Macro Definition ***
 
   nsMap<nsString256, MacroDefinition> m_Macros;
 
-  static const nsInt32 s_iMacroParameter0 = nsTokenType::ENUM_COUNT + 2;
+  static constexpr nsInt32 s_iMacroParameter0 = nsTokenType::ENUM_COUNT + 2;
   static nsString s_ParamNames[32];
   nsToken m_ParameterTokens[32];
 
@@ -394,7 +389,7 @@ private: // *** Other ***
       const_cast<nsToken*>(_pe.m_pToken)->m_File = m_CurrentFileStack.PeekBack().m_sVirtualFileName;                                                   \
     }                                                                                                                                                  \
     nsStringBuilder sInfo;                                                                                                                             \
-    sInfo.Format(FormatStr, ##__VA_ARGS__);                                                                                                            \
+    sInfo.SetFormat(FormatStr, ##__VA_ARGS__);                                                                                                         \
     _pe.m_sInfo = sInfo;                                                                                                                               \
     m_ProcessingEvents.Broadcast(_pe);                                                                                                                 \
     nsLog::Type(m_pLog, "File '{0}', Line {1} ({2}): {3}", _pe.m_pToken->m_File.GetString(), _pe.m_pToken->m_uiLine, _pe.m_pToken->m_uiColumn, sInfo); \

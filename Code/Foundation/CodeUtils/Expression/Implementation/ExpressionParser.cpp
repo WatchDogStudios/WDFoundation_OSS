@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/CodeUtils/Expression/ExpressionParser.h>
@@ -61,6 +56,9 @@ namespace
     {"%"_nssv, nsExpressionAST::NodeType::Modulo, 5},
   };
 
+  static nsHashTable<nsHashedString, nsEnum<nsExpressionAST::DataType>> s_KnownTypes;
+  static nsHashTable<nsHashedString, nsEnum<nsExpressionAST::NodeType>> s_BuiltinFunctions;
+
 } // namespace
 
 using namespace nsTokenParseUtils;
@@ -72,6 +70,22 @@ nsExpressionParser::nsExpressionParser()
 }
 
 nsExpressionParser::~nsExpressionParser() = default;
+
+// static
+const nsHashTable<nsHashedString, nsEnum<nsExpressionAST::DataType>>& nsExpressionParser::GetKnownTypes()
+{
+  RegisterKnownTypes();
+
+  return s_KnownTypes;
+}
+
+// static
+const nsHashTable<nsHashedString, nsEnum<nsExpressionAST::NodeType>>& nsExpressionParser::GetBuiltinFunctions()
+{
+  RegisterBuiltinFunctions();
+
+  return s_BuiltinFunctions;
+}
 
 void nsExpressionParser::RegisterFunction(const nsExpression::FunctionDesc& funcDesc)
 {
@@ -128,17 +142,21 @@ nsResult nsExpressionParser::Parse(nsStringView sCode, nsArrayPtr<nsExpression::
   return NS_SUCCESS;
 }
 
+// static
 void nsExpressionParser::RegisterKnownTypes()
 {
-  m_KnownTypes.Insert(nsMakeHashedString("var"), nsExpressionAST::DataType::Unknown);
+  if (s_KnownTypes.IsEmpty() == false)
+    return;
 
-  m_KnownTypes.Insert(nsMakeHashedString("vec2"), nsExpressionAST::DataType::Float2);
-  m_KnownTypes.Insert(nsMakeHashedString("vec3"), nsExpressionAST::DataType::Float3);
-  m_KnownTypes.Insert(nsMakeHashedString("vec4"), nsExpressionAST::DataType::Float4);
+  s_KnownTypes.Insert(nsMakeHashedString("var"), nsExpressionAST::DataType::Unknown);
 
-  m_KnownTypes.Insert(nsMakeHashedString("vec2i"), nsExpressionAST::DataType::Int2);
-  m_KnownTypes.Insert(nsMakeHashedString("vec3i"), nsExpressionAST::DataType::Int3);
-  m_KnownTypes.Insert(nsMakeHashedString("vec4i"), nsExpressionAST::DataType::Int4);
+  s_KnownTypes.Insert(nsMakeHashedString("vec2"), nsExpressionAST::DataType::Float2);
+  s_KnownTypes.Insert(nsMakeHashedString("vec3"), nsExpressionAST::DataType::Float3);
+  s_KnownTypes.Insert(nsMakeHashedString("vec4"), nsExpressionAST::DataType::Float4);
+
+  s_KnownTypes.Insert(nsMakeHashedString("vec2i"), nsExpressionAST::DataType::Int2);
+  s_KnownTypes.Insert(nsMakeHashedString("vec3i"), nsExpressionAST::DataType::Int3);
+  s_KnownTypes.Insert(nsMakeHashedString("vec4i"), nsExpressionAST::DataType::Int4);
 
   nsStringBuilder sTypeName;
   for (nsUInt32 type = nsExpressionAST::DataType::Bool; type < nsExpressionAST::DataType::Count; ++type)
@@ -149,54 +167,59 @@ void nsExpressionParser::RegisterKnownTypes()
     nsHashedString sTypeNameHashed;
     sTypeNameHashed.Assign(sTypeName);
 
-    m_KnownTypes.Insert(sTypeNameHashed, static_cast<nsExpressionAST::DataType::Enum>(type));
+    s_KnownTypes.Insert(sTypeNameHashed, static_cast<nsExpressionAST::DataType::Enum>(type));
   }
 }
 
 void nsExpressionParser::RegisterBuiltinFunctions()
 {
+  if (s_BuiltinFunctions.IsEmpty() == false)
+    return;
+
   // Unary
-  m_BuiltinFunctions.Insert(nsMakeHashedString("abs"), nsExpressionAST::NodeType::Absolute);
-  m_BuiltinFunctions.Insert(nsMakeHashedString("saturate"), nsExpressionAST::NodeType::Saturate);
-  m_BuiltinFunctions.Insert(nsMakeHashedString("sqrt"), nsExpressionAST::NodeType::Sqrt);
-  m_BuiltinFunctions.Insert(nsMakeHashedString("exp"), nsExpressionAST::NodeType::Exp);
-  m_BuiltinFunctions.Insert(nsMakeHashedString("ln"), nsExpressionAST::NodeType::Ln);
-  m_BuiltinFunctions.Insert(nsMakeHashedString("log2"), nsExpressionAST::NodeType::Log2);
-  m_BuiltinFunctions.Insert(nsMakeHashedString("log10"), nsExpressionAST::NodeType::Log10);
-  m_BuiltinFunctions.Insert(nsMakeHashedString("pow2"), nsExpressionAST::NodeType::Pow2);
-  m_BuiltinFunctions.Insert(nsMakeHashedString("sin"), nsExpressionAST::NodeType::Sin);
-  m_BuiltinFunctions.Insert(nsMakeHashedString("cos"), nsExpressionAST::NodeType::Cos);
-  m_BuiltinFunctions.Insert(nsMakeHashedString("tan"), nsExpressionAST::NodeType::Tan);
-  m_BuiltinFunctions.Insert(nsMakeHashedString("asin"), nsExpressionAST::NodeType::ASin);
-  m_BuiltinFunctions.Insert(nsMakeHashedString("acos"), nsExpressionAST::NodeType::ACos);
-  m_BuiltinFunctions.Insert(nsMakeHashedString("atan"), nsExpressionAST::NodeType::ATan);
-  m_BuiltinFunctions.Insert(nsMakeHashedString("radToDeg"), nsExpressionAST::NodeType::RadToDeg);
-  m_BuiltinFunctions.Insert(nsMakeHashedString("rad_to_deg"), nsExpressionAST::NodeType::RadToDeg);
-  m_BuiltinFunctions.Insert(nsMakeHashedString("degToRad"), nsExpressionAST::NodeType::DegToRad);
-  m_BuiltinFunctions.Insert(nsMakeHashedString("deg_to_rad"), nsExpressionAST::NodeType::DegToRad);
-  m_BuiltinFunctions.Insert(nsMakeHashedString("round"), nsExpressionAST::NodeType::Round);
-  m_BuiltinFunctions.Insert(nsMakeHashedString("floor"), nsExpressionAST::NodeType::Floor);
-  m_BuiltinFunctions.Insert(nsMakeHashedString("ceil"), nsExpressionAST::NodeType::Ceil);
-  m_BuiltinFunctions.Insert(nsMakeHashedString("trunc"), nsExpressionAST::NodeType::Trunc);
-  m_BuiltinFunctions.Insert(nsMakeHashedString("frac"), nsExpressionAST::NodeType::Frac);
-  m_BuiltinFunctions.Insert(nsMakeHashedString("length"), nsExpressionAST::NodeType::Length);
-  m_BuiltinFunctions.Insert(nsMakeHashedString("normalize"), nsExpressionAST::NodeType::Normalize);
-  m_BuiltinFunctions.Insert(nsMakeHashedString("all"), nsExpressionAST::NodeType::All);
-  m_BuiltinFunctions.Insert(nsMakeHashedString("any"), nsExpressionAST::NodeType::Any);
+  s_BuiltinFunctions.Insert(nsMakeHashedString("abs"), nsExpressionAST::NodeType::Absolute);
+  s_BuiltinFunctions.Insert(nsMakeHashedString("saturate"), nsExpressionAST::NodeType::Saturate);
+  s_BuiltinFunctions.Insert(nsMakeHashedString("sqrt"), nsExpressionAST::NodeType::Sqrt);
+  s_BuiltinFunctions.Insert(nsMakeHashedString("exp"), nsExpressionAST::NodeType::Exp);
+  s_BuiltinFunctions.Insert(nsMakeHashedString("ln"), nsExpressionAST::NodeType::Ln);
+  s_BuiltinFunctions.Insert(nsMakeHashedString("log2"), nsExpressionAST::NodeType::Log2);
+  s_BuiltinFunctions.Insert(nsMakeHashedString("log10"), nsExpressionAST::NodeType::Log10);
+  s_BuiltinFunctions.Insert(nsMakeHashedString("pow2"), nsExpressionAST::NodeType::Pow2);
+  s_BuiltinFunctions.Insert(nsMakeHashedString("sin"), nsExpressionAST::NodeType::Sin);
+  s_BuiltinFunctions.Insert(nsMakeHashedString("cos"), nsExpressionAST::NodeType::Cos);
+  s_BuiltinFunctions.Insert(nsMakeHashedString("tan"), nsExpressionAST::NodeType::Tan);
+  s_BuiltinFunctions.Insert(nsMakeHashedString("asin"), nsExpressionAST::NodeType::ASin);
+  s_BuiltinFunctions.Insert(nsMakeHashedString("acos"), nsExpressionAST::NodeType::ACos);
+  s_BuiltinFunctions.Insert(nsMakeHashedString("atan"), nsExpressionAST::NodeType::ATan);
+  s_BuiltinFunctions.Insert(nsMakeHashedString("radToDeg"), nsExpressionAST::NodeType::RadToDeg);
+  s_BuiltinFunctions.Insert(nsMakeHashedString("rad_to_deg"), nsExpressionAST::NodeType::RadToDeg);
+  s_BuiltinFunctions.Insert(nsMakeHashedString("degToRad"), nsExpressionAST::NodeType::DegToRad);
+  s_BuiltinFunctions.Insert(nsMakeHashedString("deg_to_rad"), nsExpressionAST::NodeType::DegToRad);
+  s_BuiltinFunctions.Insert(nsMakeHashedString("round"), nsExpressionAST::NodeType::Round);
+  s_BuiltinFunctions.Insert(nsMakeHashedString("floor"), nsExpressionAST::NodeType::Floor);
+  s_BuiltinFunctions.Insert(nsMakeHashedString("ceil"), nsExpressionAST::NodeType::Ceil);
+  s_BuiltinFunctions.Insert(nsMakeHashedString("trunc"), nsExpressionAST::NodeType::Trunc);
+  s_BuiltinFunctions.Insert(nsMakeHashedString("frac"), nsExpressionAST::NodeType::Frac);
+  s_BuiltinFunctions.Insert(nsMakeHashedString("length"), nsExpressionAST::NodeType::Length);
+  s_BuiltinFunctions.Insert(nsMakeHashedString("normalize"), nsExpressionAST::NodeType::Normalize);
+  s_BuiltinFunctions.Insert(nsMakeHashedString("all"), nsExpressionAST::NodeType::All);
+  s_BuiltinFunctions.Insert(nsMakeHashedString("any"), nsExpressionAST::NodeType::Any);
 
   // Binary
-  m_BuiltinFunctions.Insert(nsMakeHashedString("mod"), nsExpressionAST::NodeType::Modulo);
-  m_BuiltinFunctions.Insert(nsMakeHashedString("log"), nsExpressionAST::NodeType::Log);
-  m_BuiltinFunctions.Insert(nsMakeHashedString("pow"), nsExpressionAST::NodeType::Pow);
-  m_BuiltinFunctions.Insert(nsMakeHashedString("min"), nsExpressionAST::NodeType::Min);
-  m_BuiltinFunctions.Insert(nsMakeHashedString("max"), nsExpressionAST::NodeType::Max);
-  m_BuiltinFunctions.Insert(nsMakeHashedString("dot"), nsExpressionAST::NodeType::Dot);
-  m_BuiltinFunctions.Insert(nsMakeHashedString("cross"), nsExpressionAST::NodeType::Cross);
-  m_BuiltinFunctions.Insert(nsMakeHashedString("reflect"), nsExpressionAST::NodeType::Reflect);
+  s_BuiltinFunctions.Insert(nsMakeHashedString("mod"), nsExpressionAST::NodeType::Modulo);
+  s_BuiltinFunctions.Insert(nsMakeHashedString("log"), nsExpressionAST::NodeType::Log);
+  s_BuiltinFunctions.Insert(nsMakeHashedString("pow"), nsExpressionAST::NodeType::Pow);
+  s_BuiltinFunctions.Insert(nsMakeHashedString("min"), nsExpressionAST::NodeType::Min);
+  s_BuiltinFunctions.Insert(nsMakeHashedString("max"), nsExpressionAST::NodeType::Max);
+  s_BuiltinFunctions.Insert(nsMakeHashedString("dot"), nsExpressionAST::NodeType::Dot);
+  s_BuiltinFunctions.Insert(nsMakeHashedString("cross"), nsExpressionAST::NodeType::Cross);
+  s_BuiltinFunctions.Insert(nsMakeHashedString("reflect"), nsExpressionAST::NodeType::Reflect);
 
   // Ternary
-  m_BuiltinFunctions.Insert(nsMakeHashedString("clamp"), nsExpressionAST::NodeType::Clamp);
-  m_BuiltinFunctions.Insert(nsMakeHashedString("lerp"), nsExpressionAST::NodeType::Lerp);
+  s_BuiltinFunctions.Insert(nsMakeHashedString("clamp"), nsExpressionAST::NodeType::Clamp);
+  s_BuiltinFunctions.Insert(nsMakeHashedString("lerp"), nsExpressionAST::NodeType::Lerp);
+  s_BuiltinFunctions.Insert(nsMakeHashedString("smoothstep"), nsExpressionAST::NodeType::SmoothStep);
+  s_BuiltinFunctions.Insert(nsMakeHashedString("smootherstep"), nsExpressionAST::NodeType::SmootherStep);
 }
 
 void nsExpressionParser::SetupInAndOutputs(nsArrayPtr<nsExpression::StreamDesc> inputs, nsArrayPtr<nsExpression::StreamDesc> outputs)
@@ -206,6 +229,7 @@ void nsExpressionParser::SetupInAndOutputs(nsArrayPtr<nsExpression::StreamDesc> 
   for (auto& inputDesc : inputs)
   {
     auto pInput = m_pAST->CreateInput(inputDesc);
+    m_pAST->m_InputNodes.PushBack(pInput);
     m_KnownVariables.Insert(inputDesc.m_sName, pInput);
   }
 
@@ -248,7 +272,7 @@ nsResult nsExpressionParser::ParseStatement()
 nsResult nsExpressionParser::ParseType(nsStringView sTypeName, nsEnum<nsExpressionAST::DataType>& out_type)
 {
   nsTempHashedString sTypeNameHashed(sTypeName);
-  if (m_KnownTypes.TryGetValue(sTypeNameHashed, out_type))
+  if (s_KnownTypes.TryGetValue(sTypeNameHashed, out_type))
   {
     return NS_SUCCESS;
   }
@@ -384,8 +408,6 @@ nsExpressionAST::Node* nsExpressionParser::ParseFactor()
   {
     auto pIdentifierToken = m_TokenStream[uiIdentifierToken];
     const nsStringView sIdentifier = pIdentifierToken->m_DataView;
-
-    nsExpressionAST::Node* pNode = nullptr;
 
     if (Accept(m_TokenStream, m_uiCurrentToken, "("))
     {
@@ -547,7 +569,8 @@ nsExpressionAST::Node* nsExpressionParser::ParseFunctionCall(nsStringView sFunct
       return nullptr;
   }
 
-  auto CheckArgumentCount = [&](nsUInt32 uiExpectedArgumentCount) -> nsResult {
+  auto CheckArgumentCount = [&](nsUInt32 uiExpectedArgumentCount) -> nsResult
+  {
     if (arguments.GetCount() != uiExpectedArgumentCount)
     {
       ReportError(pFunctionToken, nsFmt("Invalid argument count for '{}'. Expected {} but got {}", sFunctionName, uiExpectedArgumentCount, arguments.GetCount()));
@@ -560,7 +583,7 @@ nsExpressionAST::Node* nsExpressionParser::ParseFunctionCall(nsStringView sFunct
   sHashedFuncName.Assign(sFunctionName);
 
   nsEnum<nsExpressionAST::DataType> dataType;
-  if (m_KnownTypes.TryGetValue(sHashedFuncName, dataType))
+  if (s_KnownTypes.TryGetValue(sHashedFuncName, dataType))
   {
     nsUInt32 uiElementCount = nsExpressionAST::DataType::GetElementCount(dataType);
     if (arguments.GetCount() > uiElementCount)
@@ -573,7 +596,7 @@ nsExpressionAST::Node* nsExpressionParser::ParseFunctionCall(nsStringView sFunct
   }
 
   nsEnum<nsExpressionAST::NodeType> builtinType;
-  if (m_BuiltinFunctions.TryGetValue(sHashedFuncName, builtinType))
+  if (s_BuiltinFunctions.TryGetValue(sHashedFuncName, builtinType))
   {
     if (nsExpressionAST::NodeType::IsUnary(builtinType))
     {
@@ -747,6 +770,3 @@ nsResult nsExpressionParser::CheckOutputs()
 
   return NS_SUCCESS;
 }
-
-
-NS_STATICLINK_FILE(Foundation, Foundation_CodeUtils_Expression_Implementation_ExpressionParser);

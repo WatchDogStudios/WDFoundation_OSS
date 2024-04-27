@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Application/Application.h>
@@ -310,7 +305,7 @@ nsCommandLineOptionInt::nsCommandLineOptionInt(nsStringView sSortingGroup, nsStr
 
 void nsCommandLineOptionInt::GetParamDefaultValueDesc(nsStringBuilder& ref_sOut) const
 {
-  ref_sOut.Format("{}", m_iDefaultValue);
+  ref_sOut.SetFormat("{}", m_iDefaultValue);
 }
 
 
@@ -322,7 +317,7 @@ void nsCommandLineOptionInt::GetParamShortDesc(nsStringBuilder& ref_sOut) const
   }
   else
   {
-    ref_sOut.Format("<int> [{} .. {}]", m_iMinValue, m_iMaxValue);
+    ref_sOut.SetFormat("<int> [{} .. {}]", m_iMinValue, m_iMaxValue);
   }
 }
 
@@ -350,7 +345,7 @@ int nsCommandLineOptionInt::GetOptionValue(LogMode logMode, const nsCommandLineU
 
   if (ShouldLog(logMode, bSpecified))
   {
-    tmp.Format("{}", result);
+    tmp.SetFormat("{}", result);
     LogOption(sOption, tmp, bSpecified);
   }
 
@@ -373,7 +368,7 @@ nsCommandLineOptionFloat::nsCommandLineOptionFloat(nsStringView sSortingGroup, n
 
 void nsCommandLineOptionFloat::GetParamDefaultValueDesc(nsStringBuilder& ref_sOut) const
 {
-  ref_sOut.Format("{}", m_fDefaultValue);
+  ref_sOut.SetFormat("{}", m_fDefaultValue);
 }
 
 void nsCommandLineOptionFloat::GetParamShortDesc(nsStringBuilder& ref_sOut) const
@@ -384,7 +379,7 @@ void nsCommandLineOptionFloat::GetParamShortDesc(nsStringBuilder& ref_sOut) cons
   }
   else
   {
-    ref_sOut.Format("<float> [{} .. {}]", m_fMinValue, m_fMaxValue);
+    ref_sOut.SetFormat("<float> [{} .. {}]", m_fMinValue, m_fMaxValue);
   }
 }
 
@@ -412,7 +407,7 @@ float nsCommandLineOptionFloat::GetOptionValue(LogMode logMode, const nsCommandL
 
   if (ShouldLog(logMode, bSpecified))
   {
-    tmp.Format("{}", result);
+    tmp.SetFormat("{}", result);
     LogOption(sOption, tmp, bSpecified);
   }
 
@@ -602,6 +597,3 @@ void nsCommandLineOptionEnum::GetEnumKeysAndValues(nsDynamicArray<EnumKeyValue>&
     eVal++;
   }
 }
-
-
-NS_STATICLINK_FILE(Foundation, Foundation_Utilities_Implementation_CommandLineOptions);

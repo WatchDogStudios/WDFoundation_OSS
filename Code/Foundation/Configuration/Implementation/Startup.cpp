@@ -1,19 +1,12 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Communication/GlobalEvent.h>
 #include <Foundation/Configuration/Startup.h>
-#include <Foundation/Configuration/PlatformSubsystem.h>
 #include <Foundation/Containers/Set.h>
 #include <Foundation/Logging/Log.h>
 #include <Foundation/Threading/ThreadUtils.h>
 
 NS_ENUMERABLE_CLASS_IMPLEMENTATION(nsSubSystem);
-NS_ENUMERABLE_CLASS_IMPLEMENTATION(nsPlatformSubsystem);
 
 bool nsStartup::s_bPrintAllSubSystems = true;
 nsStartupStage::Enum nsStartup::s_CurrentState = nsStartupStage::None;
@@ -41,18 +34,7 @@ void nsStartup::PrintAllSubsystems()
   NS_LOG_BLOCK("Available Subsystems");
 
   nsSubSystem* pSub = nsSubSystem::GetFirstInstance();
-  nsPlatformSubsystem * pPlatSub = nsPlatformSubsystem::GetFirstInstance();
 
-  /// First, pool the platform subsystems, then the regular subsystems.
-  while (pPlatSub)
-  {
-    nsLog::Debug("Platform subsystems found: {0}::{1}", pPlatSub->GetGroupName(), pPlatSub->GetSubSystemName());
-    
-    // We should grab the subsystem that is defined within the configuration. 
-    #ifdef NS_PLATFORM_PLAYSTATION_5
-
-    #endif
-  }
   while (pSub)
   {
     nsLog::Debug("Subsystem: '{0}::{1}'", pSub->GetGroupName(), pSub->GetSubSystemName());
@@ -500,7 +482,3 @@ void nsStartup::ReinitToCurrentState()
   if (s_CurrentState != nsStartupStage::None)
     Startup(s_CurrentState);
 }
-
-
-
-NS_STATICLINK_FILE(Foundation, Foundation_Configuration_Implementation_Startup);

@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/IO/FileSystem/FileSystem.h>
@@ -82,7 +77,9 @@ NS_CREATE_SIMPLE_TEST(Reflection, Utils)
     nsMemoryStreamWriter FileOut(&StreamStorage);
 
     nsTestClass2 c2;
-    c2.SetText("Hallo");
+    c2.SetCharPtr("Hallo");
+    c2.SetString("World");
+    c2.SetStringView("!!!");
     c2.m_MyVector.Set(14, 16, 18);
     c2.m_Struct.m_fFloat1 = 128;
     c2.m_Struct.m_UInt8 = 234;
@@ -108,7 +105,9 @@ NS_CREATE_SIMPLE_TEST(Reflection, Utils)
 
     nsReflectionSerializer::ReadObjectPropertiesFromDDL(FileIn, *c2.GetDynamicRTTI(), &c2);
 
-    NS_TEST_STRING(c2.GetText(), "Hallo");
+    NS_TEST_STRING(c2.GetCharPtr(), "Hallo");
+    NS_TEST_STRING(c2.GetString(), "World");
+    NS_TEST_STRING(c2.GetStringView(), "!!!");
     NS_TEST_VEC3(c2.m_MyVector, nsVec3(3, 4, 5), 0.0f);
     NS_TEST_FLOAT(c2.m_Time.GetSeconds(), 91.0f, 0.0f);
     NS_TEST_FLOAT(c2.m_Color.r, 0.1f, 0.0f);
@@ -158,7 +157,9 @@ NS_CREATE_SIMPLE_TEST(Reflection, Utils)
 
     nsTestClass2& c2 = *((nsTestClass2*)pObject);
 
-    NS_TEST_STRING(c2.GetText(), "Hallo");
+    NS_TEST_STRING(c2.GetCharPtr(), "Hallo");
+    NS_TEST_STRING(c2.GetString(), "World");
+    NS_TEST_STRING(c2.GetStringView(), "!!!");
     NS_TEST_VEC3(c2.m_MyVector, nsVec3(3, 4, 5), 0.0f);
     NS_TEST_FLOAT(c2.m_Time.GetSeconds(), 91.0f, 0.0f);
     NS_TEST_FLOAT(c2.m_Color.r, 0.1f, 0.0f);

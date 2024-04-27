@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <ToolsFoundationTest/ToolsFoundationTestPCH.h>
 
 #include <ToolsFoundationTest/Object/TestObjectManager.h>
@@ -14,7 +9,8 @@ NS_CREATE_SIMPLE_TEST(DocumentObject, CommandHistory)
   doc.InitializeAfterLoading(false);
   nsObjectAccessorBase* pAccessor = doc.GetObjectAccessor();
 
-  auto CreateObject = [&doc, &pAccessor](const nsRTTI* pType) -> const nsDocumentObject* {
+  auto CreateObject = [&doc, &pAccessor](const nsRTTI* pType) -> const nsDocumentObject*
+  {
     nsUuid objGuid;
     pAccessor->StartTransaction("Add Object");
     NS_TEST_STATUS(pAccessor->AddObject(nullptr, (const nsAbstractProperty*)nullptr, -1, pType, objGuid));
@@ -22,14 +18,18 @@ NS_CREATE_SIMPLE_TEST(DocumentObject, CommandHistory)
     return pAccessor->GetObject(objGuid);
   };
 
-  auto StoreOriginalState = [&doc](nsAbstractObjectGraph& ref_graph, const nsDocumentObject* pRoot) {
-    nsDocumentObjectConverterWriter writer(&ref_graph, doc.GetObjectManager(), [](const nsDocumentObject*, const nsAbstractProperty* p) { return p->GetAttributeByType<nsHiddenAttribute>() == nullptr; });
+  auto StoreOriginalState = [&doc](nsAbstractObjectGraph& ref_graph, const nsDocumentObject* pRoot)
+  {
+    nsDocumentObjectConverterWriter writer(&ref_graph, doc.GetObjectManager(), [](const nsDocumentObject*, const nsAbstractProperty* p)
+      { return p->GetAttributeByType<nsHiddenAttribute>() == nullptr; });
     nsAbstractObjectNode* pAbstractObj = writer.AddObjectToGraph(pRoot);
   };
 
-  auto CompareAgainstOriginalState = [&doc](nsAbstractObjectGraph& ref_original, const nsDocumentObject* pRoot) {
+  auto CompareAgainstOriginalState = [&doc](nsAbstractObjectGraph& ref_original, const nsDocumentObject* pRoot)
+  {
     nsAbstractObjectGraph graph;
-    nsDocumentObjectConverterWriter writer2(&graph, doc.GetObjectManager(), [](const nsDocumentObject*, const nsAbstractProperty* p) { return p->GetAttributeByType<nsHiddenAttribute>() == nullptr; });
+    nsDocumentObjectConverterWriter writer2(&graph, doc.GetObjectManager(), [](const nsDocumentObject*, const nsAbstractProperty* p)
+      { return p->GetAttributeByType<nsHiddenAttribute>() == nullptr; });
     nsAbstractObjectNode* pAbstractObj2 = writer2.AddObjectToGraph(pRoot);
 
     nsDeque<nsAbstractGraphDiffOperation> diff;
@@ -50,7 +50,8 @@ NS_CREATE_SIMPLE_TEST(DocumentObject, CommandHistory)
 
     NS_TEST_INT(doc.GetCommandHistory()->GetUndoStackSize(), 1);
 
-    auto TestSetValue = [&](const nsDocumentObject* pObject, const char* szProperty, nsVariant value) {
+    auto TestSetValue = [&](const nsDocumentObject* pObject, const char* szProperty, nsVariant value)
+    {
       nsAbstractObjectGraph graph;
       StoreOriginalState(graph, pObject);
 
@@ -158,7 +159,8 @@ NS_CREATE_SIMPLE_TEST(DocumentObject, CommandHistory)
 
   NS_TEST_BLOCK(nsTestBlock::Enabled, "InsertValue")
   {
-    auto TestInsertValue = [&](const nsDocumentObject* pObject, const char* szProperty, nsVariant value, nsVariant index) {
+    auto TestInsertValue = [&](const nsDocumentObject* pObject, const char* szProperty, nsVariant value, nsVariant index)
+    {
       nsAbstractObjectGraph graph;
       StoreOriginalState(graph, pObject);
 
@@ -204,7 +206,8 @@ NS_CREATE_SIMPLE_TEST(DocumentObject, CommandHistory)
 
   NS_TEST_BLOCK(nsTestBlock::Enabled, "MoveValue")
   {
-    auto TestMoveValue = [&](const nsDocumentObject* pObject, const char* szProperty, nsVariant oldIndex, nsVariant newIndex, nsArrayPtr<nsVariant> expectedOutcome) {
+    auto TestMoveValue = [&](const nsDocumentObject* pObject, const char* szProperty, nsVariant oldIndex, nsVariant newIndex, nsArrayPtr<nsVariant> expectedOutcome)
+    {
       nsAbstractObjectGraph graph;
       StoreOriginalState(graph, pObject);
 
@@ -312,7 +315,8 @@ NS_CREATE_SIMPLE_TEST(DocumentObject, CommandHistory)
 
   NS_TEST_BLOCK(nsTestBlock::Enabled, "RemoveValue")
   {
-    auto TestRemoveValue = [&](const nsDocumentObject* pObject, const char* szProperty, nsVariant index, nsArrayPtr<nsVariant> expectedOutcome) {
+    auto TestRemoveValue = [&](const nsDocumentObject* pObject, const char* szProperty, nsVariant index, nsArrayPtr<nsVariant> expectedOutcome)
+    {
       nsAbstractObjectGraph graph;
       StoreOriginalState(graph, pObject);
 
@@ -435,7 +439,8 @@ NS_CREATE_SIMPLE_TEST(DocumentObject, CommandHistory)
     }
   }
 
-  auto CreateGuid = [](const char* szType, nsInt32 iIndex) -> nsUuid {
+  auto CreateGuid = [](const char* szType, nsInt32 iIndex) -> nsUuid
+  {
     nsUuid A = nsUuid::MakeStableUuidFromString(szType);
     nsUuid B = nsUuid::MakeStableUuidFromInt(iIndex);
     A.CombineWithSeed(B);
@@ -444,7 +449,8 @@ NS_CREATE_SIMPLE_TEST(DocumentObject, CommandHistory)
 
   NS_TEST_BLOCK(nsTestBlock::Enabled, "AddObject")
   {
-    auto TestAddObject = [&](const nsDocumentObject* pObject, const char* szProperty, nsVariant index, const nsRTTI* pType, nsUuid& inout_object) {
+    auto TestAddObject = [&](const nsDocumentObject* pObject, const char* szProperty, nsVariant index, const nsRTTI* pType, nsUuid& inout_object)
+    {
       nsAbstractObjectGraph graph;
       StoreOriginalState(graph, pObject);
 
@@ -519,13 +525,15 @@ NS_CREATE_SIMPLE_TEST(DocumentObject, CommandHistory)
 
   NS_TEST_BLOCK(nsTestBlock::Enabled, "MoveObject")
   {
-    auto TestMoveObjectFailure = [&](const nsDocumentObject* pObject, const char* szProperty, nsVariant newIndex) {
+    auto TestMoveObjectFailure = [&](const nsDocumentObject* pObject, const char* szProperty, nsVariant newIndex)
+    {
       pAccessor->StartTransaction("MoveObject");
       NS_TEST_BOOL(pAccessor->MoveObject(pObject, pObject->GetParent(), szProperty, newIndex).Failed());
       pAccessor->CancelTransaction();
     };
 
-    auto TestMoveObject = [&](const nsDocumentObject* pObject, const char* szProperty, nsVariant newIndex, nsArrayPtr<nsUuid> expectedOutcome) {
+    auto TestMoveObject = [&](const nsDocumentObject* pObject, const char* szProperty, nsVariant newIndex, nsArrayPtr<nsUuid> expectedOutcome)
+    {
       nsAbstractObjectGraph graph;
       StoreOriginalState(graph, pObject->GetParent());
 
@@ -609,7 +617,8 @@ NS_CREATE_SIMPLE_TEST(DocumentObject, CommandHistory)
 
   NS_TEST_BLOCK(nsTestBlock::Enabled, "RemoveObject")
   {
-    auto TestRemoveObject = [&](const nsDocumentObject* pObject, nsArrayPtr<nsUuid> expectedOutcome) {
+    auto TestRemoveObject = [&](const nsDocumentObject* pObject, nsArrayPtr<nsUuid> expectedOutcome)
+    {
       auto pParent = pObject->GetParent();
       nsString sProperty = pObject->GetParentProperty();
 
@@ -697,7 +706,8 @@ NS_CREATE_SIMPLE_TEST(DocumentObject, CommandHistory)
       }
     };
 
-    auto ClearContainer = [&](const char* szContainer) {
+    auto ClearContainer = [&](const char* szContainer)
+    {
       nsUuid A = CreateGuid(szContainer, 0);
       nsUuid B = CreateGuid(szContainer, 1);
       nsUuid C = CreateGuid(szContainer, 2);

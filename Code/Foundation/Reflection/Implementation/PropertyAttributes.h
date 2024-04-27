@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 /// \file
@@ -215,7 +210,7 @@ public:
   const nsVariant& GetMinValue() const { return m_MinValue; }
   const nsVariant& GetMaxValue() const { return m_MaxValue; }
 
-private:
+protected:
   nsVariant m_MinValue;
   nsVariant m_MaxValue;
 };
@@ -390,7 +385,7 @@ private:
 /// ## Surface on hit prefab: **Package**
 /// * Transforming a surface is not affected if the prefab it spawns on impact changes. Only the reference is stored.
 /// * The set prefab does not show up in the thumbnail so it is not needed.
-/// * We do however need to package it or otherwise the runtime would fail to spawn the prefab on impact.
+/// * We do, however, need to package it or otherwise the runtime would fail to spawn the prefab on impact.
 ///
 /// As a rule of thumb (also the default for each):
 /// * nsFileBrowserAttribute are mostly Transform and Thumbnail.
@@ -404,7 +399,7 @@ struct nsDependencyFlags
     None = 0,              ///< The reference is not needed for anything in production. An example of this is editor references that are only used at edit time, e.g. a default animation clip for a skeleton.
     Thumbnail = NS_BIT(0), ///< This reference is a dependency to generating a thumbnail. The material references of a mesh for example.
     Transform = NS_BIT(1), ///< This reference is a dependency to transforming this asset. The input model of a mesh for example.
-    Package = NS_BIT(2),   ///< This reference is needs to be packaged as it is used at runtime by this asset. All sounds or debris generated on impact of a surface are common examples of this.
+    Package = NS_BIT(2),   ///< This reference needs to be packaged as it is used at runtime by this asset. All sounds or debris generated on impact of a surface are common examples of this.
     Default = 0
   };
 
@@ -429,27 +424,25 @@ class NS_FOUNDATION_DLL nsFileBrowserAttribute : public nsTypeWidgetAttribute
 
 public:
   // Predefined common type filters
-  static constexpr const char* Meshes = "*.obj;*.fbx;*.gltf;*.glb";
-  static constexpr const char* MeshesWithAnimations = "*.fbx;*.gltf;*.glb";
-  static constexpr const char* ImagesLdrOnly = "*.dds;*.tga;*.png;*.jpg;*.jpeg";
-  static constexpr const char* ImagesHdrOnly = "*.hdr;*.exr";
-  static constexpr const char* ImagesLdrAndHdr = "*.dds;*.tga;*.png;*.jpg;*.jpeg;*.hdr;*.exr";
-  static constexpr const char* CubemapsLdrAndHdr = "*.dds;*.hdr";
+  static constexpr nsStringView Meshes = "*.obj;*.fbx;*.gltf;*.glb"_nssv;
+  static constexpr nsStringView MeshesWithAnimations = "*.fbx;*.gltf;*.glb"_nssv;
+  static constexpr nsStringView ImagesLdrOnly = "*.dds;*.tga;*.png;*.jpg;*.jpeg"_nssv;
+  static constexpr nsStringView ImagesHdrOnly = "*.hdr;*.exr"_nssv;
+  static constexpr nsStringView ImagesLdrAndHdr = "*.dds;*.tga;*.png;*.jpg;*.jpeg;*.hdr;*.exr"_nssv;
+  static constexpr nsStringView CubemapsLdrAndHdr = "*.dds;*.hdr"_nssv;
 
   nsFileBrowserAttribute() = default;
-  nsFileBrowserAttribute(const char* szDialogTitle,
-    const char* szTypeFilter, const char* szCustomAction = nullptr,
-    nsBitflags<nsDependencyFlags> depencyFlags = nsDependencyFlags::Transform | nsDependencyFlags::Thumbnail)
-    : m_sDialogTitle(szDialogTitle)
-    , m_sTypeFilter(szTypeFilter)
-    , m_sCustomAction(szCustomAction)
+  nsFileBrowserAttribute(nsStringView sDialogTitle, nsStringView sTypeFilter, nsStringView sCustomAction = {}, nsBitflags<nsDependencyFlags> depencyFlags = nsDependencyFlags::Transform | nsDependencyFlags::Thumbnail)
+    : m_sDialogTitle(sDialogTitle)
+    , m_sTypeFilter(sTypeFilter)
+    , m_sCustomAction(sCustomAction)
     , m_DependencyFlags(depencyFlags)
   {
   }
 
-  const char* GetDialogTitle() const { return m_sDialogTitle; }
-  const char* GetTypeFilter() const { return m_sTypeFilter; }
-  const char* GetCustomAction() const { return m_sCustomAction; }
+  nsStringView GetDialogTitle() const { return m_sDialogTitle; }
+  nsStringView GetTypeFilter() const { return m_sTypeFilter; }
+  nsStringView GetCustomAction() const { return m_sCustomAction; }
   nsBitflags<nsDependencyFlags> GetDependencyFlags() const { return m_DependencyFlags; }
 
 private:
@@ -457,6 +450,30 @@ private:
   nsUntrackedString m_sTypeFilter;
   nsUntrackedString m_sCustomAction;
   nsBitflags<nsDependencyFlags> m_DependencyFlags;
+};
+
+/// \brief Indicates that the string property should allow to browse for an file (or programs) outside the project directories.
+///
+/// Allows to specify the title for the browse dialog and the allowed file types.
+/// Usage: NS_MEMBER_PROPERTY("File", m_sFilePath)->AddAttributes(new nsFileBrowserAttribute("Choose a File", "*.exe")),
+class NS_FOUNDATION_DLL nsExternalFileBrowserAttribute : public nsTypeWidgetAttribute
+{
+  NS_ADD_DYNAMIC_REFLECTION(nsExternalFileBrowserAttribute, nsTypeWidgetAttribute);
+
+public:
+  nsExternalFileBrowserAttribute() = default;
+  nsExternalFileBrowserAttribute(nsStringView sDialogTitle, nsStringView sTypeFilter)
+    : m_sDialogTitle(sDialogTitle)
+    , m_sTypeFilter(sTypeFilter)
+  {
+  }
+
+  nsStringView GetDialogTitle() const { return m_sDialogTitle; }
+  nsStringView GetTypeFilter() const { return m_sTypeFilter; }
+
+private:
+  nsUntrackedString m_sDialogTitle;
+  nsUntrackedString m_sTypeFilter;
 };
 
 /// \brief A property attribute that indicates that the string property is actually an asset reference.
@@ -469,11 +486,17 @@ class NS_FOUNDATION_DLL nsAssetBrowserAttribute : public nsTypeWidgetAttribute
 
 public:
   nsAssetBrowserAttribute() = default;
-  nsAssetBrowserAttribute(const char* szTypeFilter,
-    nsBitflags<nsDependencyFlags> depencyFlags = nsDependencyFlags::Thumbnail | nsDependencyFlags::Package)
+  nsAssetBrowserAttribute(const char* szTypeFilter, nsBitflags<nsDependencyFlags> depencyFlags = nsDependencyFlags::Thumbnail | nsDependencyFlags::Package)
     : m_DependencyFlags(depencyFlags)
   {
     SetTypeFilter(szTypeFilter);
+  }
+
+  nsAssetBrowserAttribute(const char* szTypeFilter, const char* szRequiredTag, nsBitflags<nsDependencyFlags> depencyFlags = nsDependencyFlags::Thumbnail | nsDependencyFlags::Package)
+    : m_DependencyFlags(depencyFlags)
+  {
+    SetTypeFilter(szTypeFilter);
+    m_sRequiredTag = szRequiredTag;
   }
 
   void SetTypeFilter(const char* szTypeFilter)
@@ -481,11 +504,15 @@ public:
     nsStringBuilder sTemp(";", szTypeFilter, ";");
     m_sTypeFilter = sTemp;
   }
+
   const char* GetTypeFilter() const { return m_sTypeFilter; }
   nsBitflags<nsDependencyFlags> GetDependencyFlags() const { return m_DependencyFlags; }
 
+  const char* GetRequiredTag() const { return m_sRequiredTag; }
+
 private:
   nsUntrackedString m_sTypeFilter;
+  nsUntrackedString m_sRequiredTag;
   nsBitflags<nsDependencyFlags> m_DependencyFlags;
 };
 
@@ -623,7 +650,7 @@ public:
   nsNonUniformBoxManipulatorAttribute();
   nsNonUniformBoxManipulatorAttribute(
     const char* szNegXProp, const char* szPosXProp, const char* szNegYProp, const char* szPosYProp, const char* szNegZProp, const char* szPosZProp);
-  nsNonUniformBoxManipulatorAttribute(const char* szSizeX, const char* szSizeY, const char* szSizns);
+  nsNonUniformBoxManipulatorAttribute(const char* szSizeX, const char* szSizeY, const char* szSizeZ);
 
   bool HasSixAxis() const { return !m_sProperty4.IsEmpty(); }
 
@@ -636,7 +663,7 @@ public:
 
   const nsUntrackedString& GetSizeXProperty() const { return m_sProperty1; }
   const nsUntrackedString& GetSizeYProperty() const { return m_sProperty2; }
-  const nsUntrackedString& GetSiznsProperty() const { return m_sProperty3; }
+  const nsUntrackedString& GetSizeZProperty() const { return m_sProperty3; }
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -973,6 +1000,7 @@ class NS_FOUNDATION_DLL nsScriptableFunctionAttribute : public nsPropertyAttribu
     ArgType argType3 = In, const char* szArg3 = nullptr, ArgType argType4 = In, const char* szArg4 = nullptr, ArgType argType5 = In,
     const char* szArg5 = nullptr, ArgType argType6 = In, const char* szArg6 = nullptr);
 
+  nsUInt32 GetArgumentCount() const { return m_ArgNames.GetCount(); }
   const char* GetArgumentName(nsUInt32 uiIndex) const { return m_ArgNames[uiIndex]; }
 
   ArgType GetArgumentType(nsUInt32 uiIndex) const { return static_cast<ArgType>(m_ArgTypes[uiIndex]); }
@@ -989,6 +1017,7 @@ class NS_FOUNDATION_DLL nsFunctionArgumentAttributes : public nsPropertyAttribut
 
   nsFunctionArgumentAttributes() = default;
   nsFunctionArgumentAttributes(nsUInt32 uiArgIndex, const nsPropertyAttribute* pAttribute1, const nsPropertyAttribute* pAttribute2 = nullptr, const nsPropertyAttribute* pAttribute3 = nullptr, const nsPropertyAttribute* pAttribute4 = nullptr);
+  ~nsFunctionArgumentAttributes();
 
   nsUInt32 GetArgumentIndex() const { return m_uiArgIndex; }
   nsArrayPtr<const nsPropertyAttribute* const> GetArgumentAttributes() const { return m_ArgAttributes; }
@@ -1044,4 +1073,28 @@ class NS_FOUNDATION_DLL nsGameObjectReferenceAttribute : public nsTypeWidgetAttr
 
 public:
   nsGameObjectReferenceAttribute() = default;
+};
+
+//////////////////////////////////////////////////////////////////////////
+
+/// \brief Displays the value range as an image, allowing users to pick a value like on a slider.
+///
+/// This attribute always has to be combined with an nsClampValueAttribute to define the min and max value range.
+/// The constructor takes the name of an image generator. The generator is used to build the QImage used for the slider background.
+///
+/// Image generators are registered through nsQtImageSliderWidget::s_ImageGenerators. Search the codebase for that variable
+/// to determine which types of image generators are available.
+/// You can register custom generators as well.
+class NS_FOUNDATION_DLL nsImageSliderUiAttribute : public nsTypeWidgetAttribute
+{
+  NS_ADD_DYNAMIC_REFLECTION(nsImageSliderUiAttribute, nsTypeWidgetAttribute);
+
+public:
+  nsImageSliderUiAttribute() = default;
+  nsImageSliderUiAttribute(const char* szImageGenerator)
+  {
+    m_sImageGenerator = szImageGenerator;
+  }
+
+  nsUntrackedString m_sImageGenerator;
 };

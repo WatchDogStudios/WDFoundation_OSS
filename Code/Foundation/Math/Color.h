@@ -1,14 +1,9 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Math/Math.h>
 #include <Foundation/Math/Vec4.h>
 
-/// \brief nsColor represents and RGBA color in linear color space. Values are stored as float, allowing HDR values and full precision color
+/// \brief nsColor represents an RGBA color in linear color space. Values are stored as float, allowing HDR values and full precision color
 /// modifications.
 ///
 /// nsColor is the central class to handle colors throughout the engine. With floating point precision it can handle any value, including HDR colors.
@@ -17,7 +12,7 @@
 /// When you need to pass colors to the GPU you have multiple options.
 ///   * If you can spare the bandwidth, you should prefer to use floating point formats, e.g. the same as nsColor on the CPU.
 ///   * If you need higher precision and HDR values, you can use nsColorLinear16f as a storage format with only half the memory footprint.
-///   * If you need to use preserve memory and LDR values are sufficient, you should use nsColorGammaUB. This format uses 8 Bit per pixel
+///   * If you need to preserve memory and LDR values are sufficient, you should use nsColorGammaUB. This format uses 8 Bit per pixel
 ///     but stores colors in Gamma space, resulting in higher precision in the range that the human eye can distinguish better.
 ///     However, when you store a color in Gamma space, you need to make sure to convert it back to linear space before doing ANY computations
 ///     with it. E.g. your shader needs to convert the color.
@@ -216,6 +211,9 @@ public:
   /// \brief Returns a color with all four RGBA components set to zero. This is different to nsColor::Black, which has alpha still set to 1.0.
   [[nodiscard]] static nsColor MakeZero();
 
+  /// \brief Returns a color with the given r, g, b, a values. The values must be given in a linear color space.
+  [[nodiscard]] static nsColor MakeRGBA(float fLinearRed, float fLinearGreen, float fLinearBlue, float fLinearAlpha = 1.0f);
+
   // *** Constructors ***
 public:
   /// \brief default-constructed color is uninitialized (for speed)
@@ -251,6 +249,11 @@ public:
   /// \brief Sets all four RGBA components.
   void SetRGBA(float fLinearRed, float fLinearGreen, float fLinearBlue, float fLinearAlpha = 1.0f); // [tested]
 
+  /// \brief Returns a color created from the kelvin temperature. https://wikipedia.org/wiki/Color_temperature
+  /// Originally inspired from https://tannerhelland.com/2012/09/18/convert-temperature-rgb-algorithm-code.html
+  /// But with heavy modification to better fit the mapping shown out in https://seblagarde.files.wordpress.com/2015/07/course_notes_moving_frostbite_to_pbr_v32.pdf
+  /// Physically accurate clipping points are 6580K for Red and 6560K for G and B. but approximated to 6570k for all to give a better mapping.
+  static nsColor MakeFromKelvin(nsUInt32 uiKelvin);
   // *** Conversion Operators/Functions ***
 public:
   /// \brief Sets this color from a HSV (hue, saturation, value) format.
@@ -261,7 +264,7 @@ public:
   /// \brief Converts the color part to HSV format.
   ///
   /// \a hue is in range [0; 360], \a sat and \a val are in range [0; 1]
-  void GetHSV(float& ref_fHue, float& ref_fSat, float& ref_fVal) const; // [tested]
+  void GetHSV(float& out_fHue, float& out_fSat, float& out_fValue) const; // [tested]
 
   /// \brief Conversion to const float*
   const float* GetData() const { return &r; }
@@ -307,6 +310,9 @@ public:
 
   /// \brief Multiplies the given factor into red, green and blue, but not alpha.
   void ScaleRGB(float fFactor);
+
+  /// \brief Multiplies the given factor into red, green, blue and also alpha.
+  void ScaleRGBA(float fFactor);
 
   /// \brief Returns 1 for an LDR color (all ´RGB components < 1). Otherwise the value of the largest component. Ignores alpha.
   float ComputeHdrMultiplier() const;
@@ -375,6 +381,12 @@ public:
 
   /// \brief Returns the current color but with changes the alpha value to the given value.
   nsColor WithAlpha(float fAlpha) const;
+
+  /// \brief Packs the 4 color values as uint8 into a single uint32 with A in the least significant bits and R in the most significant ones.
+  [[nodiscard]] nsUInt32 ToRGBA8() const;
+
+  /// \brief Packs the 4 color values as uint8 into a single uint32 with R in the least significant bits and A in the most significant ones.
+  [[nodiscard]] nsUInt32 ToABGR8() const;
 };
 
 // *** Operators ***

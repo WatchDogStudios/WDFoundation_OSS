@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 /// \file
@@ -41,6 +36,24 @@
 
 //////////////////////////////////////////////////////////////////////////
 
+#define NS_EXPAND_ARGS_COMMA_1(a0) a0
+#define NS_EXPAND_ARGS_COMMA_2(a0, a1) a0, a1
+#define NS_EXPAND_ARGS_COMMA_3(a0, a1, a2) a0, a1, a2
+#define NS_EXPAND_ARGS_COMMA_4(a0, a1, a2, a3) a0, a1, a2, a3
+#define NS_EXPAND_ARGS_COMMA_5(a0, a1, a2, a3, a4) a0, a1, a2, a3, a4
+#define NS_EXPAND_ARGS_COMMA_6(a0, a1, a2, a3, a4, a5) a0, a1, a2, a3, a4, a5
+#define NS_EXPAND_ARGS_COMMA_7(a0, a1, a2, a3, a4, a5, a6) a0 a1, a2, a3, a4, a5, a6
+#define NS_EXPAND_ARGS_COMMA_8(a0, a1, a2, a3, a4, a5, a6, a7) a0, a1, a2, a3, a4, a5, a6, a7
+#define NS_EXPAND_ARGS_COMMA_9(a0, a1, a2, a3, a4, a5, a6, a7, a8) a0, a1, a2, a3, a4, a5, a6, a7, a8
+#define NS_EXPAND_ARGS_COMMA_10(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9) a0, a1, a2, a3, a4, a5, a6, a7, a8, a9
+#define NS_EXPAND_ARGS_COMMA_11(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10) a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10
+#define NS_EXPAND_ARGS_COMMA_12(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11) a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11
+
+/// Variadic macro "dispatching" the arguments to the correct macro.
+/// The number of arguments is found by using NS_VA_NUM_ARGS(__VA_ARGS__)
+#define NS_EXPAND_ARGS_COMMA(...) NS_CALL_MACRO(NS_CONCAT(NS_EXPAND_ARGS_COMMA_, NS_VA_NUM_ARGS(__VA_ARGS__)), (__VA_ARGS__))
+
+//////////////////////////////////////////////////////////////////////////
 #define NS_EXPAND_ARGS_WITH_INDEX_1(op, a0) op(a0, 0)
 #define NS_EXPAND_ARGS_WITH_INDEX_2(op, a0, a1) op(a0, 0) op(a1, 1)
 #define NS_EXPAND_ARGS_WITH_INDEX_3(op, a0, a1, a2) op(a0, 0) op(a1, 1) op(a2, 2)

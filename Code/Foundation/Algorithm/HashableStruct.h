@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 
 #pragma once
 
@@ -24,7 +19,7 @@ public:
   nsHashableStruct();                                       // [tested]
   nsHashableStruct(const nsHashableStruct<DERIVED>& other); // [tested]
 
-  void operator=(const nsHashableStruct<DERIVED>& other); // [tested]
+  void operator=(const nsHashableStruct<DERIVED>& other);   // [tested]
 
   /// \brief Calculates the 32 bit hash of the struct and returns it
   nsUInt32 CalculateHash() const; // [tested]

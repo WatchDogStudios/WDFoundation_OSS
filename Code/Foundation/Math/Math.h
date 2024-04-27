@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Basics.h>
@@ -285,6 +280,10 @@ namespace nsMath
   template <typename T>
   [[nodiscard]] T Lerp(T f1, T f2, double fFactor); // [tested]
 
+  /// \brief Returns the interpolation factor such that Lerp(fMin, fMax, factor) == fValue.
+  template <typename T>
+  [[nodiscard]] constexpr float Unlerp(T fMin, T fMax, T fValue); // [tested]
+
   /// \brief Returns 0, if value < edge, and 1, if value >= edge.
   template <typename T>
   [[nodiscard]] constexpr T Step(T value, T edge); // [tested]
@@ -292,6 +291,10 @@ namespace nsMath
   /// \brief Returns 0, if value is <= edge1, 1 if value >= edge2 and the hermite interpolation in between
   template <typename Type>
   [[nodiscard]] Type SmoothStep(Type value, Type edge1, Type edge2); // [tested]
+
+  /// \brief Returns 0, if value is <= edge1, 1 if value >= edge2 and the second order hermite interpolation in between
+  template <typename Type>
+  [[nodiscard]] Type SmootherStep(Type value, Type edge1, Type edge2); // [tested]
 
   /// \brief Returns true, if there exists some x with base^x == value
   [[nodiscard]] NS_FOUNDATION_DLL bool IsPowerOf(nsInt32 value, nsInt32 iBase); // [tested]
@@ -302,11 +305,20 @@ namespace nsMath
   /// \brief Returns true, if there exists some x with 2^x == value
   [[nodiscard]] constexpr bool IsPowerOf2(nsUInt32 value); // [tested]
 
+  /// \brief Returns true, if there exists some x with 2^x == value
+  [[nodiscard]] constexpr bool IsPowerOf2(nsUInt64 value); // [tested]
+
   /// \brief Returns the next power-of-two that is <= value
   [[nodiscard]] NS_FOUNDATION_DLL nsUInt32 PowerOfTwo_Floor(nsUInt32 value); // [tested]
 
+  /// \brief Returns the next power-of-two that is <= value
+  [[nodiscard]] NS_FOUNDATION_DLL nsUInt64 PowerOfTwo_Floor(nsUInt64 value); // [tested]
+
   /// \brief Returns the next power-of-two that is >= value
   [[nodiscard]] NS_FOUNDATION_DLL nsUInt32 PowerOfTwo_Ceil(nsUInt32 value); // [tested]
+
+  /// \brief Returns the next power-of-two that is >= value
+  [[nodiscard]] NS_FOUNDATION_DLL nsUInt64 PowerOfTwo_Ceil(nsUInt64 value); // [tested]
 
   /// \brief Returns the greatest common divisor.
   [[nodiscard]] NS_FOUNDATION_DLL nsUInt32 GreatestCommonDivisor(nsUInt32 a, nsUInt32 b); // [tested]
@@ -350,7 +362,7 @@ namespace nsMath
   /// \brief Evaluates the cubic spline defined by four control points at time \a t and returns the interpolated result.
   /// Can be used with T as float, vec2, vec3 or vec4
   template <typename T, typename T2>
-  [[nodiscard]] T EvaluateBnsierCurve(T2 t, const T& startPoint, const T& controlPoint1, const T& controlPoint2, const T& endPoint);
+  [[nodiscard]] T EvaluateBeziserCurve(T2 t, const T& startPoint, const T& controlPoint1, const T& controlPoint2, const T& endPoint);
 
   /// \brief out_Result = \a a * \a b. If an overflow happens, NS_FAILURE is returned.
   NS_FOUNDATION_DLL nsResult TryMultiply32(nsUInt32& out_uiResult, nsUInt32 a, nsUInt32 b, nsUInt32 c = 1, nsUInt32 d = 1); // [tested]

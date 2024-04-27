@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Math/Angle.h>
@@ -38,7 +33,7 @@ public:
   [[nodiscard]] static nsSimdFloat MakeZero(); // [tested]
 
   /// \brief Creates an nsSimdFloat that is initialized to Not-A-Number (NaN).
-  [[nodiscard]] static nsSimdFloat MakeNaN(); // [tested]
+  [[nodiscard]] static nsSimdFloat MakeNaN();        // [tested]
 
 public:
   nsSimdFloat operator+(const nsSimdFloat& f) const; // [tested]
@@ -46,35 +41,35 @@ public:
   nsSimdFloat operator*(const nsSimdFloat& f) const; // [tested]
   nsSimdFloat operator/(const nsSimdFloat& f) const; // [tested]
 
-  nsSimdFloat& operator+=(const nsSimdFloat& f); // [tested]
-  nsSimdFloat& operator-=(const nsSimdFloat& f); // [tested]
-  nsSimdFloat& operator*=(const nsSimdFloat& f); // [tested]
-  nsSimdFloat& operator/=(const nsSimdFloat& f); // [tested]
+  nsSimdFloat& operator+=(const nsSimdFloat& f);     // [tested]
+  nsSimdFloat& operator-=(const nsSimdFloat& f);     // [tested]
+  nsSimdFloat& operator*=(const nsSimdFloat& f);     // [tested]
+  nsSimdFloat& operator/=(const nsSimdFloat& f);     // [tested]
 
   bool IsEqual(const nsSimdFloat& rhs, const nsSimdFloat& fEpsilon) const;
 
-  bool operator==(const nsSimdFloat& f) const; // [tested]
-  bool operator!=(const nsSimdFloat& f) const; // [tested]
-  bool operator>(const nsSimdFloat& f) const;  // [tested]
-  bool operator>=(const nsSimdFloat& f) const; // [tested]
-  bool operator<(const nsSimdFloat& f) const;  // [tested]
-  bool operator<=(const nsSimdFloat& f) const; // [tested]
+  bool operator==(const nsSimdFloat& f) const;               // [tested]
+  bool operator!=(const nsSimdFloat& f) const;               // [tested]
+  bool operator>(const nsSimdFloat& f) const;                // [tested]
+  bool operator>=(const nsSimdFloat& f) const;               // [tested]
+  bool operator<(const nsSimdFloat& f) const;                // [tested]
+  bool operator<=(const nsSimdFloat& f) const;               // [tested]
 
-  bool operator==(float f) const; // [tested]
-  bool operator!=(float f) const; // [tested]
-  bool operator>(float f) const;  // [tested]
-  bool operator>=(float f) const; // [tested]
-  bool operator<(float f) const;  // [tested]
-  bool operator<=(float f) const; // [tested]
-
-  template <nsMathAcc::Enum acc = nsMathAcc::FULL>
-  nsSimdFloat GetReciprocal() const; // [tested]
+  bool operator==(float f) const;                            // [tested]
+  bool operator!=(float f) const;                            // [tested]
+  bool operator>(float f) const;                             // [tested]
+  bool operator>=(float f) const;                            // [tested]
+  bool operator<(float f) const;                             // [tested]
+  bool operator<=(float f) const;                            // [tested]
 
   template <nsMathAcc::Enum acc = nsMathAcc::FULL>
-  nsSimdFloat GetSqrt() const; // [tested]
+  nsSimdFloat GetReciprocal() const;                         // [tested]
 
   template <nsMathAcc::Enum acc = nsMathAcc::FULL>
-  nsSimdFloat GetInvSqrt() const; // [tested]
+  nsSimdFloat GetSqrt() const;                               // [tested]
+
+  template <nsMathAcc::Enum acc = nsMathAcc::FULL>
+  nsSimdFloat GetInvSqrt() const;                            // [tested]
 
   [[nodiscard]] nsSimdFloat Max(const nsSimdFloat& f) const; // [tested]
   [[nodiscard]] nsSimdFloat Min(const nsSimdFloat& f) const; // [tested]

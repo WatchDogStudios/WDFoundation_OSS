@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Configuration/CVar.h>
@@ -114,10 +109,6 @@ nsCVar::nsCVar(nsStringView sName, nsBitflags<nsCVarFlags> Flags, nsStringView s
   , m_sDescription(sDescription)
   , m_Flags(Flags)
 {
-  // 'RequiresRestart' only works together with 'Save'
-  if (m_Flags.IsAnySet(nsCVarFlags::RequiresRestart))
-    m_Flags.Add(nsCVarFlags::Save);
-
   NS_ASSERT_DEV(!m_sDescription.IsEmpty(), "Please add a useful description for CVar '{}'.", sName);
 }
 
@@ -195,7 +186,7 @@ void nsCVar::SaveCVars()
   while (it.IsValid())
   {
     // create the plugin specific file
-    sTemp.Format("{0}/CVars_{1}.cfg", s_sStorageFolder, it.Key());
+    sTemp.SetFormat("{0}/CVars_{1}.cfg", s_sStorageFolder, it.Key());
 
     SaveCVarsToFileInternal(sTemp, it.Value());
 
@@ -220,25 +211,25 @@ void nsCVar::SaveCVarsToFileInternal(nsStringView path, const nsDynamicArray<nsC
         case nsCVarType::Int:
         {
           nsCVarInt* pInt = (nsCVarInt*)pCVar;
-          sTemp.Format("{0} = {1}\n", pCVar->GetName(), pInt->GetValue(nsCVarValue::Restart));
+          sTemp.SetFormat("{0} = {1}\n", pCVar->GetName(), pInt->GetValue(nsCVarValue::DelayedSync));
         }
         break;
         case nsCVarType::Bool:
         {
           nsCVarBool* pBool = (nsCVarBool*)pCVar;
-          sTemp.Format("{0} = {1}\n", pCVar->GetName(), pBool->GetValue(nsCVarValue::Restart) ? "true" : "false");
+          sTemp.SetFormat("{0} = {1}\n", pCVar->GetName(), pBool->GetValue(nsCVarValue::DelayedSync) ? "true" : "false");
         }
         break;
         case nsCVarType::Float:
         {
           nsCVarFloat* pFloat = (nsCVarFloat*)pCVar;
-          sTemp.Format("{0} = {1}\n", pCVar->GetName(), pFloat->GetValue(nsCVarValue::Restart));
+          sTemp.SetFormat("{0} = {1}\n", pCVar->GetName(), pFloat->GetValue(nsCVarValue::DelayedSync));
         }
         break;
         case nsCVarType::String:
         {
           nsCVarString* pString = (nsCVarString*)pCVar;
-          sTemp.Format("{0} = \"{1}\"\n", pCVar->GetName(), pString->GetValue(nsCVarValue::Restart));
+          sTemp.SetFormat("{0} = \"{1}\"\n", pCVar->GetName(), pString->GetValue(nsCVarValue::DelayedSync));
         }
         break;
         default:
@@ -341,7 +332,7 @@ void nsCVar::LoadCVarsFromFile(bool bOnlyNewOnes, bool bSetAsCurrentValue, nsDyn
     while (it.IsValid())
     {
       // create the plugin specific file
-      sTemp.Format("{0}/CVars_{1}.cfg", s_sStorageFolder, it.Key());
+      sTemp.SetFormat("{0}/CVars_{1}.cfg", s_sStorageFolder, it.Key());
 
       LoadCVarsFromFileInternal(sTemp.GetView(), it.Value(), bOnlyNewOnes, bSetAsCurrentValue, pOutCVars);
 
@@ -458,7 +449,7 @@ void nsCVar::LoadCVarsFromFileInternal(nsStringView path, const nsDynamicArray<n
         }
 
         if (bSetAsCurrentValue)
-          pCVar->SetToRestartValue();
+          pCVar->SetToDelayedSyncValue();
       }
     }
   }
@@ -540,7 +531,7 @@ void nsCVar::LoadCVarsFromCommandLine(bool bOnlyNewOnes /*= true*/, bool bSetAsC
       }
 
       if (bSetAsCurrentValue)
-        pCVar->SetToRestartValue();
+        pCVar->SetToDelayedSyncValue();
     }
   }
 }

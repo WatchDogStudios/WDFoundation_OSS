@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/CodeUtils/Preprocessor.h>
@@ -33,7 +28,7 @@ nsPreprocessor::nsPreprocessor()
   nsStringBuilder s;
   for (nsUInt32 i = 0; i < 32; ++i)
   {
-    s.Format("__Param{0}__", i);
+    s.SetFormat("__Param{0}__", i);
     s_ParamNames[i] = s;
 
     m_ParameterTokens[i].m_iType = s_iMacroParameter0 + i;
@@ -547,7 +542,3 @@ nsResult nsPreprocessor::HandleWarningDirective(const TokenStream& Tokens, nsUIn
 
   return NS_SUCCESS;
 }
-
-
-
-NS_STATICLINK_FILE(Foundation, Foundation_CodeUtils_Implementation_Preprocessor);

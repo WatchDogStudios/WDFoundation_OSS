@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 template <typename Type>
@@ -24,6 +19,15 @@ NS_ALWAYS_INLINE nsRectTemplate<Type>::nsRectTemplate(Type width, Type height)
   , width(width)
   , height(height)
 {
+}
+
+template <typename Type>
+NS_ALWAYS_INLINE nsRectTemplate<Type>::nsRectTemplate(const nsVec2Template<Type>& vTopLeftPosition, const nsVec2Template<Type>& vSize)
+{
+  x = vTopLeftPosition.x;
+  y = vTopLeftPosition.y;
+  width = vSize.x;
+  height = vSize.y;
 }
 
 template <typename Type>
@@ -110,6 +114,12 @@ NS_ALWAYS_INLINE bool nsRectTemplate<Type>::Contains(const nsVec2Template<Type>&
   }
 
   return false;
+}
+
+template <typename Type>
+NS_ALWAYS_INLINE bool nsRectTemplate<Type>::Contains(const nsRectTemplate<Type>& r) const
+{
+  return r.x >= x && r.y >= y && r.Right() <= Right() && r.Bottom() <= Bottom();
 }
 
 template <typename Type>

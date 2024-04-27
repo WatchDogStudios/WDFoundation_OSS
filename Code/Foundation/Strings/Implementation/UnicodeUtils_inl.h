@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 /*
@@ -81,7 +76,7 @@ nsUInt32 nsUnicodeUtils::DecodeUtf16ToUtf32(UInt16Iterator& ref_szUtf16Iterator)
 template <typename WCharIterator>
 nsUInt32 nsUnicodeUtils::DecodeWCharToUtf32(WCharIterator& ref_szWCharIterator)
 {
-  if (sizeof(wchar_t) == 2)
+  if constexpr (sizeof(wchar_t) == 2)
   {
     return DecodeUtf16ToUtf32(ref_szWCharIterator);
   }
@@ -115,7 +110,7 @@ void nsUnicodeUtils::EncodeUtf32ToUtf16(nsUInt32 uiUtf32, UInt16Iterator& ref_sz
 template <typename WCharIterator>
 void nsUnicodeUtils::EncodeUtf32ToWChar(nsUInt32 uiUtf32, WCharIterator& ref_szWCharOutput)
 {
-  if (sizeof(wchar_t) == 2)
+  if constexpr (sizeof(wchar_t) == 2)
   {
     EncodeUtf32ToUtf16(uiUtf32, ref_szWCharOutput);
   }
@@ -152,12 +147,16 @@ inline nsUInt32 nsUnicodeUtils::GetSizeForCharacterInUtf8(nsUInt32 uiCharacter)
   return 4;
 }
 
-inline bool nsUnicodeUtils::IsValidUtf8(const char* szString, const char* szStringEnd)
+NS_ALWAYS_INLINE bool nsUnicodeUtils::IsValidUtf8(const char* szString, const char* szStringEnd)
 {
+#if NS_ENABLED(NS_USE_STRING_VALIDATION)
   if (szStringEnd == GetMaxStringEnd<char>())
     szStringEnd = szString + strlen(szString);
 
   return utf8::is_valid(szString, szStringEnd);
+#else
+  return true;
+#endif
 }
 
 inline bool nsUnicodeUtils::SkipUtf8Bom(const char*& ref_szUtf8)
@@ -199,13 +198,14 @@ inline bool nsUnicodeUtils::SkipUtf16BomBE(const nsUInt16*& ref_pUtf16)
   return false;
 }
 
-inline void nsUnicodeUtils::MoveToNextUtf8(const char*& ref_szUtf8, nsUInt32 uiNumCharacters)
+inline nsResult nsUnicodeUtils::MoveToNextUtf8(const char*& ref_szUtf8, nsUInt32 uiNumCharacters)
 {
-  NS_ASSERT_DEBUG(ref_szUtf8 != nullptr, "Bad programmer!");
+  NS_ASSERT_DEBUG(ref_szUtf8 != nullptr, "Invalid string pointer to advance!");
 
   while (uiNumCharacters > 0)
   {
-    NS_ASSERT_DEV(*ref_szUtf8 != '\0', "The given string must not point to the zero terminator.");
+    if (*ref_szUtf8 == '\0')
+      return NS_FAILURE;
 
     do
     {
@@ -214,15 +214,18 @@ inline void nsUnicodeUtils::MoveToNextUtf8(const char*& ref_szUtf8, nsUInt32 uiN
 
     --uiNumCharacters;
   }
+
+  return NS_SUCCESS;
 }
 
-inline void nsUnicodeUtils::MoveToNextUtf8(const char*& ref_szUtf8, const char* szUtf8End, nsUInt32 uiNumCharacters)
+inline nsResult nsUnicodeUtils::MoveToNextUtf8(const char*& ref_szUtf8, const char* szUtf8End, nsUInt32 uiNumCharacters)
 {
-  NS_ASSERT_DEBUG(ref_szUtf8 != nullptr, "Bad programmer!");
+  NS_ASSERT_DEBUG(ref_szUtf8 != nullptr, "Invalid string pointer to advance!");
 
-  while (uiNumCharacters > 0 && ref_szUtf8 < szUtf8End)
+  while (uiNumCharacters > 0)
   {
-    NS_ASSERT_DEV(*ref_szUtf8 != '\0', "The given string must not point to the zero terminator.");
+    if (ref_szUtf8 >= szUtf8End || *ref_szUtf8 == '\0')
+      return NS_FAILURE;
 
     do
     {
@@ -231,14 +234,19 @@ inline void nsUnicodeUtils::MoveToNextUtf8(const char*& ref_szUtf8, const char* 
 
     --uiNumCharacters;
   }
+
+  return NS_SUCCESS;
 }
 
-inline void nsUnicodeUtils::MoveToPriorUtf8(const char*& ref_szUtf8, nsUInt32 uiNumCharacters)
+inline nsResult nsUnicodeUtils::MoveToPriorUtf8(const char*& ref_szUtf8, const char* szUtf8Start, nsUInt32 uiNumCharacters)
 {
-  NS_ASSERT_DEBUG(ref_szUtf8 != nullptr, "Bad programmer!");
+  NS_ASSERT_DEBUG(ref_szUtf8 != nullptr, "Invalid string pointer to advance!");
 
   while (uiNumCharacters > 0)
   {
+    if (ref_szUtf8 <= szUtf8Start)
+      return NS_FAILURE;
+
     do
     {
       --ref_szUtf8;
@@ -246,6 +254,8 @@ inline void nsUnicodeUtils::MoveToPriorUtf8(const char*& ref_szUtf8, nsUInt32 ui
 
     --uiNumCharacters;
   }
+
+  return NS_SUCCESS;
 }
 template <typename T>
 constexpr T* nsUnicodeUtils::GetMaxStringEnd()

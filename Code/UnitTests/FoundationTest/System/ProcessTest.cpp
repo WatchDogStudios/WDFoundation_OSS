@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/System/Process.h>
@@ -127,7 +122,8 @@ NS_CREATE_SIMPLE_TEST(System, Process)
     nsDynamicArray<nsStringBuilder> lines;
     nsStringBuilder out;
     nsProcessOptions opt;
-    opt.m_onStdOut = [&](nsStringView sView) {
+    opt.m_onStdOut = [&](nsStringView sView)
+    {
       out.Append(sView);
       lines.PushBack(sView);
     };
@@ -160,7 +156,8 @@ NS_CREATE_SIMPLE_TEST(System, Process)
   {
     nsStringBuilder err;
     nsProcessOptions opt;
-    opt.m_onStdError = [&err](nsStringView sView) { err.Append(sView); };
+    opt.m_onStdError = [&err](nsStringView sView)
+    { err.Append(sView); };
 
     opt.m_sProcess = pathToSelf;
     opt.m_Arguments.PushBack("-cmd");
@@ -184,11 +181,13 @@ NS_CREATE_SIMPLE_TEST(System, Process)
     nsStringBuilder out;
     nsStringBuilder err;
     nsProcessOptions opt;
-    opt.m_onStdOut = [&](nsStringView sView) {
+    opt.m_onStdOut = [&](nsStringView sView)
+    {
       out.Append(sView);
       lines.PushBack(sView);
     };
-    opt.m_onStdError = [&err](nsStringView sView) { err.Append(sView); };
+    opt.m_onStdError = [&err](nsStringView sView)
+    { err.Append(sView); };
     opt.m_sProcess = pathToSelf;
     opt.m_Arguments.PushBack("-cmd");
     opt.m_Arguments.PushBack("-stdout");

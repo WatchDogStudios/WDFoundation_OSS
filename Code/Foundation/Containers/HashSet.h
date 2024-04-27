@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Algorithm/HashingUtils.h>
@@ -33,14 +28,13 @@ public:
     /// \brief Checks whether the two iterators point to the same element.
     bool operator==(const typename nsHashSetBase<KeyType, Hasher>::ConstIterator& rhs) const;
 
-    /// \brief Checks whether the two iterators point to the same element.
-    bool operator!=(const typename nsHashSetBase<KeyType, Hasher>::ConstIterator& rhs) const;
+    NS_ADD_DEFAULT_OPERATOR_NOTEQUAL(const typename nsHashSetBase<KeyType, Hasher>::ConstIterator&);
 
     /// \brief Returns the 'key' of the element that this iterator points to.
     const KeyType& Key() const; // [tested]
 
     /// \brief Returns the 'key' of the element that this iterator points to.
-    NS_ALWAYS_INLINE const KeyType& operator*() { return Key(); } // [tested]
+    NS_ALWAYS_INLINE const KeyType& operator*() const { return Key(); } // [tested]
 
     /// \brief Advances the iterator to the next element in the map. The iterator will not be valid anymore, if the end is reached.
     void Next(); // [tested]
@@ -62,13 +56,13 @@ public:
 
 protected:
   /// \brief Creates an empty hashset. Does not allocate any data yet.
-  explicit nsHashSetBase(nsAllocatorBase* pAllocator); // [tested]
+  explicit nsHashSetBase(nsAllocator* pAllocator); // [tested]
 
   /// \brief Creates a copy of the given hashset.
-  nsHashSetBase(const nsHashSetBase<KeyType, Hasher>& rhs, nsAllocatorBase* pAllocator); // [tested]
+  nsHashSetBase(const nsHashSetBase<KeyType, Hasher>& rhs, nsAllocator* pAllocator); // [tested]
 
   /// \brief Moves data from an existing hashtable into this one.
-  nsHashSetBase(nsHashSetBase<KeyType, Hasher>&& rhs, nsAllocatorBase* pAllocator); // [tested]
+  nsHashSetBase(nsHashSetBase<KeyType, Hasher>&& rhs, nsAllocator* pAllocator); // [tested]
 
   /// \brief Destructor.
   ~nsHashSetBase(); // [tested]
@@ -82,9 +76,7 @@ protected:
 public:
   /// \brief Compares this table to another table.
   bool operator==(const nsHashSetBase<KeyType, Hasher>& rhs) const; // [tested]
-
-  /// \brief Compares this table to another table.
-  bool operator!=(const nsHashSetBase<KeyType, Hasher>& rhs) const; // [tested]
+  NS_ADD_DEFAULT_OPERATOR_NOTEQUAL(const nsHashSetBase<KeyType, Hasher>&);
 
   /// \brief Expands the hashset by over-allocating the internal storage so that the load factor is lower or equal to 60% when inserting the
   /// given number of entries.
@@ -140,13 +132,17 @@ public:
   ConstIterator GetEndIterator() const;
 
   /// \brief Returns the allocator that is used by this instance.
-  nsAllocatorBase* GetAllocator() const;
+  nsAllocator* GetAllocator() const;
 
   /// \brief Returns the amount of bytes that are currently allocated on the heap.
   nsUInt64 GetHeapMemoryUsage() const; // [tested]
 
   /// \brief Swaps this map with the other one.
   void Swap(nsHashSetBase<KeyType, Hasher>& other); // [tested]
+
+  /// \brief Searches for key, returns a ConstIterator to it or an invalid iterator, if no such key is found. O(1) operation.
+  template <typename CompatibleKeyType>
+  ConstIterator Find(const CompatibleKeyType& key) const;
 
 private:
   KeyType* m_pEntries;
@@ -155,7 +151,7 @@ private:
   nsUInt32 m_uiCount;
   nsUInt32 m_uiCapacity;
 
-  nsAllocatorBase* m_pAllocator;
+  nsAllocator* m_pAllocator;
 
   enum
   {
@@ -195,7 +191,7 @@ class nsHashSet : public nsHashSetBase<KeyType, Hasher>
 {
 public:
   nsHashSet();
-  explicit nsHashSet(nsAllocatorBase* pAllocator);
+  explicit nsHashSet(nsAllocator* pAllocator);
 
   nsHashSet(const nsHashSet<KeyType, Hasher, AllocatorWrapper>& other);
   nsHashSet(const nsHashSetBase<KeyType, Hasher>& other);

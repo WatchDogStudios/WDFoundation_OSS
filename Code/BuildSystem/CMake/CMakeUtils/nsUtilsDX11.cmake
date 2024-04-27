@@ -66,5 +66,5 @@ endfunction()
 # ## ns_requires_d3d()
 # #####################################
 macro(ns_requires_d3d)
-	ns_requires_windows()
+	ns_requires(NS_CMAKE_PLATFORM_WINDOWS)
 endmacro()

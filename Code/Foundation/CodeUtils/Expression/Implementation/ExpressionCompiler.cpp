@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/CodeUtils/Expression/ExpressionByteCode.h>
@@ -177,6 +172,7 @@ nsResult nsExpressionCompiler::TransformAndOptimizeAST(nsExpressionAST& ast, nsS
   NS_SUCCEED_OR_RETURN(TransformASTPreOrder(ast, nsMakeDelegate(&nsExpressionAST::ReplaceVectorInstructions, &ast)));
   DumpAST(ast, sDebugAstOutputPath, "_02_ReplacedVectorInst");
 
+  NS_SUCCEED_OR_RETURN(ast.ScalarizeInputs());
   NS_SUCCEED_OR_RETURN(ast.ScalarizeOutputs());
   NS_SUCCEED_OR_RETURN(TransformASTPreOrder(ast, nsMakeDelegate(&nsExpressionAST::ScalarizeVectorInstructions, &ast)));
   DumpAST(ast, sDebugAstOutputPath, "_03_Scalarized");
@@ -320,7 +316,8 @@ nsResult nsExpressionCompiler::AssignRegisters()
   // https://www2.seas.gwu.edu/~hchoi/teaching/cs160d/linearscan.pdf
 
   // Sort register lifetime by start index
-  m_LiveIntervals.Sort([](const LiveInterval& a, const LiveInterval& b) { return a.m_uiStart < b.m_uiStart; });
+  m_LiveIntervals.Sort([](const LiveInterval& a, const LiveInterval& b)
+    { return a.m_uiStart < b.m_uiStart; });
 
   // Assign registers
   nsHybridArray<LiveInterval, 64> activeIntervals;
@@ -362,12 +359,32 @@ nsResult nsExpressionCompiler::AssignRegisters()
 
 nsResult nsExpressionCompiler::GenerateByteCode(const nsExpressionAST& ast, nsExpressionByteCode& out_byteCode)
 {
-  auto& byteCode = out_byteCode.m_ByteCode;
+  nsHybridArray<nsExpression::StreamDesc, 8> inputs;
+  nsHybridArray<nsExpression::StreamDesc, 8> outputs;
+  nsHybridArray<nsExpression::FunctionDesc, 4> functions;
+
+  m_ByteCode.Clear();
 
   nsUInt32 uiMaxRegisterIndex = 0;
 
   m_InputToIndex.Clear();
+  for (nsUInt32 i = 0; i < ast.m_InputNodes.GetCount(); ++i)
+  {
+    auto& desc = ast.m_InputNodes[i]->m_Desc;
+    m_InputToIndex.Insert(desc.m_sName, i);
+
+    inputs.PushBack(desc);
+  }
+
   m_OutputToIndex.Clear();
+  for (nsUInt32 i = 0; i < ast.m_OutputNodes.GetCount(); ++i)
+  {
+    auto& desc = ast.m_OutputNodes[i]->m_Desc;
+    m_OutputToIndex.Insert(desc.m_sName, i);
+
+    outputs.PushBack(desc);
+  }
+
   m_FunctionToIndex.Clear();
 
   for (auto pCurrentNode : m_NodeInstructions)
@@ -401,42 +418,42 @@ nsResult nsExpressionCompiler::GenerateByteCode(const nsExpressionAST& ast, nsEx
     {
       auto pUnary = static_cast<const nsExpressionAST::UnaryOperator*>(pCurrentNode);
 
-      byteCode.PushBack(opCode);
-      byteCode.PushBack(uiTargetRegister);
-      byteCode.PushBack(m_NodeToRegisterIndex[pUnary->m_pOperand]);
+      m_ByteCode.PushBack(opCode);
+      m_ByteCode.PushBack(uiTargetRegister);
+      m_ByteCode.PushBack(m_NodeToRegisterIndex[pUnary->m_pOperand]);
     }
     else if (nsExpressionAST::NodeType::IsBinary(nodeType))
     {
       auto pBinary = static_cast<const nsExpressionAST::BinaryOperator*>(pCurrentNode);
 
-      byteCode.PushBack(opCode);
-      byteCode.PushBack(uiTargetRegister);
-      byteCode.PushBack(m_NodeToRegisterIndex[pBinary->m_pLeftOperand]);
+      m_ByteCode.PushBack(opCode);
+      m_ByteCode.PushBack(uiTargetRegister);
+      m_ByteCode.PushBack(m_NodeToRegisterIndex[pBinary->m_pLeftOperand]);
 
       if (bRightIsConstant)
       {
-        NS_SUCCEED_OR_RETURN(GenerateConstantByteCode(static_cast<const nsExpressionAST::Constant*>(pBinary->m_pRightOperand), out_byteCode));
+        NS_SUCCEED_OR_RETURN(GenerateConstantByteCode(static_cast<const nsExpressionAST::Constant*>(pBinary->m_pRightOperand)));
       }
       else
       {
-        byteCode.PushBack(m_NodeToRegisterIndex[pBinary->m_pRightOperand]);
+        m_ByteCode.PushBack(m_NodeToRegisterIndex[pBinary->m_pRightOperand]);
       }
     }
     else if (nsExpressionAST::NodeType::IsTernary(nodeType))
     {
       auto pTernary = static_cast<const nsExpressionAST::TernaryOperator*>(pCurrentNode);
 
-      byteCode.PushBack(opCode);
-      byteCode.PushBack(uiTargetRegister);
-      byteCode.PushBack(m_NodeToRegisterIndex[pTernary->m_pFirstOperand]);
-      byteCode.PushBack(m_NodeToRegisterIndex[pTernary->m_pSecondOperand]);
-      byteCode.PushBack(m_NodeToRegisterIndex[pTernary->m_pThirdOperand]);
+      m_ByteCode.PushBack(opCode);
+      m_ByteCode.PushBack(uiTargetRegister);
+      m_ByteCode.PushBack(m_NodeToRegisterIndex[pTernary->m_pFirstOperand]);
+      m_ByteCode.PushBack(m_NodeToRegisterIndex[pTernary->m_pSecondOperand]);
+      m_ByteCode.PushBack(m_NodeToRegisterIndex[pTernary->m_pThirdOperand]);
     }
     else if (nsExpressionAST::NodeType::IsConstant(nodeType))
     {
-      byteCode.PushBack(opCode);
-      byteCode.PushBack(uiTargetRegister);
-      NS_SUCCEED_OR_RETURN(GenerateConstantByteCode(static_cast<const nsExpressionAST::Constant*>(pCurrentNode), out_byteCode));
+      m_ByteCode.PushBack(opCode);
+      m_ByteCode.PushBack(uiTargetRegister);
+      NS_SUCCEED_OR_RETURN(GenerateConstantByteCode(static_cast<const nsExpressionAST::Constant*>(pCurrentNode)));
     }
     else if (nsExpressionAST::NodeType::IsInput(nodeType))
     {
@@ -444,32 +461,26 @@ nsResult nsExpressionCompiler::GenerateByteCode(const nsExpressionAST& ast, nsEx
       nsUInt32 uiInputIndex = 0;
       if (!m_InputToIndex.TryGetValue(desc.m_sName, uiInputIndex))
       {
-        uiInputIndex = out_byteCode.m_Inputs.GetCount();
+        uiInputIndex = inputs.GetCount();
         m_InputToIndex.Insert(desc.m_sName, uiInputIndex);
 
-        out_byteCode.m_Inputs.PushBack(desc);
+        inputs.PushBack(desc);
       }
 
-      byteCode.PushBack(opCode);
-      byteCode.PushBack(uiTargetRegister);
-      byteCode.PushBack(uiInputIndex);
+      m_ByteCode.PushBack(opCode);
+      m_ByteCode.PushBack(uiTargetRegister);
+      m_ByteCode.PushBack(uiInputIndex);
     }
     else if (nsExpressionAST::NodeType::IsOutput(nodeType))
     {
       auto pOutput = static_cast<const nsExpressionAST::Output*>(pCurrentNode);
       auto& desc = pOutput->m_Desc;
       nsUInt32 uiOutputIndex = 0;
-      if (!m_OutputToIndex.TryGetValue(desc.m_sName, uiOutputIndex))
-      {
-        uiOutputIndex = out_byteCode.m_Outputs.GetCount();
-        m_OutputToIndex.Insert(desc.m_sName, uiOutputIndex);
+      NS_VERIFY(m_OutputToIndex.TryGetValue(desc.m_sName, uiOutputIndex), "Invalid output '{}'", desc.m_sName);
 
-        out_byteCode.m_Outputs.PushBack(desc);
-      }
-
-      byteCode.PushBack(opCode);
-      byteCode.PushBack(uiOutputIndex);
-      byteCode.PushBack(m_NodeToRegisterIndex[pOutput->m_pExpression]);
+      m_ByteCode.PushBack(opCode);
+      m_ByteCode.PushBack(uiOutputIndex);
+      m_ByteCode.PushBack(m_NodeToRegisterIndex[pOutput->m_pExpression]);
     }
     else if (nsExpressionAST::NodeType::IsFunctionCall(nodeType))
     {
@@ -480,22 +491,22 @@ nsResult nsExpressionCompiler::GenerateByteCode(const nsExpressionAST& ast, nsEx
       nsUInt32 uiFunctionIndex = 0;
       if (!m_FunctionToIndex.TryGetValue(sMangledName, uiFunctionIndex))
       {
-        uiFunctionIndex = out_byteCode.m_Functions.GetCount();
+        uiFunctionIndex = functions.GetCount();
         m_FunctionToIndex.Insert(sMangledName, uiFunctionIndex);
 
-        out_byteCode.m_Functions.PushBack(*pDesc);
-        out_byteCode.m_Functions.PeekBack().m_sName = std::move(sMangledName);
+        functions.PushBack(*pDesc);
+        functions.PeekBack().m_sName = std::move(sMangledName);
       }
 
-      byteCode.PushBack(opCode);
-      byteCode.PushBack(uiFunctionIndex);
-      byteCode.PushBack(uiTargetRegister);
+      m_ByteCode.PushBack(opCode);
+      m_ByteCode.PushBack(uiFunctionIndex);
+      m_ByteCode.PushBack(uiTargetRegister);
 
-      byteCode.PushBack(pFunctionCall->m_Arguments.GetCount());
+      m_ByteCode.PushBack(pFunctionCall->m_Arguments.GetCount());
       for (auto pArg : pFunctionCall->m_Arguments)
       {
         nsUInt32 uiArgRegister = m_NodeToRegisterIndex[pArg];
-        byteCode.PushBack(uiArgRegister);
+        m_ByteCode.PushBack(uiArgRegister);
       }
     }
     else
@@ -504,29 +515,25 @@ nsResult nsExpressionCompiler::GenerateByteCode(const nsExpressionAST& ast, nsEx
     }
   }
 
-  out_byteCode.m_uiNumInstructions = m_NodeInstructions.GetCount();
-  out_byteCode.m_uiNumTempRegisters = uiMaxRegisterIndex + 1;
-
+  out_byteCode.Init(m_ByteCode, inputs, outputs, functions, uiMaxRegisterIndex + 1, m_NodeInstructions.GetCount());
   return NS_SUCCESS;
 }
 
-nsResult nsExpressionCompiler::GenerateConstantByteCode(const nsExpressionAST::Constant* pConstant, nsExpressionByteCode& out_byteCode)
+nsResult nsExpressionCompiler::GenerateConstantByteCode(const nsExpressionAST::Constant* pConstant)
 {
-  auto& byteCode = out_byteCode.m_ByteCode;
-
   if (pConstant->m_ReturnType == nsExpressionAST::DataType::Float)
   {
-    byteCode.PushBack(*reinterpret_cast<const nsUInt32*>(&pConstant->m_Value.Get<float>()));
+    m_ByteCode.PushBack(*reinterpret_cast<const nsUInt32*>(&pConstant->m_Value.Get<float>()));
     return NS_SUCCESS;
   }
   else if (pConstant->m_ReturnType == nsExpressionAST::DataType::Int)
   {
-    byteCode.PushBack(pConstant->m_Value.Get<int>());
+    m_ByteCode.PushBack(pConstant->m_Value.Get<int>());
     return NS_SUCCESS;
   }
   else if (pConstant->m_ReturnType == nsExpressionAST::DataType::Bool)
   {
-    byteCode.PushBack(pConstant->m_Value.Get<bool>() ? 0xFFFFFFFF : 0);
+    m_ByteCode.PushBack(pConstant->m_Value.Get<bool>() ? 0xFFFFFFFF : 0);
     return NS_SUCCESS;
   }
 
@@ -685,6 +692,3 @@ void nsExpressionCompiler::DumpAST(const nsExpressionAST& ast, nsStringView sOut
     nsLog::Error("Failed to dump AST to: {}", sFullPath);
   }
 }
-
-
-NS_STATICLINK_FILE(Foundation, Foundation_CodeUtils_Expression_Implementation_ExpressionCompiler);

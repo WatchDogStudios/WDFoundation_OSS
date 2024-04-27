@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/IO/OSFile.h>
@@ -161,7 +156,7 @@ Only concrete and clocks.\n\
   }
 #  endif // NS_SUPPORTS_CASE_INSENSITIVE_PATHS && NS_SUPPORTS_UNRESTRICTED_FILE_ACCESS
 
-#endif // NS_SUPPORTS_FILE_STATS
+#endif   // NS_SUPPORTS_FILE_STATS
 
 #if NS_ENABLED(NS_SUPPORTS_FILE_ITERATORS)
 
@@ -221,10 +216,10 @@ Only concrete and clocks.\n\
   NS_TEST_BLOCK(nsTestBlock::Enabled, "Delete File")
   {
     NS_TEST_BOOL(nsOSFile::DeleteFile(sOutputFile.GetData()) == NS_SUCCESS);
-    NS_TEST_BOOL(nsOSFile::DeleteFile(sOutputFile.GetData()) == NS_SUCCESS); // second time should still 'succeed'
+    NS_TEST_BOOL(nsOSFile::DeleteFile(sOutputFile.GetData()) == NS_SUCCESS);          // second time should still 'succeed'
 
     NS_TEST_BOOL(nsOSFile::DeleteFile(sOutputFile2.GetData()) == NS_SUCCESS);
-    NS_TEST_BOOL(nsOSFile::DeleteFile(sOutputFile2.GetData()) == NS_SUCCESS); // second time should still 'succeed'
+    NS_TEST_BOOL(nsOSFile::DeleteFile(sOutputFile2.GetData()) == NS_SUCCESS);         // second time should still 'succeed'
 
     nsOSFile f;
     NS_TEST_BOOL(f.Open(sOutputFile.GetData(), nsFileOpenMode::Read) == NS_FAILURE);  // file should not exist anymore
@@ -273,6 +268,10 @@ Only concrete and clocks.\n\
 
     NS_TEST_BOOL(nsOSFile::ExistsFile(sOutputFile.GetData()) == false);
     NS_TEST_BOOL(nsOSFile::ExistsFile(sOutputFile2.GetData()) == false);
+
+    nsStringBuilder sOutputFolder = nsTestFramework::GetInstance()->GetAbsOutputPath();
+    // We should not report folders as files
+    NS_TEST_BOOL(nsOSFile::ExistsFile(sOutputFolder) == false);
   }
 
   NS_TEST_BLOCK(nsTestBlock::Enabled, "ExistsDirectory")

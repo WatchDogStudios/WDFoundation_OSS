@@ -1,8 +1,4 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
+// Copyright 2006 Nemanja Trifunovic
 
 /*
 Permission is hereby granted, free of charge, to any person or organization
@@ -31,6 +27,18 @@ DEALINGS IN THE SOFTWARE.
 
 #ifndef UTF8_FOR_CPP_2675DCD0_9480_4c0c_B92A_CC14C027B731
 #define UTF8_FOR_CPP_2675DCD0_9480_4c0c_B92A_CC14C027B731
+
+/*
+To control the C++ language version used by the library, you can define UTF_CPP_CPLUSPLUS macro
+and set it to one of the values used by the __cplusplus predefined macro.
+
+For instance,
+    #define UTF_CPP_CPLUSPLUS 199711L
+will cause the UTF-8 CPP library to use only types and language features available in the C++ 98 standard.
+Some library features will be disabled.
+
+If you leave UTF_CPP_CPLUSPLUS undefined, it will be internally assigned to __cplusplus.
+*/
 
 #include "checked.h"
 #include "unchecked.h"

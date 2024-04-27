@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/IO/MemoryStream.h>
@@ -121,7 +116,7 @@ NS_CREATE_SIMPLE_TEST(Basics, TagSet)
     for (nsUInt32 i = 0; i < 250; ++i)
     {
       nsStringBuilder TagName;
-      TagName.Format("TEST_TAG{0}", i);
+      TagName.SetFormat("TEST_TAG{0}", i);
 
       RegisteredTags[i] = TempTestRegistry.RegisterTag(TagName.GetData());
 
@@ -215,7 +210,7 @@ NS_CREATE_SIMPLE_TEST(Basics, TagSet)
     for (nsUInt32 i = 0; i < 250; ++i)
     {
       nsStringBuilder TagName;
-      TagName.Format("TEST_TAG{0}", i);
+      TagName.SetFormat("TEST_TAG{0}", i);
 
       RegisteredTags[i] = TempTestRegistry.RegisterTag(TagName.GetData());
 

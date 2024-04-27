@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <TestFramework/TestFrameworkPCH.h>
 
 #include <TestFramework/Utilities/TestOrder.h>
@@ -40,12 +35,12 @@ void SaveTestOrder(const char* szFile, const std::deque<nsTestEntry>& allTests)
   // Test order
   for (nsUInt32 t = 0; t < allTests.size(); ++t)
   {
-    sprintf(szTemp, "%s = %s\n", allTests[t].m_szTestName, allTests[t].m_bEnableTest ? "on" : "off");
+    nsStringUtils::snprintf(szTemp, 256, "%s = %s\n", allTests[t].m_szTestName, allTests[t].m_bEnableTest ? "on" : "off");
     fwrite(szTemp, sizeof(char), strlen(szTemp), pFile);
 
     for (nsUInt32 st = 0; st < allTests[t].m_SubTests.size(); ++st)
     {
-      sprintf(szTemp, "  %s = %s\n", allTests[t].m_SubTests[st].m_szSubTestName, allTests[t].m_SubTests[st].m_bEnableTest ? "on" : "off");
+      nsStringUtils::snprintf(szTemp, 256, "  %s = %s\n", allTests[t].m_SubTests[st].m_szSubTestName, allTests[t].m_SubTests[st].m_bEnableTest ? "on" : "off");
       fwrite(szTemp, sizeof(char), strlen(szTemp), pFile);
     }
   }
@@ -210,18 +205,18 @@ void SaveTestSettings(const char* szFile, TestSettings& ref_testSettings)
   char szTemp[256] = "";
 
   // Settings
-  sprintf(szTemp, "Settings\n");
+  nsStringUtils::snprintf(szTemp, 256, "Settings\n");
   fwrite(szTemp, sizeof(char), strlen(szTemp), pFile);
   {
-    sprintf(szTemp, "  AssertOnTestFail = %s\n", ref_testSettings.m_AssertOnTestFail != AssertOnTestFail::DoNotAssert ? "on" : "off");
+    nsStringUtils::snprintf(szTemp, 256, "  AssertOnTestFail = %s\n", ref_testSettings.m_AssertOnTestFail != AssertOnTestFail::DoNotAssert ? "on" : "off");
     fwrite(szTemp, sizeof(char), strlen(szTemp), pFile);
-    sprintf(szTemp, "  OpenHtmlOutputOnError = %s\n", ref_testSettings.m_bOpenHtmlOutputOnError ? "on" : "off");
+    nsStringUtils::snprintf(szTemp, 256, "  OpenHtmlOutputOnError = %s\n", ref_testSettings.m_bOpenHtmlOutputOnError ? "on" : "off");
     fwrite(szTemp, sizeof(char), strlen(szTemp), pFile);
-    sprintf(szTemp, "  KeepConsoleOpen = %s\n", ref_testSettings.m_bKeepConsoleOpen ? "on" : "off");
+    nsStringUtils::snprintf(szTemp, 256, "  KeepConsoleOpen = %s\n", ref_testSettings.m_bKeepConsoleOpen ? "on" : "off");
     fwrite(szTemp, sizeof(char), strlen(szTemp), pFile);
-    sprintf(szTemp, "  ShowMessageBox = %s\n", ref_testSettings.m_bShowMessageBox ? "on" : "off");
+    nsStringUtils::snprintf(szTemp, 256, "  ShowMessageBox = %s\n", ref_testSettings.m_bShowMessageBox ? "on" : "off");
     fwrite(szTemp, sizeof(char), strlen(szTemp), pFile);
-    sprintf(szTemp, "  DisableSuccessfulTests = %s\n", ref_testSettings.m_bAutoDisableSuccessfulTests ? "on" : "off");
+    nsStringUtils::snprintf(szTemp, 256, "  DisableSuccessfulTests = %s\n", ref_testSettings.m_bAutoDisableSuccessfulTests ? "on" : "off");
     fwrite(szTemp, sizeof(char), strlen(szTemp), pFile);
   }
 
@@ -291,5 +286,3 @@ void LoadTestSettings(const char* szFile, TestSettings& ref_testSettings)
 
   fclose(pFile);
 }
-
-NS_STATICLINK_FILE(TestFramework, TestFramework_Utilities_TestOrder);

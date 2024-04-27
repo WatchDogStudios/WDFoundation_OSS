@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Math/Math.h>
@@ -11,12 +6,9 @@
 
 #define STACK_SIZE 64
 
-template <typename KeyType, typename ValueType, typename Comparer>
-void nsMapBase<KeyType, ValueType, Comparer>::ConstIterator::Next()
+template <typename KeyType, typename ValueType, typename Comparer, bool REVERSE>
+void nsMapBaseConstIteratorBase<KeyType, ValueType, Comparer, REVERSE>::Advance(const nsInt32 dir0, const nsInt32 dir1)
 {
-  const nsInt32 dir0 = 0;
-  const nsInt32 dir1 = 1;
-
   if (m_pElement == nullptr)
   {
     NS_ASSERT_DEBUG(m_pElement != nullptr, "The Iterator is invalid (end).");
@@ -62,56 +54,74 @@ void nsMapBase<KeyType, ValueType, Comparer>::ConstIterator::Next()
   return;
 }
 
-template <typename KeyType, typename ValueType, typename Comparer>
-void nsMapBase<KeyType, ValueType, Comparer>::ConstIterator::Prev()
+template <typename KeyType, typename ValueType, typename Comparer, bool REVERSE>
+void nsMapBaseConstIteratorBase<KeyType, ValueType, Comparer, REVERSE>::Next()
 {
-  const nsInt32 dir0 = 1;
-  const nsInt32 dir1 = 0;
-
-  if (m_pElement == nullptr)
+  if constexpr (REVERSE)
   {
-    NS_ASSERT_DEBUG(m_pElement != nullptr, "The Iterator is invalid (end).");
-    return;
+    Advance(1, 0);
   }
-
-  // if this element has a right child, go there and then search for the left most child of that
-  if (m_pElement->m_pLink[dir1] != m_pElement->m_pLink[dir1]->m_pLink[dir1])
+  else
   {
-    m_pElement = m_pElement->m_pLink[dir1];
-
-    while (m_pElement->m_pLink[dir0] != m_pElement->m_pLink[dir0]->m_pLink[dir0])
-      m_pElement = m_pElement->m_pLink[dir0];
-
-    return;
+    Advance(0, 1);
   }
-
-  // if this element has a parent and this element is that parents left child, go directly to the parent
-  if ((m_pElement->m_pParent != m_pElement->m_pParent->m_pParent) && (m_pElement->m_pParent->m_pLink[dir0] == m_pElement))
-  {
-    m_pElement = m_pElement->m_pParent;
-    return;
-  }
-
-  // if this element has a parent and this element is that parents right child, search for the next parent, whose left child this is
-  if ((m_pElement->m_pParent != m_pElement->m_pParent->m_pParent) && (m_pElement->m_pParent->m_pLink[dir1] == m_pElement))
-  {
-    while (m_pElement->m_pParent->m_pLink[dir1] == m_pElement)
-      m_pElement = m_pElement->m_pParent;
-
-    // if we are at the root node..
-    if ((m_pElement->m_pParent == nullptr) || (m_pElement->m_pParent == m_pElement->m_pParent->m_pParent))
-    {
-      m_pElement = nullptr;
-      return;
-    }
-
-    m_pElement = m_pElement->m_pParent;
-    return;
-  }
-
-  m_pElement = nullptr;
-  return;
 }
+
+template <typename KeyType, typename ValueType, typename Comparer, bool REVERSE>
+void nsMapBaseConstIteratorBase<KeyType, ValueType, Comparer, REVERSE>::Prev()
+{
+  if constexpr (REVERSE)
+  {
+    Advance(0, 1);
+  }
+  else
+  {
+    Advance(1, 0);
+  }
+}
+
+#if NS_ENABLED(NS_USE_CPP20_OPERATORS)
+
+// These functions are used for structured bindings.
+// They describe how many elements can be accessed in the binding and which type they are.
+namespace std
+{
+  template <typename KeyType, typename ValueType, typename Comparer, bool REVERSE>
+  struct tuple_size<nsMapBaseConstIteratorBase<KeyType, ValueType, Comparer, REVERSE>> : integral_constant<size_t, 2>
+  {
+  };
+
+  template <typename KeyType, typename ValueType, typename Comparer, bool REVERSE>
+  struct tuple_element<0, nsMapBaseConstIteratorBase<KeyType, ValueType, Comparer, REVERSE>>
+  {
+    using type = const KeyType&;
+  };
+
+  template <typename KeyType, typename ValueType, typename Comparer, bool REVERSE>
+  struct tuple_element<1, nsMapBaseConstIteratorBase<KeyType, ValueType, Comparer, REVERSE>>
+  {
+    using type = const ValueType&;
+  };
+
+
+  template <typename KeyType, typename ValueType, typename Comparer, bool REVERSE>
+  struct tuple_size<nsMapBaseIteratorBase<KeyType, ValueType, Comparer, REVERSE>> : integral_constant<size_t, 2>
+  {
+  };
+
+  template <typename KeyType, typename ValueType, typename Comparer, bool REVERSE>
+  struct tuple_element<0, nsMapBaseIteratorBase<KeyType, ValueType, Comparer, REVERSE>>
+  {
+    using type = const KeyType&;
+  };
+
+  template <typename KeyType, typename ValueType, typename Comparer, bool REVERSE>
+  struct tuple_element<1, nsMapBaseIteratorBase<KeyType, ValueType, Comparer, REVERSE>>
+  {
+    using type = ValueType&;
+  };
+} // namespace std
+#endif
 
 // ***** nsMapBase *****
 
@@ -130,7 +140,7 @@ void nsMapBase<KeyType, ValueType, Comparer>::Constructor()
 }
 
 template <typename KeyType, typename ValueType, typename Comparer>
-nsMapBase<KeyType, ValueType, Comparer>::nsMapBase(const Comparer& comparer, nsAllocatorBase* pAllocator)
+nsMapBase<KeyType, ValueType, Comparer>::nsMapBase(const Comparer& comparer, nsAllocator* pAllocator)
   : m_Elements(pAllocator)
   , m_Comparer(comparer)
 {
@@ -138,7 +148,7 @@ nsMapBase<KeyType, ValueType, Comparer>::nsMapBase(const Comparer& comparer, nsA
 }
 
 template <typename KeyType, typename ValueType, typename Comparer>
-nsMapBase<KeyType, ValueType, Comparer>::nsMapBase(const nsMapBase<KeyType, ValueType, Comparer>& cc, nsAllocatorBase* pAllocator)
+nsMapBase<KeyType, ValueType, Comparer>::nsMapBase(const nsMapBase<KeyType, ValueType, Comparer>& cc, nsAllocator* pAllocator)
   : m_Elements(pAllocator)
 {
   Constructor();
@@ -206,15 +216,15 @@ NS_ALWAYS_INLINE typename nsMapBase<KeyType, ValueType, Comparer>::ConstIterator
 }
 
 template <typename KeyType, typename ValueType, typename Comparer>
-NS_ALWAYS_INLINE typename nsMapBase<KeyType, ValueType, Comparer>::Iterator nsMapBase<KeyType, ValueType, Comparer>::GetLastIterator()
+NS_ALWAYS_INLINE typename nsMapBase<KeyType, ValueType, Comparer>::ReverseIterator nsMapBase<KeyType, ValueType, Comparer>::GetReverseIterator()
 {
-  return Iterator(GetRightMost());
+  return ReverseIterator(GetRightMost());
 }
 
 template <typename KeyType, typename ValueType, typename Comparer>
-NS_ALWAYS_INLINE typename nsMapBase<KeyType, ValueType, Comparer>::ConstIterator nsMapBase<KeyType, ValueType, Comparer>::GetLastIterator() const
+NS_ALWAYS_INLINE typename nsMapBase<KeyType, ValueType, Comparer>::ConstReverseIterator nsMapBase<KeyType, ValueType, Comparer>::GetReverseIterator() const
 {
-  return ConstIterator(GetRightMost());
+  return ConstReverseIterator(GetRightMost());
 }
 
 template <typename KeyType, typename ValueType, typename Comparer>
@@ -225,7 +235,7 @@ typename nsMapBase<KeyType, ValueType, Comparer>::Node* nsMapBase<KeyType, Value
 
   Node* pNode = m_pRoot;
 
-  while (pNode->m_pLink[0] != &m_NilNode)
+  while ((const void*)pNode->m_pLink[0] != (const void*)&m_NilNode)
     pNode = pNode->m_pLink[0];
 
   return pNode;
@@ -239,7 +249,7 @@ typename nsMapBase<KeyType, ValueType, Comparer>::Node* nsMapBase<KeyType, Value
 
   Node* pNode = m_pRoot;
 
-  while (pNode->m_pLink[1] != &m_NilNode)
+  while ((const void*)pNode->m_pLink[1] != (const void*)&m_NilNode)
     pNode = pNode->m_pLink[1];
 
   return pNode;
@@ -251,7 +261,7 @@ typename nsMapBase<KeyType, ValueType, Comparer>::Node* nsMapBase<KeyType, Value
 {
   Node* pNode = m_pRoot;
 
-  while (pNode != &m_NilNode)
+  while ((const void*)pNode != (const void*)&m_NilNode)
   {
     const nsInt32 dir = (nsInt32)m_Comparer.Less(pNode->m_Key, key);
     const nsInt32 dir2 = (nsInt32)m_Comparer.Less(key, pNode->m_Key);
@@ -262,7 +272,7 @@ typename nsMapBase<KeyType, ValueType, Comparer>::Node* nsMapBase<KeyType, Value
     pNode = pNode->m_pLink[dir];
   }
 
-  if (pNode == &m_NilNode)
+  if ((const void*)pNode == (const void*)&m_NilNode)
     return nullptr;
 
   return pNode;
@@ -362,7 +372,7 @@ typename nsMapBase<KeyType, ValueType, Comparer>::Node* nsMapBase<KeyType, Value
   Node* pNode = m_pRoot;
   Node* pNodeSmaller = nullptr;
 
-  while (pNode != &m_NilNode)
+  while ((const void*)pNode != (const void*)&m_NilNode)
   {
     const nsInt32 dir = (nsInt32)m_Comparer.Less(pNode->m_Key, key);
     const nsInt32 dir2 = (nsInt32)m_Comparer.Less(key, pNode->m_Key);
@@ -400,7 +410,7 @@ typename nsMapBase<KeyType, ValueType, Comparer>::Node* nsMapBase<KeyType, Value
   Node* pNode = m_pRoot;
   Node* pNodeSmaller = nullptr;
 
-  while (pNode != &m_NilNode)
+  while ((const void*)pNode != (const void*)&m_NilNode)
   {
     const nsInt32 dir = (nsInt32)m_Comparer.Less(pNode->m_Key, key);
     const nsInt32 dir2 = (nsInt32)m_Comparer.Less(key, pNode->m_Key);
@@ -559,7 +569,7 @@ typename nsMapBase<KeyType, ValueType, Comparer>::Node* nsMapBase<KeyType, Value
     m_pFreeElementStack = m_pFreeElementStack->m_pParent;
   }
 
-  nsMemoryUtils::Construct(pNode, 1);
+  nsMemoryUtils::Construct<SkipTrivialTypes>(pNode, 1);
 
   pNode->m_pParent = pParent;
   pNode->m_Key = std::forward<CompatibleKeyType>(key);
@@ -814,12 +824,6 @@ bool nsMapBase<KeyType, ValueType, Comparer>::operator==(const nsMapBase<KeyType
   return true;
 }
 
-template <typename KeyType, typename ValueType, typename Comparer>
-bool nsMapBase<KeyType, ValueType, Comparer>::operator!=(const nsMapBase<KeyType, ValueType, Comparer>& rhs) const
-{
-  return !operator==(rhs);
-}
-
 #undef STACK_SIZE
 
 
@@ -830,13 +834,13 @@ nsMap<KeyType, ValueType, Comparer, AllocatorWrapper>::nsMap()
 }
 
 template <typename KeyType, typename ValueType, typename Comparer, typename AllocatorWrapper>
-nsMap<KeyType, ValueType, Comparer, AllocatorWrapper>::nsMap(nsAllocatorBase* pAllocator)
+nsMap<KeyType, ValueType, Comparer, AllocatorWrapper>::nsMap(nsAllocator* pAllocator)
   : nsMapBase<KeyType, ValueType, Comparer>(Comparer(), pAllocator)
 {
 }
 
 template <typename KeyType, typename ValueType, typename Comparer, typename AllocatorWrapper>
-nsMap<KeyType, ValueType, Comparer, AllocatorWrapper>::nsMap(const Comparer& comparer, nsAllocatorBase* pAllocator)
+nsMap<KeyType, ValueType, Comparer, AllocatorWrapper>::nsMap(const Comparer& comparer, nsAllocator* pAllocator)
   : nsMapBase<KeyType, ValueType, Comparer>(comparer, pAllocator)
 {
 }

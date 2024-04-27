@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Containers/DynamicArray.h>
@@ -44,7 +39,7 @@ template <nsUInt32 BlockSizeInByte>
 class nsLargeBlockAllocator
 {
 public:
-  nsLargeBlockAllocator(nsStringView sName, nsAllocatorBase* pParent, nsBitflags<nsMemoryTrackingFlags> flags = nsMemoryTrackingFlags::Default);
+  nsLargeBlockAllocator(nsStringView sName, nsAllocator* pParent, nsAllocatorTrackingMode mode = nsAllocatorTrackingMode::Default);
   ~nsLargeBlockAllocator();
 
   template <typename T>
@@ -58,14 +53,14 @@ public:
 
   nsAllocatorId GetId() const;
 
-  const nsAllocatorBase::Stats& GetStats() const;
+  const nsAllocator::Stats& GetStats() const;
 
 private:
   void* Allocate(size_t uiAlign);
   void Deallocate(void* ptr);
 
   nsAllocatorId m_Id;
-  nsBitflags<nsMemoryTrackingFlags> m_TrackingFlags;
+  nsAllocatorTrackingMode m_TrackingMode;
 
   nsMutex m_Mutex;
   nsThreadID m_ThreadID;

@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/IO/FileSystem/FileReader.h>
@@ -22,8 +17,8 @@ nsResult nsFileReader::Open(nsStringView sFile, nsUInt32 uiCacheSize /*= 1024 * 
   m_Cache.SetCountUninitialized(uiCacheSize);
 
   m_uiCacheReadPosition = 0;
-  m_uiBytesCached = m_pDataDirReader->Read(&m_Cache[0], m_Cache.GetCount());
-  m_bEOF = m_uiBytesCached > 0 ? false : true;
+  m_uiBytesCached = 0;
+  m_bEOF = false;
 
   return NS_SUCCESS;
 }
@@ -35,6 +30,40 @@ void nsFileReader::Close()
 
   m_pDataDirReader = nullptr;
   m_bEOF = true;
+}
+
+nsUInt64 nsFileReader::SkipBytes(nsUInt64 uiBytesToSkip)
+{
+  NS_ASSERT_DEV(m_pDataDirReader != nullptr, "The file has not been opened (successfully).");
+  if (m_bEOF)
+    return 0;
+
+  nsUInt64 uiSkipPosition = 0; // how much was skipped, yet
+
+  // if any data is still in the cache, skip that first
+  {
+    const nsUInt64 uiCachedBytesLeft = m_uiBytesCached - m_uiCacheReadPosition;
+    const nsUInt64 uiBytesSkippedFromCache = nsMath::Min(uiCachedBytesLeft, uiBytesToSkip);
+    uiSkipPosition += uiBytesSkippedFromCache;
+    m_uiCacheReadPosition += uiBytesSkippedFromCache;
+    uiBytesToSkip -= uiBytesSkippedFromCache;
+  }
+
+  // skip bytes on disk
+  const nsUInt64 uiBytesMeantToSkipFromDisk = uiBytesToSkip;
+  const nsUInt64 uiBytesSkippedFromDisk = m_pDataDirReader->Skip(uiBytesToSkip);
+  uiSkipPosition += uiBytesSkippedFromDisk;
+  uiBytesToSkip -= uiBytesSkippedFromDisk;
+
+  // mark end of file if suitable
+  const bool endOfCacheReached = m_uiCacheReadPosition == m_uiBytesCached;
+  const bool endOfDiskDataReached = uiBytesSkippedFromDisk < uiBytesMeantToSkipFromDisk;
+  if (endOfCacheReached && endOfDiskDataReached)
+  {
+    m_bEOF = true;
+  }
+
+  return uiSkipPosition;
 }
 
 nsUInt64 nsFileReader::ReadBytes(void* pReadBuffer, nsUInt64 uiBytesToRead)
@@ -50,19 +79,23 @@ nsUInt64 nsFileReader::ReadBytes(void* pReadBuffer, nsUInt64 uiBytesToRead)
   {
     // if any data is still in the cache, use that first
     const nsUInt64 uiCachedBytesLeft = m_uiBytesCached - m_uiCacheReadPosition;
-
     if (uiCachedBytesLeft > 0)
     {
       nsMemoryUtils::Copy(&pBuffer[uiBufferPosition], &m_Cache[(nsUInt32)m_uiCacheReadPosition], (nsUInt32)uiCachedBytesLeft);
+      uiBufferPosition += uiCachedBytesLeft;
+      m_uiCacheReadPosition += uiCachedBytesLeft;
+      uiBytesToRead -= uiCachedBytesLeft;
     }
 
-    uiBufferPosition += uiCachedBytesLeft;
-    m_uiCacheReadPosition += uiCachedBytesLeft;
-    uiBytesToRead -= uiCachedBytesLeft;
+    // read remaining data from disk
+    nsUInt64 uiBytesReadFromDisk = 0;
+    if (uiBytesToRead > 0)
+    {
+      uiBytesReadFromDisk = m_pDataDirReader->Read(&pBuffer[uiBufferPosition], uiBytesToRead);
+      uiBufferPosition += uiBytesReadFromDisk;
+    }
 
-    const nsUInt64 uiBytesReadFromDisk = m_pDataDirReader->Read(&pBuffer[uiBufferPosition], uiBytesToRead);
-    uiBufferPosition += uiBytesReadFromDisk;
-
+    // mark eof if we're already there
     if (uiBytesReadFromDisk == 0)
     {
       m_bEOF = true;
@@ -78,12 +111,14 @@ nsUInt64 nsFileReader::ReadBytes(void* pReadBuffer, nsUInt64 uiBytesToRead)
 
       const nsUInt64 uiCachedBytesLeft = m_uiBytesCached - m_uiCacheReadPosition;
       if (uiCachedBytesLeft < uiBytesToRead)
+      {
         uiChunkSize = uiCachedBytesLeft;
+      }
 
+      // copy data into the buffer
+      // uiChunkSize can never be larger than the cache size, which is limited to 32 Bit
       if (uiChunkSize > 0)
       {
-        // copy data into the buffer
-        // uiChunkSize can never be larger than the cache size, which is limited to 32 Bit
         nsMemoryUtils::Copy(&pBuffer[uiBufferPosition], &m_Cache[(nsUInt32)m_uiCacheReadPosition], (nsUInt32)uiChunkSize);
 
         // store how much was read and how much is still left to read
@@ -91,7 +126,6 @@ nsUInt64 nsFileReader::ReadBytes(void* pReadBuffer, nsUInt64 uiBytesToRead)
         m_uiCacheReadPosition += uiChunkSize;
         uiBytesToRead -= uiChunkSize;
       }
-
 
       // if the cache is depleted, refill it
       // this will even be triggered if EXACTLY the amount of available bytes was read
@@ -115,7 +149,3 @@ nsUInt64 nsFileReader::ReadBytes(void* pReadBuffer, nsUInt64 uiBytesToRead)
   // return how much was read
   return uiBufferPosition;
 }
-
-
-
-NS_STATICLINK_FILE(Foundation, Foundation_IO_FileSystem_Implementation_FileReader);

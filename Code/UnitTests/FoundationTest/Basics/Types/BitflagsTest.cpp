@@ -1,9 +1,6 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
+
+#include <Foundation/Containers/IterateBits.h>
 
 namespace
 {
@@ -37,7 +34,9 @@ namespace
   NS_DECLARE_FLAGS_OPERATORS(ManualFlags);
 } // namespace
 
+NS_DEFINE_AS_POD_TYPE(AutoFlags::Enum);
 NS_CHECK_AT_COMPILETIME(sizeof(nsBitflags<AutoFlags>) == 4);
+
 
 NS_CREATE_SIMPLE_TEST(Basics, Bitflags)
 {
@@ -106,6 +105,52 @@ NS_CREATE_SIMPLE_TEST(Basics, Bitflags)
 
     NS_TEST_BOOL(f.GetValue() == AutoFlags::Bit3);
   }
+
+  NS_TEST_BLOCK(nsTestBlock::Enabled, "Iterator")
+  {
+    {
+      // Empty
+      nsBitflags<AutoFlags> f;
+      auto it = f.GetIterator();
+      NS_TEST_BOOL(it == f.GetEndIterator());
+      NS_TEST_BOOL(!it.IsValid());
+
+      for (AutoFlags::Enum flag : f)
+      {
+        NS_TEST_BOOL_MSG(false, "No bit should be set");
+      }
+    }
+
+    {
+      // All flags
+      nsBitflags<AutoFlags> f = AutoFlags::Bit1 | AutoFlags::Bit2 | AutoFlags::Bit3 | AutoFlags::Bit4;
+      nsHybridArray<AutoFlags::Enum, 4> flags;
+      flags.PushBack(AutoFlags::Bit1);
+      flags.PushBack(AutoFlags::Bit2);
+      flags.PushBack(AutoFlags::Bit3);
+      flags.PushBack(AutoFlags::Bit4);
+
+      nsUInt32 uiIndex = 0;
+      // Iterator
+      for (auto it = f.GetIterator(); it.IsValid(); ++it)
+      {
+        NS_TEST_INT(*it, flags[uiIndex]);
+        NS_TEST_INT(it.Value(), flags[uiIndex]);
+        NS_TEST_BOOL(it.IsValid());
+        ++uiIndex;
+      }
+      NS_TEST_INT(uiIndex, 4);
+
+      // Range-base for loop
+      uiIndex = 0;
+      for (AutoFlags::Enum flag : f)
+      {
+        NS_TEST_INT(flag, flags[uiIndex]);
+        ++uiIndex;
+      }
+      NS_TEST_INT(uiIndex, 4);
+    }
+  }
 }
 
 
@@ -131,65 +176,3 @@ namespace
     };
   };
 } // namespace
-
-NS_CREATE_SIMPLE_TEST(Basics, TypelessBitflags)
-{
-  {
-    nsTypelessBitflags<nsUInt32> flags = TypelessFlags1::Bit1 | TypelessFlags2::Bit4;
-
-    NS_TEST_BOOL(flags.IsAnySet(TypelessFlags2::Bit4));
-    NS_TEST_BOOL(flags.AreAllSet(TypelessFlags1::Bit1 | TypelessFlags2::Bit4));
-    NS_TEST_BOOL(flags.IsAnySet(TypelessFlags1::Bit1 | TypelessFlags1::Bit2));
-    NS_TEST_BOOL(!flags.IsAnySet(TypelessFlags1::Bit2 | TypelessFlags2::Bit3));
-    NS_TEST_BOOL(flags.AreNoneSet(TypelessFlags1::Bit2 | TypelessFlags2::Bit3));
-    NS_TEST_BOOL(!flags.AreNoneSet(TypelessFlags1::Bit2 | TypelessFlags2::Bit4));
-
-    flags.Add(TypelessFlags2::Bit3);
-    NS_TEST_BOOL(flags.IsAnySet(TypelessFlags2::Bit3));
-
-    flags.Remove(TypelessFlags1::Bit1);
-    NS_TEST_BOOL(!flags.IsAnySet(TypelessFlags1::Bit1));
-
-    flags.Toggle(TypelessFlags2::Bit4);
-    NS_TEST_BOOL(flags.AreAllSet(TypelessFlags2::Bit3));
-
-    flags.AddOrRemove(TypelessFlags1::Bit2, true);
-    flags.AddOrRemove(TypelessFlags2::Bit3, false);
-    NS_TEST_BOOL(flags.AreAllSet(TypelessFlags1::Bit2));
-
-    NS_TEST_BOOL(!flags.IsNoFlagSet());
-    flags.Clear();
-    NS_TEST_BOOL(flags.IsNoFlagSet());
-  }
-
-  NS_TEST_BLOCK(nsTestBlock::Enabled, "operator&")
-  {
-    nsTypelessBitflags<nsUInt32> flags2 = TypelessFlags1::Bit1 & TypelessFlags2::Bit4;
-    NS_TEST_BOOL(flags2.GetValue() == 0);
-  }
-
-  NS_TEST_BLOCK(nsTestBlock::Enabled, "SetValue")
-  {
-    nsTypelessBitflags<nsUInt32> flags;
-    NS_TEST_BOOL(flags.IsNoFlagSet());
-    NS_TEST_BOOL(flags.GetValue() == 0);
-    flags.SetValue(17);
-    NS_TEST_BOOL(flags.GetValue() == 17);
-  }
-
-  NS_TEST_BLOCK(nsTestBlock::Enabled, "operator|=")
-  {
-    nsTypelessBitflags<nsUInt32> f = TypelessFlags1::Bit1 | TypelessFlags1::Bit2;
-    f |= TypelessFlags2::Bit3;
-
-    NS_TEST_BOOL(f.GetValue() == (TypelessFlags1::Bit1 | TypelessFlags1::Bit2 | TypelessFlags2::Bit3));
-  }
-
-  NS_TEST_BLOCK(nsTestBlock::Enabled, "operator&=")
-  {
-    nsTypelessBitflags<nsUInt32> f = TypelessFlags1::Bit1 | TypelessFlags1::Bit2 | TypelessFlags2::Bit3;
-    f &= TypelessFlags2::Bit3;
-
-    NS_TEST_BOOL(f.GetValue() == TypelessFlags2::Bit3);
-  }
-}

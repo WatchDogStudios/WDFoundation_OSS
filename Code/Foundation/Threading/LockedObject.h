@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 /// \brief Provides access to an object while managing a lock (e.g. a mutex) that ensures that during its lifetime the access to the object
@@ -49,6 +44,10 @@ public:
 
   /// \brief Whether the encapsulated object exists at all or is nullptr
   NS_ALWAYS_INLINE bool isValid() const { return m_pObject != nullptr; }
+
+  O* Borrow() { return m_pObject; }
+
+  const O* Borrow() const { return m_pObject; }
 
   O* operator->() { return m_pObject; }
 

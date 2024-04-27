@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Math/CurveFunctions.h>
@@ -36,6 +31,11 @@ bool nsMath::IsPowerOf(nsInt32 value, nsInt32 iBase)
 
 nsUInt32 nsMath::PowerOfTwo_Floor(nsUInt32 uiNpot)
 {
+  return static_cast<nsUInt32>(PowerOfTwo_Floor(static_cast<nsUInt64>(uiNpot)));
+}
+
+nsUInt64 nsMath::PowerOfTwo_Floor(nsUInt64 uiNpot)
+{
   if (IsPowerOf2(uiNpot))
     return (uiNpot);
 
@@ -51,6 +51,11 @@ nsUInt32 nsMath::PowerOfTwo_Floor(nsUInt32 uiNpot)
 }
 
 nsUInt32 nsMath::PowerOfTwo_Ceil(nsUInt32 uiNpot)
+{
+  return static_cast<nsUInt32>(PowerOfTwo_Ceil(static_cast<nsUInt64>(uiNpot)));
+}
+
+nsUInt64 nsMath::PowerOfTwo_Ceil(nsUInt64 uiNpot)
 {
   if (IsPowerOf2(uiNpot))
     return (uiNpot);
@@ -134,7 +139,6 @@ nsUInt32 nsMath::SafeMultiply32(nsUInt32 a, nsUInt32 b, nsUInt32 c, nsUInt32 d)
 
   NS_REPORT_FAILURE("Safe multiplication failed: {0} * {1} * {2} * {3} exceeds UInt32 range.", a, b, c, d);
   std::terminate();
-  return 0;
 }
 
 nsResult nsMath::TryMultiply64(nsUInt64& out_uiResult, nsUInt64 a, nsUInt64 b, nsUInt64 c, nsUInt64 d)
@@ -203,7 +207,6 @@ nsUInt64 nsMath::SafeMultiply64(nsUInt64 a, nsUInt64 b, nsUInt64 c, nsUInt64 d)
 
   NS_REPORT_FAILURE("Safe multiplication failed: {0} * {1} * {2} * {3} exceeds nsUInt64 range.", a, b, c, d);
   std::terminate();
-  return 0;
 }
 
 #if NS_ENABLED(NS_PLATFORM_32BIT)
@@ -217,7 +220,6 @@ size_t nsMath::SafeConvertToSizeT(nsUInt64 uiValue)
 
   NS_REPORT_FAILURE("Given value ({}) can't be converted to size_t because it is too big.", uiValue);
   std::terminate();
-  return 0;
 }
 #endif
 
@@ -283,10 +285,10 @@ nsVec3 nsBasisAxis::GetBasisVector(Enum basisAxis)
     case nsBasisAxis::NegativeY:
       return nsVec3(0.0f, -1.0f, 0.0f);
 
-    case nsBasisAxis::Positivns:
+    case nsBasisAxis::PositiveZ:
       return nsVec3(0.0f, 0.0f, 1.0f);
 
-    case nsBasisAxis::Negativns:
+    case nsBasisAxis::NegativeZ:
       return nsVec3(0.0f, 0.0f, -1.0f);
 
     default:
@@ -295,12 +297,12 @@ nsVec3 nsBasisAxis::GetBasisVector(Enum basisAxis)
   }
 }
 
-nsMat3 nsBasisAxis::CalculateTransformationMatrix(Enum forwardDir, Enum rightDir, Enum dir, float fUniformScale /*= 1.0f*/, float fScaleX /*= 1.0f*/, float fScaleY /*= 1.0f*/, float fScalns /*= 1.0f*/)
+nsMat3 nsBasisAxis::CalculateTransformationMatrix(Enum forwardDir, Enum rightDir, Enum dir, float fUniformScale /*= 1.0f*/, float fScaleX /*= 1.0f*/, float fScaleY /*= 1.0f*/, float fScaleZ /*= 1.0f*/)
 {
   nsMat3 mResult;
   mResult.SetRow(0, nsBasisAxis::GetBasisVector(forwardDir) * fUniformScale * fScaleX);
   mResult.SetRow(1, nsBasisAxis::GetBasisVector(rightDir) * fUniformScale * fScaleY);
-  mResult.SetRow(2, nsBasisAxis::GetBasisVector(dir) * fUniformScale * fScalns);
+  mResult.SetRow(2, nsBasisAxis::GetBasisVector(dir) * fUniformScale * fScaleZ);
 
   return mResult;
 }
@@ -317,7 +319,7 @@ nsQuat nsBasisAxis::GetBasisRotation_PosX(Enum axis)
     case nsBasisAxis::PositiveY:
       rotAxis = nsQuat::MakeFromAxisAndAngle(nsVec3(0, 0, 1), nsAngle::MakeFromDegree(90));
       break;
-    case nsBasisAxis::Positivns:
+    case nsBasisAxis::PositiveZ:
       rotAxis = nsQuat::MakeFromAxisAndAngle(nsVec3(0, 1, 0), nsAngle::MakeFromDegree(-90));
       break;
     case nsBasisAxis::NegativeX:
@@ -326,7 +328,7 @@ nsQuat nsBasisAxis::GetBasisRotation_PosX(Enum axis)
     case nsBasisAxis::NegativeY:
       rotAxis = nsQuat::MakeFromAxisAndAngle(nsVec3(0, 0, 1), nsAngle::MakeFromDegree(-90));
       break;
-    case nsBasisAxis::Negativns:
+    case nsBasisAxis::NegativeZ:
       rotAxis = nsQuat::MakeFromAxisAndAngle(nsVec3(0, 1, 0), nsAngle::MakeFromDegree(90));
       break;
   }
@@ -345,7 +347,7 @@ nsQuat nsBasisAxis::GetBasisRotation(Enum identity, Enum axis)
     case nsBasisAxis::PositiveY:
       rotId = nsQuat::MakeFromAxisAndAngle(nsVec3(0, 0, 1), nsAngle::MakeFromDegree(-90));
       break;
-    case nsBasisAxis::Positivns:
+    case nsBasisAxis::PositiveZ:
       rotId = nsQuat::MakeFromAxisAndAngle(nsVec3(0, 1, 0), nsAngle::MakeFromDegree(90));
       break;
     case nsBasisAxis::NegativeX:
@@ -354,7 +356,7 @@ nsQuat nsBasisAxis::GetBasisRotation(Enum identity, Enum axis)
     case nsBasisAxis::NegativeY:
       rotId = nsQuat::MakeFromAxisAndAngle(nsVec3(0, 0, 1), nsAngle::MakeFromDegree(90));
       break;
-    case nsBasisAxis::Negativns:
+    case nsBasisAxis::NegativeZ:
       rotId = nsQuat::MakeFromAxisAndAngle(nsVec3(0, 1, 0), nsAngle::MakeFromDegree(90));
       break;
   }
@@ -368,7 +370,7 @@ nsQuat nsBasisAxis::GetBasisRotation(Enum identity, Enum axis)
     case nsBasisAxis::PositiveY:
       rotAxis = nsQuat::MakeFromAxisAndAngle(nsVec3(0, 0, 1), nsAngle::MakeFromDegree(90));
       break;
-    case nsBasisAxis::Positivns:
+    case nsBasisAxis::PositiveZ:
       rotAxis = nsQuat::MakeFromAxisAndAngle(nsVec3(0, 1, 0), nsAngle::MakeFromDegree(-90));
       break;
     case nsBasisAxis::NegativeX:
@@ -377,7 +379,7 @@ nsQuat nsBasisAxis::GetBasisRotation(Enum identity, Enum axis)
     case nsBasisAxis::NegativeY:
       rotAxis = nsQuat::MakeFromAxisAndAngle(nsVec3(0, 0, 1), nsAngle::MakeFromDegree(-90));
       break;
-    case nsBasisAxis::Negativns:
+    case nsBasisAxis::NegativeZ:
       rotAxis = nsQuat::MakeFromAxisAndAngle(nsVec3(0, 1, 0), nsAngle::MakeFromDegree(90));
       break;
   }
@@ -406,9 +408,9 @@ nsBasisAxis::Enum nsBasisAxis::GetOrthogonalAxis(Enum axis1, Enum axis2, bool bF
     return nsBasisAxis::NegativeY;
 
   if (c.IsEqual(nsVec3::MakeAxisZ(), 0.01f))
-    return nsBasisAxis::Positivns;
+    return nsBasisAxis::PositiveZ;
   if (c.IsEqual(-nsVec3::MakeAxisZ(), 0.01f))
-    return nsBasisAxis::Negativns;
+    return nsBasisAxis::NegativeZ;
 
   return axis1;
 }

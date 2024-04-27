@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Basics.h>
@@ -15,8 +10,8 @@
 // Warning: 'this' used in member initialization list (is fine here since it is just stored and not
 // accessed in the constructor (so no operations on a not completely initialized object happen)
 
-#define NS_MSVC_WARNING_NUMBER 4355
-#include <Foundation/Basics/Compiler/MSVC/DisableWarning_MSVC.h>
+NS_WARNING_PUSH()
+NS_WARNING_DISABLE_MSVC(4355)
 
 #ifndef NS_THREAD_CLASS_ENTRY_POINT
 #  error "Definition for nsThreadClassEntryPoint is missing on this platform!"
@@ -85,4 +80,4 @@ private:
   friend nsUInt32 RunThread(nsThread* pThread);
 };
 
-#include <Foundation/Basics/Compiler/MSVC/RestoreWarning_MSVC.h>
+NS_WARNING_POP()

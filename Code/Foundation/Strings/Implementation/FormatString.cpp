@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Math/Rational.h>
@@ -236,8 +231,8 @@ nsStringView BuildString(char* szTmp, nsUInt32 uiLength, const nsAngle& arg)
   nsStringUtils::OutputFormattedFloat(szTmp, uiLength - 2, writepos, arg.GetDegree(), 1, false, 1, false);
 
   // Utf-8 representation of the degree sign
-  szTmp[writepos + 0] = (char)0xC2;
-  szTmp[writepos + 1] = (char)0xB0;
+  szTmp[writepos + 0] = /*(char)0xC2;*/ -62;
+  szTmp[writepos + 1] = /*(char)0xB0;*/ -80;
   szTmp[writepos + 2] = '\0';
 
   return nsStringView(szTmp, szTmp + writepos + 2);
@@ -280,8 +275,8 @@ nsStringView BuildString(char* pTmp, nsUInt32 uiLength, const nsTime& arg)
 
     // szTmp[writepos++] = ' ';
     // Utf-8 representation of the microsecond (us) sign
-    pTmp[writepos++] = (char)0xC2;
-    pTmp[writepos++] = (char)0xB5;
+    pTmp[writepos++] = /*(char)0xC2;*/ -62;
+    pTmp[writepos++] = /*(char)0xB5;*/ -75;
     pTmp[writepos++] = 's';
   }
   else if (fAbsSec < 1.0)
@@ -420,16 +415,13 @@ nsStringView BuildString(char* szTmp, nsUInt32 uiLength, const nsArgErrorCode& a
 }
 #endif
 
-#if NS_ENABLED(NS_PLATFORM_LINUX)
+#if NS_ENABLED(NS_PLATFORM_LINUX) || NS_ENABLED(NS_PLATFORM_ANDROID)
 #  include <string.h>
 
 nsStringView BuildString(char* szTmp, nsUInt32 uiLength, const nsArgErrno& arg)
 {
-  static thread_local char FullMessage[256];
-  const char* szErrorMsg = strerror_r(arg.m_iErrno, FullMessage, 256);
+  const char* szErrorMsg = std::strerror(arg.m_iErrno);
   nsStringUtils::snprintf(szTmp, uiLength, "%i (\"%s\")", arg.m_iErrno, szErrorMsg);
   return nsStringView(szTmp);
 }
 #endif
-
-NS_STATICLINK_FILE(Foundation, Foundation_Strings_Implementation_FormatString);

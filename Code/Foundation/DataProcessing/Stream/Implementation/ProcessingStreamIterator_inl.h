@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 
 template <typename Type>
 nsProcessingStreamIterator<Type>::nsProcessingStreamIterator(const nsProcessingStream* pStream, nsUInt64 uiNumElements, nsUInt64 uiStartIndex)
@@ -13,8 +8,8 @@ nsProcessingStreamIterator<Type>::nsProcessingStreamIterator(const nsProcessingS
 
   m_uiElementStride = pStream->GetElementStride();
 
-  m_pCurrentPtr = nsMemoryUtils::AddByteOffset(pStream->GetWritableData(), static_cast<ptrdiff_t>(uiStartIndex * m_uiElementStride));
-  m_pEndPtr = nsMemoryUtils::AddByteOffset(pStream->GetWritableData(), static_cast<ptrdiff_t>((uiStartIndex + uiNumElements) * m_uiElementStride));
+  m_pCurrentPtr = nsMemoryUtils::AddByteOffset(pStream->GetWritableData(), static_cast<std::ptrdiff_t>(uiStartIndex * m_uiElementStride));
+  m_pEndPtr = nsMemoryUtils::AddByteOffset(pStream->GetWritableData(), static_cast<std::ptrdiff_t>((uiStartIndex + uiNumElements) * m_uiElementStride));
 }
 
 template <typename Type>
@@ -32,11 +27,11 @@ NS_ALWAYS_INLINE bool nsProcessingStreamIterator<Type>::HasReachedEnd() const
 template <typename Type>
 NS_ALWAYS_INLINE void nsProcessingStreamIterator<Type>::Advance()
 {
-  m_pCurrentPtr = nsMemoryUtils::AddByteOffset(m_pCurrentPtr, static_cast<ptrdiff_t>(m_uiElementStride));
+  m_pCurrentPtr = nsMemoryUtils::AddByteOffset(m_pCurrentPtr, static_cast<std::ptrdiff_t>(m_uiElementStride));
 }
 
 template <typename Type>
 NS_ALWAYS_INLINE void nsProcessingStreamIterator<Type>::Advance(nsUInt32 uiNumElements)
 {
-  m_pCurrentPtr = nsMemoryUtils::AddByteOffset(m_pCurrentPtr, static_cast<ptrdiff_t>(m_uiElementStride * uiNumElements));
+  m_pCurrentPtr = nsMemoryUtils::AddByteOffset(m_pCurrentPtr, static_cast<std::ptrdiff_t>(m_uiElementStride * uiNumElements));
 }

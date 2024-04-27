@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/CodeUtils/Preprocessor.h>
@@ -190,7 +185,7 @@ nsResult nsPreprocessor::ExpandObjectMacro(MacroDefinition& Macro, TokenStream& 
   if (pMacroToken->m_DataView.IsEqual("__LINE__"))
   {
     nsStringBuilder sLine;
-    sLine.Format("{0}", m_CurrentFileStack.PeekBack().m_iCurrentLine);
+    sLine.SetFormat("{0}", m_CurrentFileStack.PeekBack().m_iCurrentLine);
 
     nsToken* pNewToken = AddCustomToken(pMacroToken, sLine);
     pNewToken->m_iType = nsTokenType::Integer;
@@ -591,7 +586,3 @@ nsResult nsPreprocessor::ExpandMacroParam(const nsToken& MacroToken, nsUInt32 ui
 
   return NS_SUCCESS;
 }
-
-
-
-NS_STATICLINK_FILE(Foundation, Foundation_CodeUtils_Implementation_Expand);

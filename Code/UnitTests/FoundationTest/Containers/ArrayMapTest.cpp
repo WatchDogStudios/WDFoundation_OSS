@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/Containers/ArrayMap.h>
@@ -24,44 +19,52 @@ NS_CREATE_SIMPLE_TEST(Containers, ArrayMap)
     // non-const
     {
       // findable
-      auto itfound = std::find_if(begin(m), end(m), [](const nsArrayMap<nsUInt32, nsUInt32>::Pair& val) { return val.value == 500; });
+      auto itfound = std::find_if(begin(m), end(m), [](const nsArrayMap<nsUInt32, nsUInt32>::Pair& val)
+        { return val.value == 500; });
       NS_TEST_BOOL(findable == itfound->key);
 
       // unfindable
-      itfound = std::find_if(begin(m), end(m), [](const nsArrayMap<nsUInt32, nsUInt32>::Pair& val) { return val.value == 1001; });
+      itfound = std::find_if(begin(m), end(m), [](const nsArrayMap<nsUInt32, nsUInt32>::Pair& val)
+        { return val.value == 1001; });
       NS_TEST_BOOL(end(m) == itfound);
     }
 
     // const
     {
       // findable
-      auto itfound = std::find_if(cbegin(m), cend(m), [](const nsArrayMap<nsUInt32, nsUInt32>::Pair& val) { return val.value == 500; });
+      auto itfound = std::find_if(cbegin(m), cend(m), [](const nsArrayMap<nsUInt32, nsUInt32>::Pair& val)
+        { return val.value == 500; });
       NS_TEST_BOOL(findable == itfound->key);
 
       // unfindable
-      itfound = std::find_if(cbegin(m), cend(m), [](const nsArrayMap<nsUInt32, nsUInt32>::Pair& val) { return val.value == 1001; });
+      itfound = std::find_if(cbegin(m), cend(m), [](const nsArrayMap<nsUInt32, nsUInt32>::Pair& val)
+        { return val.value == 1001; });
       NS_TEST_BOOL(cend(m) == itfound);
     }
 
     // non-const reverse
     {
       // findable
-      auto itfound = std::find_if(rbegin(m), rend(m), [](const nsArrayMap<nsUInt32, nsUInt32>::Pair& val) { return val.value == 500; });
+      auto itfound = std::find_if(rbegin(m), rend(m), [](const nsArrayMap<nsUInt32, nsUInt32>::Pair& val)
+        { return val.value == 500; });
       NS_TEST_BOOL(findable == itfound->key);
 
       // unfindable
-      itfound = std::find_if(rbegin(m), rend(m), [](const nsArrayMap<nsUInt32, nsUInt32>::Pair& val) { return val.value == 1001; });
+      itfound = std::find_if(rbegin(m), rend(m), [](const nsArrayMap<nsUInt32, nsUInt32>::Pair& val)
+        { return val.value == 1001; });
       NS_TEST_BOOL(rend(m) == itfound);
     }
 
     // const reverse
     {
       // findable
-      auto itfound = std::find_if(crbegin(m), crend(m), [](const nsArrayMap<nsUInt32, nsUInt32>::Pair& val) { return val.value == 500; });
+      auto itfound = std::find_if(crbegin(m), crend(m), [](const nsArrayMap<nsUInt32, nsUInt32>::Pair& val)
+        { return val.value == 500; });
       NS_TEST_BOOL(findable == itfound->key);
 
       // unfindable
-      itfound = std::find_if(crbegin(m), crend(m), [](const nsArrayMap<nsUInt32, nsUInt32>::Pair& val) { return val.value == 1001; });
+      itfound = std::find_if(crbegin(m), crend(m), [](const nsArrayMap<nsUInt32, nsUInt32>::Pair& val)
+        { return val.value == 1001; });
       NS_TEST_BOOL(crend(m) == itfound);
     }
 
@@ -115,11 +118,13 @@ NS_CREATE_SIMPLE_TEST(Containers, ArrayMap)
     NS_TEST_BOOL(m.Find(499u) == nsInvalidIndex);
 
     // findable
-    auto itfound = std::find_if(begin(m), end(m), [](const nsArrayMap<nsUInt32, nsUInt32>::Pair& val) { return val.value == 500; });
+    auto itfound = std::find_if(begin(m), end(m), [](const nsArrayMap<nsUInt32, nsUInt32>::Pair& val)
+      { return val.value == 500; });
     NS_TEST_BOOL((findable + 1000) == itfound->key);
 
     // unfindable
-    itfound = std::find_if(begin(m), end(m), [](const nsArrayMap<nsUInt32, nsUInt32>::Pair& val) { return val.value == 1001; });
+    itfound = std::find_if(begin(m), end(m), [](const nsArrayMap<nsUInt32, nsUInt32>::Pair& val)
+      { return val.value == 1001; });
     NS_TEST_BOOL(end(m) == itfound);
 
     // forward

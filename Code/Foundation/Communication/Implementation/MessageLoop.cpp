@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Communication/Implementation/MessageLoop.h>
@@ -13,11 +8,11 @@
 NS_IMPLEMENT_SINGLETON(nsMessageLoop);
 
 #if NS_ENABLED(NS_PLATFORM_WINDOWS_DESKTOP)
-#  include <Foundation/Communication/Implementation/Win/MessageLoop_win.h>
+#  include <Foundation/Platform/Win/MessageLoop_Win.h>
 #elif NS_ENABLED(NS_PLATFORM_LINUX)
-#  include <Foundation/Communication/Implementation/Linux/MessageLoop_linux.h>
+#  include <Foundation/Platform/Linux/MessageLoop_Linux.h>
 #else
-#  include <Foundation/Communication/Implementation/Mobile/MessageLoop_mobile.h>
+#  include <Foundation/Communication/Implementation/MessageLoop_Fallback.h>
 #endif
 
 // clang-format off
@@ -30,12 +25,15 @@ NS_BEGIN_SUBSYSTEM_DECLARATION(Foundation, MessageLoop)
 
   ON_CORESYSTEMS_STARTUP
   {
+    if (nsStartup::HasApplicationTag("NoMessageLoop"))
+      return;
+
     #if NS_ENABLED(NS_PLATFORM_WINDOWS_DESKTOP)
       NS_DEFAULT_NEW(nsMessageLoop_win);
     #elif NS_ENABLED(NS_PLATFORM_LINUX)
       NS_DEFAULT_NEW(nsMessageLoop_linux);
     #else
-      NS_DEFAULT_NEW(nsMessageLoop_mobile);
+      NS_DEFAULT_NEW(nsMessageLoop_Fallback);
     #endif
   }
 

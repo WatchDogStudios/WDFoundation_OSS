@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Basics.h>
@@ -152,7 +147,7 @@ protected:
   nsDynamicArray<nsUInt8> m_MessageAccumulator; ///< Message is assembled in here
 
   // Mutex locked
-  nsMutex m_IncomingQueueMutex;
+  nsMutex m_ReceiveCallbackMutex;
   ReceiveCallback m_ReceiveCallback;
   nsThreadSignal m_IncomingMessages;
 };

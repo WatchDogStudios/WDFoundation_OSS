@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Algorithm/HashingUtils.h>
@@ -61,8 +56,7 @@ struct nsConstructionCounter
   void operator=(const nsConstructionCounter&& cc) noexcept { m_iData = cc.m_iData; }
 
   bool operator==(const nsConstructionCounter& cc) const { return m_iData == cc.m_iData; }
-
-  bool operator!=(const nsConstructionCounter& cc) const { return m_iData != cc.m_iData; }
+  NS_ADD_DEFAULT_OPERATOR_NOTEQUAL(const nsConstructionCounter&);
 
   bool operator<(const nsConstructionCounter& rhs) const { return m_iData < rhs.m_iData; }
 

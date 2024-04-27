@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/Containers/Set.h>
@@ -375,38 +370,6 @@ NS_CREATE_SIMPLE_TEST(Containers, Set)
     NS_TEST_INT(i, 1000);
   }
 
-  NS_TEST_BLOCK(nsTestBlock::Enabled, "GetLastIterator / Backward Iteration")
-  {
-    nsSet<nsUInt32> m;
-
-    for (nsInt32 i = 0; i < 1000; ++i)
-      m.Insert(i);
-
-    nsInt32 i = 1000 - 1;
-    for (nsSet<nsUInt32>::Iterator it = m.GetLastIterator(); it.IsValid(); --it)
-    {
-      NS_TEST_INT(it.Key(), i);
-      --i;
-    }
-  }
-
-  NS_TEST_BLOCK(nsTestBlock::Enabled, "GetLastIterator / Backward Iteration (const)")
-  {
-    nsSet<nsUInt32> m;
-
-    for (nsInt32 i = 0; i < 1000; ++i)
-      m.Insert(i);
-
-    const nsSet<nsUInt32> m2(m);
-
-    nsInt32 i = 1000 - 1;
-    for (nsSet<nsUInt32>::Iterator it = m2.GetLastIterator(); it.IsValid(); --it)
-    {
-      NS_TEST_INT(it.Key(), i);
-      --i;
-    }
-  }
-
   NS_TEST_BLOCK(nsTestBlock::Enabled, "LowerBound")
   {
     nsSet<nsInt32> m, m2;
@@ -499,7 +462,8 @@ NS_CREATE_SIMPLE_TEST(Containers, Set)
 
     NS_TEST_INT(std::find(begin(m), end(m), 500).Key(), 500);
 
-    auto itfound = std::find_if(begin(m), end(m), [](nsUInt32 uiVal) { return uiVal == 500; });
+    auto itfound = std::find_if(begin(m), end(m), [](nsUInt32 uiVal)
+      { return uiVal == 500; });
 
     NS_TEST_BOOL(std::find(begin(m), end(m), 500) == itfound);
 
@@ -602,10 +566,10 @@ NS_CREATE_SIMPLE_TEST(Containers, Set)
 
     for (nsUInt32 i = 0; i < 1000; ++i)
     {
-      tmp.Format("stuff{}bla", i);
+      tmp.SetFormat("stuff{}bla", i);
       set1->Insert(tmp);
 
-      tmp.Format("{0}{0}{0}", i);
+      tmp.SetFormat("{0}{0}{0}", i);
       set2->Insert(tmp);
     }
 
@@ -614,10 +578,10 @@ NS_CREATE_SIMPLE_TEST(Containers, Set)
     // test swapped elements
     for (nsUInt32 i = 0; i < 1000; ++i)
     {
-      tmp.Format("stuff{}bla", i);
+      tmp.SetFormat("stuff{}bla", i);
       NS_TEST_BOOL(set2->Contains(tmp));
 
-      tmp.Format("{0}{0}{0}", i);
+      tmp.SetFormat("{0}{0}{0}", i);
       NS_TEST_BOOL(set1->Contains(tmp));
     }
 
@@ -657,7 +621,7 @@ NS_CREATE_SIMPLE_TEST(Containers, Set)
 
     for (nsUInt32 i = 0; i < 100; ++i)
     {
-      tmp.Format("stuff{}bla", i);
+      tmp.SetFormat("stuff{}bla", i);
       set1->Insert(tmp);
     }
 
@@ -670,7 +634,7 @@ NS_CREATE_SIMPLE_TEST(Containers, Set)
     // test swapped elements
     for (nsUInt32 i = 0; i < 100; ++i)
     {
-      tmp.Format("stuff{}bla", i);
+      tmp.SetFormat("stuff{}bla", i);
       NS_TEST_BOOL(set2->Contains(tmp));
     }
 
@@ -684,5 +648,37 @@ NS_CREATE_SIMPLE_TEST(Containers, Set)
 
     set2->~nsSet<nsString>();
     nsMemoryUtils::PatternFill(set2Mem, 0xBA, uiSetSize);
+  }
+
+  NS_TEST_BLOCK(nsTestBlock::Enabled, "GetReverseIterator")
+  {
+    nsSet<nsUInt32> m;
+
+    for (nsInt32 i = 0; i < 1000; ++i)
+      m.Insert(i);
+
+    nsInt32 i = 1000 - 1;
+    for (nsSet<nsUInt32>::ReverseIterator it = m.GetReverseIterator(); it.IsValid(); ++it)
+    {
+      NS_TEST_INT(it.Key(), i);
+      --i;
+    }
+  }
+
+  NS_TEST_BLOCK(nsTestBlock::Enabled, "GetReverseIterator (const)")
+  {
+    nsSet<nsUInt32> m;
+
+    for (nsInt32 i = 0; i < 1000; ++i)
+      m.Insert(i);
+
+    const nsSet<nsUInt32> m2(m);
+
+    nsInt32 i = 1000 - 1;
+    for (nsSet<nsUInt32>::ReverseIterator it = m2.GetReverseIterator(); it.IsValid(); ++it)
+    {
+      NS_TEST_INT(it.Key(), i);
+      --i;
+    }
   }
 }

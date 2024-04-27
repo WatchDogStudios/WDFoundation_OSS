@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 NS_ALWAYS_INLINE nsSimdQuat::nsSimdQuat() = default;
@@ -43,7 +38,7 @@ NS_ALWAYS_INLINE void nsSimdQuat::Normalize()
 inline nsResult nsSimdQuat::GetRotationAxisAndAngle(nsSimdVec4f& ref_vAxis, nsSimdFloat& ref_fAngle, const nsSimdFloat& fEpsilon) const
 {
   ///\todo optimize
-  const nsAngle acos = nsMath::ACos(m_v.w());
+  const nsAngle acos = nsMath::ACos(m_v.w().Max(-1).Min(1));
   const float d = nsMath::Sin(acos);
 
   if (d < fEpsilon)

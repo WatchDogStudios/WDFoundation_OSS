@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/SimdMath/SimdBBox.h>
@@ -75,7 +70,7 @@ public:
   void Transform(const nsSimdTransform& t); // [tested]
 
   /// \brief Transforms the bounds in its local space.
-  void Transform(const nsSimdMat4f& mMat); // [tested]
+  void Transform(const nsSimdMat4f& mMat);                          // [tested]
 
   [[nodiscard]] bool operator==(const nsSimdBBoxSphere& rhs) const; // [tested]
   [[nodiscard]] bool operator!=(const nsSimdBBoxSphere& rhs) const; // [tested]

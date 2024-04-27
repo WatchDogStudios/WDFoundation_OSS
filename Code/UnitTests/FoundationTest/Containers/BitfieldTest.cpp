@@ -1,12 +1,8 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/Containers/Bitfield.h>
 #include <Foundation/Containers/Deque.h>
+#include <Foundation/Math/Random.h>
 #include <Foundation/Strings/String.h>
 
 NS_CREATE_SIMPLE_TEST(Containers, Bitfield)
@@ -174,10 +170,10 @@ NS_CREATE_SIMPLE_TEST(Containers, Bitfield)
 
   NS_TEST_BLOCK(nsTestBlock::Enabled, "IsAnyBitSet / IsNoBitSet / AreAllBitsSet")
   {
-    nsHybridBitfield<512> bf; // using a hybrid array
+    nsHybridBitfield<512> bf;                  // using a hybrid array
 
     NS_TEST_BOOL(bf.IsEmpty() == true);
-    NS_TEST_BOOL(bf.IsAnyBitSet() == false); // empty
+    NS_TEST_BOOL(bf.IsAnyBitSet() == false);   // empty
     NS_TEST_BOOL(bf.IsNoBitSet() == true);
     NS_TEST_BOOL(bf.AreAllBitsSet() == false); // empty
 
@@ -202,6 +198,136 @@ NS_CREATE_SIMPLE_TEST(Containers, Bitfield)
     NS_TEST_BOOL(bf.IsAnyBitSet() == true);
     NS_TEST_BOOL(bf.IsNoBitSet() == false);
     NS_TEST_BOOL(bf.AreAllBitsSet() == true);
+  }
+
+  NS_TEST_BLOCK(nsTestBlock::Enabled, "Swap")
+  {
+    nsHybridBitfield<512> bf0; // using a hybrid array
+    nsHybridBitfield<512> bf1; // using a hybrid array
+
+    nsUInt32 bitFieldCount0 = 100;
+    nsUInt32 bitFieldCount1 = 999;
+    nsUInt32 bitIndexSet0 = 2;
+    nsUInt32 bitIndexSet1 = 555;
+
+    bf0.SetCount(bitFieldCount0, false);
+    bf1.SetCount(bitFieldCount1, false);
+    bf0.SetBit(bitIndexSet0);
+    bf1.SetBit(bitIndexSet1);
+
+    NS_TEST_BOOL(bitFieldCount0 == bf0.GetCount());
+    for (nsUInt32 i = 0; i < bf0.GetCount(); ++i)
+    {
+      NS_TEST_BOOL(bf0.IsBitSet(i) == (bitIndexSet0 == i));
+    }
+
+    NS_TEST_BOOL(bitFieldCount1 == bf1.GetCount());
+    for (nsUInt32 i = 0; i < bf1.GetCount(); ++i)
+    {
+      NS_TEST_BOOL(bf1.IsBitSet(i) == (bitIndexSet1 == i));
+    }
+
+    bf0.Swap(bf1);
+    nsMath::Swap(bitIndexSet0, bitIndexSet1);
+    nsMath::Swap(bitFieldCount0, bitFieldCount1);
+
+    NS_TEST_BOOL(bitFieldCount0 == bf0.GetCount());
+    for (nsUInt32 i = 0; i < bf0.GetCount(); ++i)
+    {
+      NS_TEST_BOOL(bf0.IsBitSet(i) == (bitIndexSet0 == i));
+    }
+
+    NS_TEST_BOOL(bitFieldCount1 == bf1.GetCount());
+    for (nsUInt32 i = 0; i < bf1.GetCount(); ++i)
+    {
+      NS_TEST_BOOL(bf1.IsBitSet(i) == (bitIndexSet1 == i));
+    }
+  }
+
+  NS_TEST_BLOCK(nsTestBlock::Enabled, "Iterator")
+  {
+    {
+      // Check empty bitfields of varying sizes.
+      for (nsUInt32 uiNumBits = 0; uiNumBits <= 65; ++uiNumBits)
+      {
+        nsHybridBitfield<128> bitfield;
+        bitfield.SetCount(uiNumBits, true);
+        for (nsUInt32 b = 0; b < uiNumBits; ++b)
+        {
+          bitfield.ClearBit(b);
+        }
+        for (nsUInt32 uiBit : bitfield)
+        {
+          NS_TEST_BOOL_MSG(false, "No bit should be set");
+        }
+
+        for (auto it = bitfield.GetIterator(); it.IsValid(); it.Next())
+        {
+          NS_TEST_BOOL_MSG(false, "No bit should be set");
+        }
+        NS_TEST_BOOL(bitfield.GetIterator() == bitfield.GetEndIterator());
+        NS_TEST_BOOL(!bitfield.GetIterator().IsValid());
+        NS_TEST_BOOL(!bitfield.GetEndIterator().IsValid());
+      }
+    }
+
+    {
+      // Full bits.
+      for (nsUInt32 uiNumBits = 0; uiNumBits <= 65; ++uiNumBits)
+      {
+        nsHybridBitfield<128> bitfield;
+        bitfield.SetCount(uiNumBits, true);
+        nsUInt32 uiNextBit = 0;
+        for (nsUInt32 uiBit : bitfield)
+        {
+          NS_TEST_INT(uiBit, uiNextBit);
+          uiNextBit++;
+        }
+        NS_TEST_INT(uiNumBits, uiNextBit);
+
+        uiNextBit = 0;
+        for (auto it = bitfield.GetIterator(); it.IsValid(); ++it)
+        {
+          NS_TEST_INT(it.Value(), uiNextBit);
+          NS_TEST_INT(*it, uiNextBit);
+          NS_TEST_BOOL(it.IsValid());
+          uiNextBit++;
+        }
+        NS_TEST_INT(uiNumBits, uiNextBit);
+      }
+    }
+
+    {
+      // Partial bits set.
+      nsRandom rnd;
+      rnd.Initialize(42);
+
+      for (nsUInt32 uiNumBits = 2; uiNumBits <= 65; ++uiNumBits)
+      {
+        nsHybridBitfield<128> bitfield;
+        bitfield.SetCount(uiNumBits, false);
+
+        // Add some random bits and ensure they appear in the iterator in order.
+        nsHybridArray<nsUInt32, 3> bits;
+        for (int i = 0; i < uiNumBits / 2; ++i)
+        {
+          nsUInt32 bit = (nsUInt32)rnd.IntMinMax(0, uiNumBits - 1);
+          if (!bitfield.IsBitSet(bit))
+          {
+            bits.PushBack(bit);
+            bitfield.SetBit(bit);
+          }
+        }
+        bits.Sort();
+
+        for (nsUInt32 uiBit : bitfield)
+        {
+          NS_TEST_INT(uiBit, bits[0]);
+          bits.RemoveAtAndCopy(0);
+        }
+        NS_TEST_BOOL(bits.IsEmpty());
+      }
+    }
   }
 }
 
@@ -314,7 +440,7 @@ NS_CREATE_SIMPLE_TEST(Containers, StaticBitfield)
   {
     nsStaticBitfield8 bf;
 
-    NS_TEST_BOOL(bf.IsAnyBitSet() == false); // empty
+    NS_TEST_BOOL(bf.IsAnyBitSet() == false);   // empty
     NS_TEST_BOOL(bf.IsNoBitSet() == true);
     NS_TEST_BOOL(bf.AreAllBitsSet() == false); // empty
 
@@ -369,5 +495,145 @@ NS_CREATE_SIMPLE_TEST(Containers, StaticBitfield)
     NS_TEST_INT(nsStaticBitfield32::MakeFromMask(0x80000000u).GetHighestBitSet(), 31);
     NS_TEST_INT(nsStaticBitfield32::MakeFromMask(0xffffffffu).GetHighestBitSet(), 31);
     NS_TEST_INT(nsStaticBitfield64::MakeFromMask(0xffffffffffffffffull).GetHighestBitSet(), 63);
+  }
+
+  NS_TEST_BLOCK(nsTestBlock::Enabled, "Iterator")
+  {
+    {
+      // Empty bitfield
+      nsStaticBitfield32 bitfield = nsStaticBitfield32::MakeFromMask(0u);
+      for (nsUInt32 uiBit : bitfield)
+      {
+        NS_TEST_BOOL_MSG(false, "No bit should be set");
+      }
+      for (auto it = bitfield.GetIterator(); it.IsValid(); it.Next())
+      {
+        NS_TEST_BOOL_MSG(false, "No bit should be set");
+      }
+      NS_TEST_BOOL(bitfield.GetIterator() == bitfield.GetEndIterator());
+      NS_TEST_BOOL(!bitfield.GetIterator().IsValid());
+      NS_TEST_BOOL(!bitfield.GetEndIterator().IsValid());
+
+      nsStaticBitfield64 bitfield64 = nsStaticBitfield64::MakeFromMask(0u);
+      for (nsUInt32 uiBit : bitfield64)
+      {
+        NS_TEST_BOOL_MSG(false, "No bit should be set");
+      }
+      for (auto it = bitfield64.GetIterator(); it.IsValid(); it.Next())
+      {
+        NS_TEST_BOOL_MSG(false, "No bit should be set");
+      }
+      NS_TEST_BOOL(bitfield64.GetIterator() == bitfield64.GetEndIterator());
+      NS_TEST_BOOL(!bitfield64.GetIterator().IsValid());
+      NS_TEST_BOOL(!bitfield64.GetEndIterator().IsValid());
+    }
+
+    {
+      // Full 32 bits
+      nsStaticBitfield32 bitfield = nsStaticBitfield32::MakeFromMask(0xffffffffu);
+      nsUInt32 uiNextBit = 0;
+      for (nsUInt32 uiBit : bitfield)
+      {
+        NS_TEST_INT(uiBit, uiNextBit);
+        uiNextBit++;
+      }
+      NS_TEST_INT(32, uiNextBit);
+
+      uiNextBit = 0;
+      for (auto it = bitfield.GetIterator(); it.IsValid(); ++it)
+      {
+        NS_TEST_INT(it.Value(), uiNextBit);
+        NS_TEST_INT(*it, uiNextBit);
+        NS_TEST_BOOL(it.IsValid());
+        uiNextBit++;
+      }
+      NS_TEST_INT(32, uiNextBit);
+    }
+
+    {
+      // Full 64 bits
+      nsStaticBitfield64 bitfield = nsStaticBitfield64::MakeFromMask(0xffffffffffffffffull);
+      nsUInt32 uiNextBit = 0;
+      for (nsUInt32 uiBit : bitfield)
+      {
+        NS_TEST_INT(uiBit, uiNextBit);
+        uiNextBit++;
+      }
+      NS_TEST_INT(64, uiNextBit);
+
+      uiNextBit = 0;
+      for (auto it = bitfield.GetIterator(); it.IsValid(); ++it)
+      {
+        NS_TEST_INT(it.Value(), uiNextBit);
+        NS_TEST_INT(*it, uiNextBit);
+        NS_TEST_BOOL(it.IsValid());
+        uiNextBit++;
+      }
+      NS_TEST_INT(64, uiNextBit);
+    }
+
+    {
+      // Partial bits set 32 bit.
+      nsRandom rnd;
+      rnd.Initialize(42);
+
+      for (nsUInt32 uiNumBits = 2; uiNumBits <= 32; ++uiNumBits)
+      {
+        // Add some random bits and ensure they appear in the iterator in order.
+        nsHybridArray<nsUInt32, 3> bits;
+        nsUInt32 uiBits = 0;
+        for (int i = 0; i < uiNumBits; ++i)
+        {
+          const nsUInt32 bit = (nsUInt32)rnd.IntMinMax(0, 31);
+          if (!bits.Contains(bit))
+          {
+            bits.PushBack(bit);
+            uiBits |= NS_BIT(bit);
+          }
+        }
+        bits.Sort();
+
+        nsStaticBitfield32 bitfield = nsStaticBitfield32::MakeFromMask(uiBits);
+
+        for (nsUInt32 uiBit : bitfield)
+        {
+          NS_TEST_INT(uiBit, bits[0]);
+          bits.RemoveAtAndCopy(0);
+        }
+        NS_TEST_BOOL(bits.IsEmpty());
+      }
+    }
+
+    {
+      // Partial bits set 64 bit.
+      nsRandom rnd;
+      rnd.Initialize(42);
+
+      for (nsUInt32 uiNumBits = 2; uiNumBits <= 63; ++uiNumBits)
+      {
+        // Add some random bits and ensure they appear in the iterator in order.
+        nsHybridArray<nsUInt32, 3> bits;
+        nsUInt64 uiBits = 0;
+        for (int i = 0; i < uiNumBits; ++i)
+        {
+          const nsUInt32 bit = (nsUInt32)rnd.IntMinMax(0, 63);
+          if (!bits.Contains(bit))
+          {
+            bits.PushBack(bit);
+            uiBits |= NS_BIT(bit);
+          }
+        }
+        bits.Sort();
+
+        nsStaticBitfield64 bitfield = nsStaticBitfield64::MakeFromMask(uiBits);
+
+        for (nsUInt32 uiBit : bitfield)
+        {
+          NS_TEST_INT(uiBit, bits[0]);
+          bits.RemoveAtAndCopy(0);
+        }
+        NS_TEST_BOOL(bits.IsEmpty());
+      }
+    }
   }
 }

@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Basics.h>
@@ -83,6 +78,8 @@ private:
   void DoSubTestDeInitialization(nsInt32 iIdentifier);
   nsTestAppRun DoSubTestRun(nsInt32 iIdentifier, double& fDuration, nsUInt32 uiInvocationCount);
 
+  // Finds internal entry index for identifier
+  nsInt32 FindEntryForIdentifier(nsInt32 iIdentifier) const;
 
   std::deque<TestEntry> m_Entries;
 };

@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/IO/JSONWriter.h>
@@ -402,7 +397,7 @@ NS_CREATE_SIMPLE_TEST(IO, StandardJSONWriter)
     js.AddVariableString("String", nsStringUtf8(L"testvälue").GetData()); // Unicode / Utf-8 test (in string)
     js.AddVariableDouble("double", 43.56);
     js.AddVariableFloat("float", 64.72f);
-    js.AddVariableBool(nsStringUtf8(L"bööl").GetData(), true); // Unicode / Utf-8 test (identifier)
+    js.AddVariableBool(nsStringUtf8(L"bööl").GetData(), true);            // Unicode / Utf-8 test (identifier)
     js.AddVariableInt32("int", 23);
 
     js.BeginArray("myarray");
@@ -416,7 +411,7 @@ NS_CREATE_SIMPLE_TEST(IO, StandardJSONWriter)
     js.BeginObject("object");
     js.AddVariableString("variable in object", "bla/*asdf*/ //tuff"); // 'comment' in string
     js.BeginObject("Subobject");
-    js.AddVariableString("variable in subobject", "bla\\"); // character to be escaped
+    js.AddVariableString("variable in subobject", "bla\\");           // character to be escaped
 
     js.BeginArray("array in sub");
     js.BeginObject();

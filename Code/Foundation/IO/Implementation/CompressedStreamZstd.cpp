@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/IO/CompressedStreamZstd.h>
@@ -83,6 +78,7 @@ nsUInt64 nsCompressedStreamReaderZstd::ReadBytes(void* pReadBuffer, nsUInt64 uiB
       return outBuffer.pos;
 
     const size_t res = ZSTD_decompressStream(reinterpret_cast<ZSTD_DStream*>(m_pZstdDStream), &outBuffer, reinterpret_cast<ZSTD_inBuffer*>(&m_InBuffer));
+    NS_IGNORE_UNUSED(res);
     NS_ASSERT_DEV(!ZSTD_isError(res), "Decompressing the stream failed: '{0}'", ZSTD_getErrorName(res));
   }
 
@@ -188,12 +184,12 @@ void nsCompressedStreamWriterZstd::SetOutputStream(nsStreamWriter* pOutputStream
       m_pZstdCStream = ZSTD_createCStream();
     }
 
-    const nsUInt32 uiCoreCount = (uiMaxNumWorkerThreads > 0) ? nsMath::Clamp(nsSystemInformation::Get().GetCPUCoreCount(), 1u, uiMaxNumWorkerThreads) : 0u;
+    nsUInt32 uiMaxCoreCount = (uiMaxNumWorkerThreads > 0) ? nsMath::Clamp(nsSystemInformation::Get().GetCPUCoreCount(), 1u, uiMaxNumWorkerThreads) : 0u;
 
     ZSTD_CCtx_reset(reinterpret_cast<ZSTD_CStream*>(m_pZstdCStream), ZSTD_reset_session_only);
     ZSTD_CCtx_refCDict(reinterpret_cast<ZSTD_CStream*>(m_pZstdCStream), nullptr);
     ZSTD_CCtx_setParameter(reinterpret_cast<ZSTD_CStream*>(m_pZstdCStream), ZSTD_c_compressionLevel, (int)ratio);
-    ZSTD_CCtx_setParameter(reinterpret_cast<ZSTD_CStream*>(m_pZstdCStream), ZSTD_c_nbWorkers, uiCoreCount);
+    ZSTD_CCtx_setParameter(reinterpret_cast<ZSTD_CStream*>(m_pZstdCStream), ZSTD_c_nbWorkers, uiMaxCoreCount);
 
     m_CompressedCache.SetCountUninitialized(nsMath::Max(1U, uiCompressionCacheSizeKB) * 1024);
 
@@ -309,7 +305,3 @@ nsResult nsCompressedStreamWriterZstd::WriteBytes(const void* pWriteBuffer, nsUI
 }
 
 #endif
-
-
-
-NS_STATICLINK_FILE(Foundation, Foundation_IO_Implementation_CompressedStreamZstd);

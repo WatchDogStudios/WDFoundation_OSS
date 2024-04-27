@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/Math/FixedPoint.h>
@@ -253,7 +248,7 @@ NS_CREATE_SIMPLE_TEST(Math, FixedPoint)
   // Disabled because MSVC 2017 has code generation issues in Release builds
   NS_TEST_BLOCK(nsTestBlock::Disabled, "Multiplication Rounding")
   {
-    nsFixedPoint<2> fp; // 2 Bits -> 4 fractional values
+    nsFixedPoint<2> fp;         // 2 Bits -> 4 fractional values
 
     fp = 0.25;
     fp *= nsFixedPoint<2>(1.5); // -> should be 0.375, which is not representable -> will be rounded up
@@ -326,13 +321,13 @@ NS_CREATE_SIMPLE_TEST(Math, FixedPoint)
     NS_TEST_INT(fp2.GetRawValue(), (1 << 4) + (1 << 3) + (1 << 2) + (1 << 1) + (1 << 0) + (1 << 0)); // here we round up again
 
     fp2 /= nsFixedPoint<12>(2);
-    NS_TEST_INT(fp2.GetRawValue(), (1 << 3) + (1 << 2) + (1 << 1) + (1 << 0) + (1 << 0)); // here we round up again
+    NS_TEST_INT(fp2.GetRawValue(), (1 << 3) + (1 << 2) + (1 << 1) + (1 << 0) + (1 << 0));            // here we round up again
 
     fp2 /= nsFixedPoint<12>(2);
-    NS_TEST_INT(fp2.GetRawValue(), (1 << 2) + (1 << 1) + (1 << 1)); // here we round up again
+    NS_TEST_INT(fp2.GetRawValue(), (1 << 2) + (1 << 1) + (1 << 1));                                  // here we round up again
 
     fp2 /= nsFixedPoint<12>(2);
-    NS_TEST_INT(fp2.GetRawValue(), (1 << 1) + (1 << 1)); // here we round up again
+    NS_TEST_INT(fp2.GetRawValue(), (1 << 1) + (1 << 1));                                             // here we round up again
 
     fp2 /= nsFixedPoint<12>(2);
     NS_TEST_INT(fp2.GetRawValue(), (1 << 1));
@@ -344,6 +339,6 @@ NS_CREATE_SIMPLE_TEST(Math, FixedPoint)
     NS_TEST_INT(fp2.GetRawValue(), (1 << 0)); // we can never get lower than this by dividing by 2, as it will always get rounded up again
 
     fp2 /= nsFixedPoint<12>(2.01);
-    NS_TEST_INT(fp2.GetRawValue(), 0); // finally we round down
+    NS_TEST_INT(fp2.GetRawValue(), 0);        // finally we round down
   }
 }

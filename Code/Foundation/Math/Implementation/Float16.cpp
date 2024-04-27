@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Math/Float16.h>
@@ -165,6 +160,3 @@ nsFloat16Vec4::operator nsVec4() const
 {
   return nsVec4(x, y, z, w);
 }
-
-
-NS_STATICLINK_FILE(Foundation, Foundation_Math_Implementation_Float16);

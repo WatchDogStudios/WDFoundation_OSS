@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Strings/StringBuilder.h>
@@ -56,7 +51,9 @@ nsInt32 nsStringView::CompareN_NoCase(nsStringView sOther, nsUInt32 uiCharsToCom
 const char* nsStringView::ComputeCharacterPosition(nsUInt32 uiCharacterIndex) const
 {
   const char* pos = GetStartPointer();
-  nsUnicodeUtils::MoveToNextUtf8(pos, GetEndPointer(), uiCharacterIndex);
+  if (nsUnicodeUtils::MoveToNextUtf8(pos, GetEndPointer(), uiCharacterIndex).Failed())
+    return nullptr;
+
   return pos;
 }
 
@@ -122,17 +119,31 @@ const char* nsStringView::FindWholeWord_NoCase(const char* szSearchFor, nsString
 
 void nsStringView::Shrink(nsUInt32 uiShrinkCharsFront, nsUInt32 uiShrinkCharsBack)
 {
+  const char* pEnd = m_pStart + m_uiElementCount;
+
   while (IsValid() && (uiShrinkCharsFront > 0))
   {
-    nsUnicodeUtils::MoveToNextUtf8(m_pStart, m_pEnd, 1);
+    if (nsUnicodeUtils::MoveToNextUtf8(m_pStart, pEnd, 1).Failed())
+    {
+      *this = {};
+      return;
+    }
+
     --uiShrinkCharsFront;
   }
 
   while (IsValid() && (uiShrinkCharsBack > 0))
   {
-    nsUnicodeUtils::MoveToPriorUtf8(m_pEnd, 1);
+    if (nsUnicodeUtils::MoveToPriorUtf8(pEnd, m_pStart, 1).Failed())
+    {
+      *this = {};
+      return;
+    }
+
     --uiShrinkCharsBack;
   }
+
+  m_uiElementCount = static_cast<nsUInt32>(pEnd - m_pStart);
 }
 
 nsStringView nsStringView::GetShrunk(nsUInt32 uiShrinkCharsFront, nsUInt32 uiShrinkCharsBack) const
@@ -142,11 +153,34 @@ nsStringView nsStringView::GetShrunk(nsUInt32 uiShrinkCharsFront, nsUInt32 uiShr
   return tmp;
 }
 
+nsStringView nsStringView::GetSubString(nsUInt32 uiFirstCharacter, nsUInt32 uiNumCharacters) const
+{
+  if (!IsValid())
+  {
+    return {};
+  }
+
+  const char* pEnd = m_pStart + m_uiElementCount;
+
+  const char* pSubStart = m_pStart;
+  if (nsUnicodeUtils::MoveToNextUtf8(pSubStart, pEnd, uiFirstCharacter).Failed() || pSubStart == pEnd)
+  {
+    return {};
+  }
+
+  const char* pSubEnd = pSubStart;
+  nsUnicodeUtils::MoveToNextUtf8(pSubEnd, pEnd, uiNumCharacters).IgnoreResult(); // if it fails, it just points to the end
+
+  return nsStringView(pSubStart, pSubEnd);
+}
+
 void nsStringView::ChopAwayFirstCharacterUtf8()
 {
   if (IsValid())
   {
-    nsUnicodeUtils::MoveToNextUtf8(m_pStart, m_pEnd, 1);
+    const char* pEnd = m_pStart + m_uiElementCount;
+    nsUnicodeUtils::MoveToNextUtf8(m_pStart, pEnd, 1).AssertSuccess();
+    m_uiElementCount = static_cast<nsUInt32>(pEnd - m_pStart);
   }
 }
 
@@ -157,6 +191,7 @@ void nsStringView::ChopAwayFirstCharacterAscii()
     NS_ASSERT_DEBUG(nsUnicodeUtils::IsASCII(*m_pStart), "ChopAwayFirstCharacterAscii() was called on a non-ASCII character.");
 
     m_pStart += 1;
+    m_uiElementCount--;
   }
 }
 
@@ -258,4 +293,32 @@ nsStringView nsStringView::GetRootedPathRootName() const
   return nsPathUtils::GetRootedPathRootName(*this);
 }
 
-NS_STATICLINK_FILE(Foundation, Foundation_Strings_Implementation_StringView);
+#if NS_ENABLED(NS_INTEROP_STL_STRINGS)
+nsStringView::nsStringView(const std::string_view& rhs)
+{
+  if (!rhs.empty())
+  {
+    m_pStart = rhs.data();
+    m_uiElementCount = static_cast<nsUInt32>(rhs.size());
+  }
+}
+
+nsStringView::nsStringView(const std::string& rhs)
+{
+  if (!rhs.empty())
+  {
+    m_pStart = rhs.data();
+    m_uiElementCount = static_cast<nsUInt32>(rhs.size());
+  }
+}
+
+std::string_view nsStringView::GetAsStdView() const
+{
+  return std::string_view(m_pStart, static_cast<size_t>(m_uiElementCount));
+}
+
+nsStringView::operator std::string_view() const
+{
+  return GetAsStdView();
+}
+#endif

@@ -1,8 +1,3 @@
-﻿/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <FoundationTest/FoundationTestPCH.h>
 
 #include <Foundation/IO/MemoryStream.h>
@@ -22,7 +17,6 @@ NS_CREATE_SIMPLE_TEST(Strings, StringBuilder)
     NS_TEST_BOOL(s.IsEmpty());
     NS_TEST_INT(s.GetCharacterCount(), 0);
     NS_TEST_INT(s.GetElementCount(), 0);
-    NS_TEST_BOOL(s.IsPureASCII());
     NS_TEST_BOOL(s == "");
   }
 
@@ -35,14 +29,12 @@ NS_CREATE_SIMPLE_TEST(Strings, StringBuilder)
     NS_TEST_BOOL(s == sUtf8.GetData());
     NS_TEST_INT(s.GetElementCount(), 18);
     NS_TEST_INT(s.GetCharacterCount(), 13);
-    NS_TEST_BOOL(!s.IsPureASCII());
 
     nsStringBuilder s2("test test");
 
     NS_TEST_BOOL(s2 == "test test");
     NS_TEST_INT(s2.GetElementCount(), 9);
     NS_TEST_INT(s2.GetCharacterCount(), 9);
-    NS_TEST_BOOL(s2.IsPureASCII());
   }
 
   NS_TEST_BLOCK(nsTestBlock::Enabled, "Constructor(wchar_t)")
@@ -53,14 +45,12 @@ NS_CREATE_SIMPLE_TEST(Strings, StringBuilder)
     NS_TEST_BOOL(s == sUtf8.GetData());
     NS_TEST_INT(s.GetElementCount(), 18);
     NS_TEST_INT(s.GetCharacterCount(), 13);
-    NS_TEST_BOOL(!s.IsPureASCII());
 
     nsStringBuilder s2(L"test test");
 
     NS_TEST_BOOL(s2 == "test test");
     NS_TEST_INT(s2.GetElementCount(), 9);
     NS_TEST_INT(s2.GetCharacterCount(), 9);
-    NS_TEST_BOOL(s2.IsPureASCII());
   }
 
   NS_TEST_BLOCK(nsTestBlock::Enabled, "Constructor(copy)")
@@ -72,7 +62,6 @@ NS_CREATE_SIMPLE_TEST(Strings, StringBuilder)
     NS_TEST_BOOL(s2 == sUtf8.GetData());
     NS_TEST_INT(s2.GetElementCount(), 18);
     NS_TEST_INT(s2.GetCharacterCount(), 13);
-    NS_TEST_BOOL(!s2.IsPureASCII());
   }
 
   NS_TEST_BLOCK(nsTestBlock::Enabled, "Constructor(StringView)")
@@ -85,7 +74,6 @@ NS_CREATE_SIMPLE_TEST(Strings, StringBuilder)
 
     NS_TEST_INT(s.GetElementCount(), 6);
     NS_TEST_INT(s.GetCharacterCount(), 4);
-    NS_TEST_BOOL(!s.IsPureASCII());
     NS_TEST_BOOL(s == nsStringUtf8(L"c äö").GetData());
   }
 
@@ -109,7 +97,6 @@ NS_CREATE_SIMPLE_TEST(Strings, StringBuilder)
     NS_TEST_BOOL(s == sUtf8.GetData());
     NS_TEST_INT(s.GetElementCount(), 18);
     NS_TEST_INT(s.GetCharacterCount(), 13);
-    NS_TEST_BOOL(!s.IsPureASCII());
 
     nsStringBuilder s2("bla");
     s2 = "test test";
@@ -117,7 +104,6 @@ NS_CREATE_SIMPLE_TEST(Strings, StringBuilder)
     NS_TEST_BOOL(s2 == "test test");
     NS_TEST_INT(s2.GetElementCount(), 9);
     NS_TEST_INT(s2.GetCharacterCount(), 9);
-    NS_TEST_BOOL(s2.IsPureASCII());
   }
 
   NS_TEST_BLOCK(nsTestBlock::Enabled, "operator=(wchar_t)")
@@ -129,7 +115,6 @@ NS_CREATE_SIMPLE_TEST(Strings, StringBuilder)
     NS_TEST_BOOL(s == sUtf8.GetData());
     NS_TEST_INT(s.GetElementCount(), 18);
     NS_TEST_INT(s.GetCharacterCount(), 13);
-    NS_TEST_BOOL(!s.IsPureASCII());
 
     nsStringBuilder s2("bla");
     s2 = L"test test";
@@ -137,7 +122,6 @@ NS_CREATE_SIMPLE_TEST(Strings, StringBuilder)
     NS_TEST_BOOL(s2 == "test test");
     NS_TEST_INT(s2.GetElementCount(), 9);
     NS_TEST_INT(s2.GetCharacterCount(), 9);
-    NS_TEST_BOOL(s2.IsPureASCII());
   }
 
   NS_TEST_BLOCK(nsTestBlock::Enabled, "operator=(copy)")
@@ -150,7 +134,6 @@ NS_CREATE_SIMPLE_TEST(Strings, StringBuilder)
     NS_TEST_BOOL(s2 == sUtf8.GetData());
     NS_TEST_INT(s2.GetElementCount(), 18);
     NS_TEST_INT(s2.GetCharacterCount(), 13);
-    NS_TEST_BOOL(!s2.IsPureASCII());
   }
 
   NS_TEST_BLOCK(nsTestBlock::Enabled, "operator=(StringView)")
@@ -187,32 +170,27 @@ NS_CREATE_SIMPLE_TEST(Strings, StringBuilder)
     nsStringBuilder s(L"abc äöü € def");
 
     NS_TEST_BOOL(!s.IsEmpty());
-    NS_TEST_BOOL(!s.IsPureASCII());
 
     s.Clear();
     NS_TEST_BOOL(s.IsEmpty());
     NS_TEST_INT(s.GetElementCount(), 0);
     NS_TEST_INT(s.GetCharacterCount(), 0);
-    NS_TEST_BOOL(s.IsPureASCII());
   }
 
-  NS_TEST_BLOCK(nsTestBlock::Enabled, "GetElementCount / GetCharacterCount / IsPureASCII")
+  NS_TEST_BLOCK(nsTestBlock::Enabled, "GetElementCount / GetCharacterCount")
   {
     nsStringBuilder s(L"abc äöü € def");
 
-    NS_TEST_BOOL(!s.IsPureASCII());
     NS_TEST_INT(s.GetElementCount(), 18);
     NS_TEST_INT(s.GetCharacterCount(), 13);
 
     s = "abc";
 
-    NS_TEST_BOOL(s.IsPureASCII());
     NS_TEST_INT(s.GetElementCount(), 3);
     NS_TEST_INT(s.GetCharacterCount(), 3);
 
     s = L"Hällo! I love €";
 
-    NS_TEST_BOOL(!s.IsPureASCII());
     NS_TEST_INT(s.GetElementCount(), 18);
     NS_TEST_INT(s.GetCharacterCount(), 15);
   }
@@ -334,17 +312,19 @@ NS_CREATE_SIMPLE_TEST(Strings, StringBuilder)
   NS_TEST_BLOCK(nsTestBlock::Enabled, "Printf")
   {
     nsStringBuilder s("abc");
-    s.Printf("Test%i%s%s", 42, "foo", nsStringUtf8(L"bär").GetData());
+    s.SetPrintf("Test%i%s%s", 42, "foo", nsStringUtf8(L"bär").GetData());
 
     NS_TEST_BOOL(s == nsStringUtf8(L"Test42foobär").GetData());
   }
 
-  NS_TEST_BLOCK(nsTestBlock::Enabled, "Format")
+  NS_TEST_BLOCK(nsTestBlock::Enabled, "SetFormat")
   {
     nsStringBuilder s("abc");
-    s.Format("Test{0}{1}{2}", 42, "foo", nsStringUtf8(L"bär").GetData());
-
+    s.SetFormat("Test{0}{1}{2}", 42, "foo", nsStringUtf8(L"bär").GetData());
     NS_TEST_BOOL(s == nsStringUtf8(L"Test42foobär").GetData());
+
+    s.SetFormat("%%процент{}%%", 100);
+    NS_TEST_BOOL(s == nsStringUtf8(L"%процент100%").GetData());
   }
 
   NS_TEST_BLOCK(nsTestBlock::Enabled, "ToUpper")
@@ -991,7 +971,11 @@ NS_CREATE_SIMPLE_TEST(Strings, StringBuilder)
     p.ChangeFileName("toeff");
     NS_TEST_BOOL(p == "test/test/tut/murpf/toeff"); // filename is EMPTY -> thus ADDS it
 
-    p = "test/test/tut/murpf/.extension"; // folders that start with a dot must be considered to be empty filenames with an extension
+    p = "test/test/tut/murpf/.file";                // files that start with a dot are considered to be filenames with no extension
+    p.ChangeFileName("toeff");
+    NS_TEST_BOOL(p == "test/test/tut/murpf/toeff");
+
+    p = "test/test/tut/murpf/.file.extension";
     p.ChangeFileName("toeff");
     NS_TEST_BOOL(p == "test/test/tut/murpf/toeff.extension");
 
@@ -1020,7 +1004,7 @@ NS_CREATE_SIMPLE_TEST(Strings, StringBuilder)
     p.ChangeFileNameAndExtension("toeff.blo");
     NS_TEST_BOOL(p == "test/test/tut/murpf/toeff.blo"); // filename is EMPTY -> thus ADDS it
 
-    p = "test/test/tut/murpf/.extension"; // folders that start with a dot must be considered to be empty filenames with an extension
+    p = "test/test/tut/murpf/.extension";               // folders that start with a dot must be considered to be empty filenames with an extension
     p.ChangeFileNameAndExtension("toeff.ext");
     NS_TEST_BOOL(p == "test/test/tut/murpf/toeff.ext");
 
@@ -1145,9 +1129,11 @@ NS_CREATE_SIMPLE_TEST(Strings, StringBuilder)
     p = "This/Is\\My//Path.dot\\";
     NS_TEST_BOOL(p.GetFileName() == "");
 
-    // so far we treat file and folders whose names start with a '.' as extensions
     p = "This/Is\\My//Path.dot\\.stupidfile";
-    NS_TEST_BOOL(p.GetFileName() == "");
+    NS_TEST_BOOL(p.GetFileName() == ".stupidfile");
+
+    p = "This/Is\\My//Path.dot\\.stupidfile.ext";
+    NS_TEST_BOOL(p.GetFileName() == ".stupidfile");
   }
 
   NS_TEST_BLOCK(nsTestBlock::Enabled, "GetFileDirectory")
@@ -1334,64 +1320,64 @@ NS_CREATE_SIMPLE_TEST(Strings, StringBuilder)
   {
     nsStringBuilder p;
 
-    p = u8"ä/b\\c/d\\\\e/f/g";
-    NS_TEST_BOOL(p.MakeRelativeTo(u8"ä\\b/c").Succeeded());
+    p = (const char*)u8"ä/b\\c/d\\\\e/f/g";
+    NS_TEST_BOOL(p.MakeRelativeTo((const char*)u8"ä\\b/c").Succeeded());
     NS_TEST_BOOL(p == "d/e/f/g");
-    NS_TEST_BOOL(p.MakeRelativeTo(u8"ä\\b/c").Failed());
-    NS_TEST_BOOL(p == "d/e/f/g");
-
-    p = u8"ä/b\\c//d\\\\e/f/g";
-    NS_TEST_BOOL(p.MakeRelativeTo(u8"ä\\b/c").Succeeded());
-    NS_TEST_BOOL(p == "d/e/f/g");
-    NS_TEST_BOOL(p.MakeRelativeTo(u8"ä\\b/c").Failed());
+    NS_TEST_BOOL(p.MakeRelativeTo((const char*)u8"ä\\b/c").Failed());
     NS_TEST_BOOL(p == "d/e/f/g");
 
-    p = u8"ä/b\\c/d\\\\e/f/g";
-    NS_TEST_BOOL(p.MakeRelativeTo(u8"ä\\b/c/").Succeeded());
+    p = (const char*)u8"ä/b\\c//d\\\\e/f/g";
+    NS_TEST_BOOL(p.MakeRelativeTo((const char*)u8"ä\\b/c").Succeeded());
     NS_TEST_BOOL(p == "d/e/f/g");
-    NS_TEST_BOOL(p.MakeRelativeTo(u8"ä\\b/c/").Failed());
-    NS_TEST_BOOL(p == "d/e/f/g");
-
-    p = u8"ä/b\\c//d\\\\e/f/g";
-    NS_TEST_BOOL(p.MakeRelativeTo(u8"ä\\b/c/").Succeeded());
-    NS_TEST_BOOL(p == "d/e/f/g");
-    NS_TEST_BOOL(p.MakeRelativeTo(u8"ä\\b/c/").Failed());
+    NS_TEST_BOOL(p.MakeRelativeTo((const char*)u8"ä\\b/c").Failed());
     NS_TEST_BOOL(p == "d/e/f/g");
 
-    p = u8"ä/b\\c//d\\\\e/f/g";
-    NS_TEST_BOOL(p.MakeRelativeTo(u8"ä\\b/c\\/d/\\e\\f/g").Succeeded());
+    p = (const char*)u8"ä/b\\c/d\\\\e/f/g";
+    NS_TEST_BOOL(p.MakeRelativeTo((const char*)u8"ä\\b/c/").Succeeded());
+    NS_TEST_BOOL(p == "d/e/f/g");
+    NS_TEST_BOOL(p.MakeRelativeTo((const char*)u8"ä\\b/c/").Failed());
+    NS_TEST_BOOL(p == "d/e/f/g");
+
+    p = (const char*)u8"ä/b\\c//d\\\\e/f/g";
+    NS_TEST_BOOL(p.MakeRelativeTo((const char*)u8"ä\\b/c/").Succeeded());
+    NS_TEST_BOOL(p == "d/e/f/g");
+    NS_TEST_BOOL(p.MakeRelativeTo((const char*)u8"ä\\b/c/").Failed());
+    NS_TEST_BOOL(p == "d/e/f/g");
+
+    p = (const char*)u8"ä/b\\c//d\\\\e/f/g";
+    NS_TEST_BOOL(p.MakeRelativeTo((const char*)u8"ä\\b/c\\/d/\\e\\f/g").Succeeded());
     NS_TEST_BOOL(p == "");
-    NS_TEST_BOOL(p.MakeRelativeTo(u8"ä\\b/c\\/d/\\e\\f/g").Failed());
+    NS_TEST_BOOL(p.MakeRelativeTo((const char*)u8"ä\\b/c\\/d/\\e\\f/g").Failed());
     NS_TEST_BOOL(p == "");
 
-    p = u8"ä/b\\c//d\\\\e/f/g/";
-    NS_TEST_BOOL(p.MakeRelativeTo(u8"ä\\b/c\\/d//e\\f/g\\h/i").Succeeded());
+    p = (const char*)u8"ä/b\\c//d\\\\e/f/g/";
+    NS_TEST_BOOL(p.MakeRelativeTo((const char*)u8"ä\\b/c\\/d//e\\f/g\\h/i").Succeeded());
     NS_TEST_BOOL(p == "../../");
-    NS_TEST_BOOL(p.MakeRelativeTo(u8"ä\\b/c\\/d//e\\f/g\\h/i").Failed());
+    NS_TEST_BOOL(p.MakeRelativeTo((const char*)u8"ä\\b/c\\/d//e\\f/g\\h/i").Failed());
     NS_TEST_BOOL(p == "../../");
 
-    p = u8"ä/b\\c//d\\\\e/f/g/j/k";
-    NS_TEST_BOOL(p.MakeRelativeTo(u8"ä\\b/c\\/d//e\\f/g\\h/i").Succeeded());
+    p = (const char*)u8"ä/b\\c//d\\\\e/f/g/j/k";
+    NS_TEST_BOOL(p.MakeRelativeTo((const char*)u8"ä\\b/c\\/d//e\\f/g\\h/i").Succeeded());
     NS_TEST_BOOL(p == "../../j/k");
-    NS_TEST_BOOL(p.MakeRelativeTo(u8"ä\\b/c\\/d//e\\f/g\\h/i").Failed());
+    NS_TEST_BOOL(p.MakeRelativeTo((const char*)u8"ä\\b/c\\/d//e\\f/g\\h/i").Failed());
     NS_TEST_BOOL(p == "../../j/k");
 
-    p = u8"ä/b\\c//d\\\\e/f/ge";
-    NS_TEST_BOOL(p.MakeRelativeTo(u8"ä\\b/c//d/\\e\\f/g\\h/i").Succeeded());
+    p = (const char*)u8"ä/b\\c//d\\\\e/f/ge";
+    NS_TEST_BOOL(p.MakeRelativeTo((const char*)u8"ä\\b/c//d/\\e\\f/g\\h/i").Succeeded());
     NS_TEST_BOOL(p == "../../../ge");
-    NS_TEST_BOOL(p.MakeRelativeTo(u8"ä\\b/c//d/\\e\\f/g\\h/i").Failed());
+    NS_TEST_BOOL(p.MakeRelativeTo((const char*)u8"ä\\b/c//d/\\e\\f/g\\h/i").Failed());
     NS_TEST_BOOL(p == "../../../ge");
 
-    p = u8"ä/b\\c//d\\\\e/f/g.txt";
-    NS_TEST_BOOL(p.MakeRelativeTo(u8"ä\\b/c//d//e\\f/g\\h/i").Succeeded());
+    p = (const char*)u8"ä/b\\c//d\\\\e/f/g.txt";
+    NS_TEST_BOOL(p.MakeRelativeTo((const char*)u8"ä\\b/c//d//e\\f/g\\h/i").Succeeded());
     NS_TEST_BOOL(p == "../../../g.txt");
-    NS_TEST_BOOL(p.MakeRelativeTo(u8"ä\\b/c//d//e\\f/g\\h/i").Failed());
+    NS_TEST_BOOL(p.MakeRelativeTo((const char*)u8"ä\\b/c//d//e\\f/g\\h/i").Failed());
     NS_TEST_BOOL(p == "../../../g.txt");
 
-    p = u8"ä/b\\c//d\\\\e/f/g";
-    NS_TEST_BOOL(p.MakeRelativeTo(u8"ä\\b/c//d//e\\f/g\\h/i").Succeeded());
+    p = (const char*)u8"ä/b\\c//d\\\\e/f/g";
+    NS_TEST_BOOL(p.MakeRelativeTo((const char*)u8"ä\\b/c//d//e\\f/g\\h/i").Succeeded());
     NS_TEST_BOOL(p == "../../");
-    NS_TEST_BOOL(p.MakeRelativeTo(u8"ä\\b/c//d//e\\f/g\\h/i").Failed());
+    NS_TEST_BOOL(p.MakeRelativeTo((const char*)u8"ä\\b/c//d//e\\f/g\\h/i").Failed());
     NS_TEST_BOOL(p == "../../");
   }
 

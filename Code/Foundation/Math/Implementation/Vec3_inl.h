@@ -1,14 +1,9 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 template <typename Type>
 NS_FORCE_INLINE nsVec3Template<Type>::nsVec3Template()
 {
-#if NS_ENABLED(NS_COMPILE_FOR_DEBUG)
+#if NS_ENABLED(NS_MATH_CHECK_FOR_NAN)
   // Initialize all data to NaN in debug mode to find problems with uninitialized data easier.
   const Type TypeNaN = nsMath::NaN<Type>();
   x = TypeNaN;
@@ -56,13 +51,13 @@ NS_ALWAYS_INLINE void nsVec3Template<Type>::SetZero()
 }
 
 template <typename Type>
-NS_ALWAYS_INLINE Type nsVec3Template<Type>::GetLength() const
+NS_IMPLEMENT_IF_FLOAT_TYPE NS_ALWAYS_INLINE Type nsVec3Template<Type>::GetLength() const
 {
   return (nsMath::Sqrt(GetLengthSquared()));
 }
 
 template <typename Type>
-nsResult nsVec3Template<Type>::SetLength(Type fNewLength, Type fEpsilon /* = nsMath::DefaultEpsilon<Type>() */)
+NS_IMPLEMENT_IF_FLOAT_TYPE nsResult nsVec3Template<Type>::SetLength(Type fNewLength, Type fEpsilon /* = nsMath::DefaultEpsilon<Type>() */)
 {
   if (NormalizeIfNotZero(nsVec3Template<Type>::MakeZero(), fEpsilon) == NS_FAILURE)
     return NS_FAILURE;
@@ -80,7 +75,7 @@ NS_FORCE_INLINE Type nsVec3Template<Type>::GetLengthSquared() const
 }
 
 template <typename Type>
-NS_FORCE_INLINE Type nsVec3Template<Type>::GetLengthAndNormalize()
+NS_IMPLEMENT_IF_FLOAT_TYPE NS_FORCE_INLINE Type nsVec3Template<Type>::GetLengthAndNormalize()
 {
   const Type fLength = GetLength();
   *this /= fLength;
@@ -88,7 +83,7 @@ NS_FORCE_INLINE Type nsVec3Template<Type>::GetLengthAndNormalize()
 }
 
 template <typename Type>
-NS_FORCE_INLINE const nsVec3Template<Type> nsVec3Template<Type>::GetNormalized() const
+NS_IMPLEMENT_IF_FLOAT_TYPE NS_FORCE_INLINE const nsVec3Template<Type> nsVec3Template<Type>::GetNormalized() const
 {
   const Type fLen = GetLength();
 
@@ -97,13 +92,13 @@ NS_FORCE_INLINE const nsVec3Template<Type> nsVec3Template<Type>::GetNormalized()
 }
 
 template <typename Type>
-NS_ALWAYS_INLINE void nsVec3Template<Type>::Normalize()
+NS_IMPLEMENT_IF_FLOAT_TYPE NS_ALWAYS_INLINE void nsVec3Template<Type>::Normalize()
 {
   *this /= GetLength();
 }
 
 template <typename Type>
-nsResult nsVec3Template<Type>::NormalizeIfNotZero(const nsVec3Template<Type>& vFallback, Type fEpsilon)
+NS_IMPLEMENT_IF_FLOAT_TYPE nsResult nsVec3Template<Type>::NormalizeIfNotZero(const nsVec3Template<Type>& vFallback, Type fEpsilon)
 {
   NS_NAN_ASSERT(&vFallback);
 
@@ -123,7 +118,7 @@ nsResult nsVec3Template<Type>::NormalizeIfNotZero(const nsVec3Template<Type>& vF
   length is between a lower and upper limit.
 */
 template <typename Type>
-NS_FORCE_INLINE bool nsVec3Template<Type>::IsNormalized(Type fEpsilon /* = nsMath::HugeEpsilon<Type>() */) const
+NS_IMPLEMENT_IF_FLOAT_TYPE NS_FORCE_INLINE bool nsVec3Template<Type>::IsNormalized(Type fEpsilon /* = nsMath::HugeEpsilon<Type>() */) const
 {
   const Type t = GetLengthSquared();
   return nsMath::IsEqual(t, (Type)1, fEpsilon);
@@ -236,25 +231,33 @@ NS_FORCE_INLINE void nsVec3Template<Type>::operator*=(Type f)
 template <typename Type>
 NS_FORCE_INLINE void nsVec3Template<Type>::operator/=(Type f)
 {
-  const Type f_inv = nsMath::Invert(f);
-
-  x *= f_inv;
-  y *= f_inv;
-  z *= f_inv;
+  if constexpr (std::is_floating_point_v<Type>)
+  {
+    const Type f_inv = nsMath::Invert(f);
+    x *= f_inv;
+    y *= f_inv;
+    z *= f_inv;
+  }
+  else
+  {
+    x /= f;
+    y /= f;
+    z /= f;
+  }
 
   // if this assert fires, you might have tried to normalize a zero-length vector
   NS_NAN_ASSERT(this);
 }
 
 template <typename Type>
-nsResult nsVec3Template<Type>::CalculateNormal(const nsVec3Template<Type>& v1, const nsVec3Template<Type>& v2, const nsVec3Template<Type>& v3)
+NS_IMPLEMENT_IF_FLOAT_TYPE nsResult nsVec3Template<Type>::CalculateNormal(const nsVec3Template<Type>& v1, const nsVec3Template<Type>& v2, const nsVec3Template<Type>& v3)
 {
   *this = (v3 - v2).CrossRH(v1 - v2);
   return NormalizeIfNotZero();
 }
 
 template <typename Type>
-void nsVec3Template<Type>::MakeOrthogonalTo(const nsVec3Template<Type>& vNormal)
+NS_IMPLEMENT_IF_FLOAT_TYPE void nsVec3Template<Type>::MakeOrthogonalTo(const nsVec3Template<Type>& vNormal)
 {
   NS_ASSERT_DEBUG(
     vNormal.IsNormalized(), "The vector to make this vector orthogonal to, must be normalized. It's length is {0}", nsArgF(vNormal.GetLength(), 3));
@@ -264,7 +267,7 @@ void nsVec3Template<Type>::MakeOrthogonalTo(const nsVec3Template<Type>& vNormal)
 }
 
 template <typename Type>
-const nsVec3Template<Type> nsVec3Template<Type>::GetOrthogonalVector() const
+NS_IMPLEMENT_IF_FLOAT_TYPE const nsVec3Template<Type> nsVec3Template<Type>::GetOrthogonalVector() const
 {
   NS_ASSERT_DEBUG(!IsZero(nsMath::SmallEpsilon<Type>()), "The vector must not be zero to be able to compute an orthogonal vector.");
 
@@ -276,7 +279,7 @@ const nsVec3Template<Type> nsVec3Template<Type>::GetOrthogonalVector() const
 }
 
 template <typename Type>
-const nsVec3Template<Type> nsVec3Template<Type>::GetReflectedVector(const nsVec3Template<Type>& vNormal) const
+NS_IMPLEMENT_IF_FLOAT_TYPE const nsVec3Template<Type> nsVec3Template<Type>::GetReflectedVector(const nsVec3Template<Type>& vNormal) const
 {
   NS_ASSERT_DEBUG(vNormal.IsNormalized(), "vNormal must be normalized.");
 
@@ -403,9 +406,16 @@ NS_FORCE_INLINE const nsVec3Template<Type> operator/(const nsVec3Template<Type>&
 {
   NS_NAN_ASSERT(&v);
 
-  // multiplication is much faster than division
-  const Type f_inv = nsMath::Invert(f);
-  return nsVec3Template<Type>(v.x * f_inv, v.y * f_inv, v.z * f_inv);
+  if constexpr (std::is_floating_point_v<Type>)
+  {
+    // multiplication is much faster than division
+    const Type f_inv = nsMath::Invert(f);
+    return nsVec3Template<Type>(v.x * f_inv, v.y * f_inv, v.z * f_inv);
+  }
+  else
+  {
+    return nsVec3Template<Type>(v.x / f, v.y / f, v.z / f);
+  }
 }
 
 template <typename Type>
@@ -457,7 +467,7 @@ NS_FORCE_INLINE bool operator<(const nsVec3Template<Type>& v1, const nsVec3Templ
 }
 
 template <typename Type>
-const nsVec3Template<Type> nsVec3Template<Type>::GetRefractedVector(const nsVec3Template<Type>& vNormal, Type fRefIndex1, Type fRefIndex2) const
+NS_IMPLEMENT_IF_FLOAT_TYPE const nsVec3Template<Type> nsVec3Template<Type>::GetRefractedVector(const nsVec3Template<Type>& vNormal, Type fRefIndex1, Type fRefIndex2) const
 {
   NS_ASSERT_DEBUG(vNormal.IsNormalized(), "vNormal must be normalized.");
 

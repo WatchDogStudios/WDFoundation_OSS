@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #pragma once
 
 #include <Foundation/Communication/Event.h>
@@ -68,6 +63,15 @@ public:
     AllowWrites,
   };
 
+  struct DataDirectoryInfo
+  {
+    DataDirUsage m_Usage;
+
+    nsString m_sRootName;
+    nsString m_sGroup;
+    nsDataDirectoryType* m_pDataDirectory = nullptr;
+  };
+
   /// \name Data Directory Modifications
   ///
   /// All functions that add / remove data directories are not thread safe and require that this is done
@@ -124,6 +128,9 @@ public:
 
   /// \brief Returns the n-th currently active data directory.
   static nsDataDirectoryType* GetDataDirectory(nsUInt32 uiDataDirIndex); // [tested]
+
+  /// \brief Returns the info about the n-th currently active data directory.
+  static const DataDirectoryInfo& GetDataDirectoryInfo(nsUInt32 uiDataDirIndex);
 
   /// \brief Calls nsDataDirectoryType::ReloadExternalConfigs() on all active data directories.
   static void ReloadAllExternalDataDirectoryConfigs();
@@ -230,11 +237,11 @@ public:
   /// If the path is relative, it is attempted to open the specified file, which means it is searched in all available
   /// data directories. The path to the file that is found will be returned.
   ///
+  /// \param sPath can be a relative, an absolute or a rooted path. This can also be used to find the relative location to the data
+  /// directory that would handle it.
   /// \param out_sAbsolutePath will contain the absolute path to the file. Can be nullptr.
   /// \param out_sDataDirRelativePath will contain the relative path to the file (from the data directory in which it might end up in). Can be
   /// nullptr.
-  /// \param szPath can be a relative, an absolute or a rooted path. This can also be used to find the relative location to the data
-  /// directory that would handle it.
   /// \param out_ppDataDir If not null, it will be set to the data directory that would handle this path.
   ///
   /// \returns The function will return NS_FAILURE if it was not able to determine any location where the file could be read from or written to.
@@ -295,15 +302,6 @@ private:
   static void Shutdown();
 
 private:
-  struct DataDirectory
-  {
-    DataDirUsage m_Usage;
-
-    nsString m_sRootName;
-    nsString m_sGroup;
-    nsDataDirectoryType* m_pDataDirectory;
-  };
-
   struct Factory
   {
     NS_DECLARE_POD_TYPE();
@@ -315,19 +313,19 @@ private:
   struct FileSystemData
   {
     nsHybridArray<Factory, 4> m_DataDirFactories;
-    nsHybridArray<DataDirectory, 16> m_DataDirectories;
+    nsHybridArray<DataDirectoryInfo, 16> m_DataDirectories;
 
     nsEvent<const FileEvent&, nsMutex> m_Event;
     nsMutex m_FsMutex;
   };
 
-  /// \brief Returns a list of data directory categories that were embedded in the path.
+  /// \brief Extracts the root name in a rooted path, e.g. for ":bin/stuff" it would extract "bin". Returns the relative path (here "stuff") or an empty string if it is a root only.
   static nsStringView ExtractRootName(nsStringView sFile, nsString& rootName);
 
   /// \brief Returns the given path relative to its data directory. The path must be inside the given data directory.
   static nsStringView GetDataDirRelativePath(nsStringView sFile, nsUInt32 uiDataDir);
 
-  static DataDirectory* GetDataDirForRoot(const nsString& sRoot);
+  static DataDirectoryInfo* GetDataDirForRoot(const nsString& sRoot);
 
   static void CleanUpRootName(nsStringBuilder& sRoot);
 

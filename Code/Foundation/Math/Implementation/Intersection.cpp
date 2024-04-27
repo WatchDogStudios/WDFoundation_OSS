@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Math/Intersection.h>
@@ -100,7 +95,7 @@ bool nsIntersectionUtils::Ray2DLine2D(const nsVec2& vRayStartPos, const nsVec2& 
     const float fPlaneSide = vPlaneNormal.Dot(vRayStartPos) + fPlaneNegDist;
     const float fCosAlpha = vPlaneNormal.Dot(vRayDir);
 
-    if (fCosAlpha == 0) // ray is orthogonal to plane
+    if (fCosAlpha == 0)                                      // ray is orthogonal to plane
       return false;
 
     if (nsMath::Sign(fPlaneSide) == nsMath::Sign(fCosAlpha)) // ray points away from the plane
@@ -137,5 +132,3 @@ bool nsIntersectionUtils::IsPointOnLine(const nsVec3& vLineStart, const nsVec3& 
 
   return (fClosestDistSqr <= fMaxDist * fMaxDist);
 }
-
-NS_STATICLINK_FILE(Foundation, Foundation_Math_Implementation_Intersection);

@@ -1,8 +1,3 @@
-/*
- *   Copyright (c) 2023-present WD Studios L.L.C.
- *   All rights reserved.
- *   You are only allowed access to this code, if given WRITTEN permission by Watch Dogs LLC.
- */
 #include <Foundation/FoundationPCH.h>
 
 #include <Foundation/Containers/HybridArray.h>
@@ -41,7 +36,3 @@ nsStreamReader& operator>>(nsStreamReader& inout_stream, nsStringBuilder& out_sV
   inout_stream.ReadString(out_sValue).AssertSuccess();
   return inout_stream;
 }
-
-
-
-NS_STATICLINK_FILE(Foundation, Foundation_IO_Implementation_StreamOperations);
